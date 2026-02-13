@@ -23,8 +23,36 @@ const getPercentageColor = (percentage: number) => {
 }
 
 export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
-  // Sort by score descending
-  const sortedEntries = [...entries].sort((a, b) => b.total_score - a.total_score)
+  const getViewValue = (entry: LeaderboardEntry) => {
+    if (view === 'speed') return entry.best_execution_time_seconds ?? null
+    if (view === 'cost') return entry.best_cost_usd ?? null
+    return entry.percentage
+  }
+
+  const sortedEntries = [...entries].sort((a, b) => {
+    if (view === 'speed') {
+      const aValue = a.best_execution_time_seconds
+      const bValue = b.best_execution_time_seconds
+      if (aValue == null && bValue == null) return 0
+      if (aValue == null) return 1
+      if (bValue == null) return -1
+      return aValue - bValue
+    }
+
+    if (view === 'cost') {
+      const aValue = a.best_cost_usd
+      const bValue = b.best_cost_usd
+      if (aValue == null && bValue == null) return 0
+      if (aValue == null) return 1
+      if (bValue == null) return -1
+      return aValue - bValue
+    }
+
+    return b.percentage - a.percentage
+  })
+
+  const rankedEntries = sortedEntries.filter((entry) => getViewValue(entry) !== null)
+  const nullEntries = sortedEntries.filter((entry) => getViewValue(entry) === null)
 
   if (view === 'success') {
     return (
@@ -42,7 +70,7 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
         {/* Bar Chart */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <div className="space-y-3">
-            {sortedEntries.map((entry) => (
+            {rankedEntries.concat(nullEntries).map((entry) => (
               <Link
                 key={entry.submission_id}
                 href={`/submission/${entry.submission_id}`}
@@ -78,7 +106,7 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
                         className="text-sm font-bold"
                         style={{ color: getPercentageColor(entry.percentage) }}
                       >
-                        {entry.total_score.toFixed(0)}/10
+                        {entry.percentage.toFixed(1)}%
                       </span>
                     </div>
                   </div>
@@ -108,7 +136,7 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {sortedEntries.map((entry) => (
+              {rankedEntries.concat(nullEntries).map((entry) => (
                 <tr
                   key={entry.submission_id}
                   className="hover:bg-muted/30 transition-colors"
@@ -143,7 +171,7 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className="text-sm font-medium text-foreground">
-                      {entry.total_score.toFixed(1)}/10.0
+                      {entry.percentage.toFixed(1)}%
                     </span>
                   </td>
                 </tr>
@@ -154,6 +182,20 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
       </div>
     )
   }
+
+  const formatValue = (entry: LeaderboardEntry) => {
+    if (view === 'speed') {
+      return entry.best_execution_time_seconds == null
+        ? 'N/A'
+        : `${entry.best_execution_time_seconds.toFixed(2)}s`
+    }
+    if (view === 'cost') {
+      return entry.best_cost_usd == null ? 'N/A' : `$${entry.best_cost_usd.toFixed(2)}`
+    }
+    return `${entry.percentage.toFixed(1)}%`
+  }
+
+  const ranked = rankedEntries.map((entry, index) => ({ entry, rank: index + 1 }))
 
   // Speed and Cost views - simple table only
   return (
@@ -166,15 +208,87 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         {view === 'speed'
-          ? 'Coming soon - Average time per task completion'
-          : 'Coming soon - Total cost per benchmark run'}
+          ? 'Fastest submission time per model (best run)'
+          : 'Lowest submission cost per model (best run)'}
       </p>
 
-      <div className="bg-card border border-border rounded-lg p-12 text-center">
-        <span className="text-6xl mb-4 block">🦞</span>
-        <p className="text-muted-foreground">
-          {view === 'speed' ? 'Speed' : 'Cost'} metrics coming soon!
-        </p>
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-muted/50 border-b border-border">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                Rank
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                Model
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                Provider
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                {view === 'speed' ? 'Best Time' : 'Best Cost'}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {ranked.map(({ entry, rank }) => (
+              <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {rank}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/submission/${entry.submission_id}`}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
+                  >
+                    <code className="text-sm font-mono">{entry.model}</code>
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className="text-xs font-medium"
+                    style={{
+                      color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                    }}
+                  >
+                    {entry.provider}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span className="text-sm font-medium text-foreground">
+                    {formatValue(entry)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {nullEntries.map((entry) => (
+              <tr key={entry.submission_id} className="text-muted-foreground">
+                <td className="px-4 py-3">—</td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/submission/${entry.submission_id}`}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
+                  >
+                    <code className="text-sm font-mono">{entry.model}</code>
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className="text-xs font-medium"
+                    style={{
+                      color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                    }}
+                  >
+                    {entry.provider}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">N/A</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )

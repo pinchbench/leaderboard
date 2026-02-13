@@ -1,16 +1,15 @@
-'use client';
-
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Copy, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Copy } from 'lucide-react'
 import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
-import { mockSubmissions } from '@/lib/mock-data'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
+import { fetchSubmission } from '@/lib/api'
+import { transformSubmission } from '@/lib/transforms'
 
 interface SubmissionPageProps {
   params: Promise<{ id: string }>
@@ -18,7 +17,46 @@ interface SubmissionPageProps {
 
 export default async function SubmissionPage({ params }: SubmissionPageProps) {
   const { id } = await params
-  const submission = mockSubmissions[id]
+  let submission
+
+  try {
+    const response = await fetchSubmission(id)
+    submission = transformSubmission(response.submission)
+  } catch (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🦞</span>
+                <div>
+                  <h1 className="text-xl font-bold text-foreground">PinchBench</h1>
+                  <p className="text-xs text-muted-foreground">Submission Details</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <Card className="p-6 bg-card border-border">
+            <h2 className="text-lg font-semibold text-foreground mb-2">
+              Unable to load submission
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              There was a problem fetching this submission. Please try again later.
+            </p>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   if (!submission) {
     notFound()
@@ -95,13 +133,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 })}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigator.clipboard.writeText(submission.submission_id)
-              }}
-            >
+            <Button variant="outline" size="sm" disabled>
               <Copy className="h-4 w-4 mr-2" />
               Copy ID
             </Button>

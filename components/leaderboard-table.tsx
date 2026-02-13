@@ -1,7 +1,5 @@
 'use client'
 
-import { Progress } from "@/components/ui/progress"
-
 import { useState } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
@@ -36,8 +34,8 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
   const sortedEntries = [...entries].sort((a, b) => {
     if (sortBy === 'score') {
       return sortOrder === 'desc'
-        ? b.total_score - a.total_score
-        : a.total_score - b.total_score
+        ? b.percentage - a.percentage
+        : a.percentage - b.percentage
     }
     return sortOrder === 'desc'
       ? new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -144,15 +142,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
                     <span
                       className={`text-lg font-bold ${getScoreColor(entry.percentage)}`}
                     >
-                      {entry.total_score.toFixed(1)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      / {entry.max_score.toFixed(1)}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${getScoreColor(entry.percentage)}`}
-                    >
-                      ({entry.percentage.toFixed(0)}%)
+                      {entry.percentage.toFixed(1)}%
                     </span>
                   </div>
                 </td>
@@ -220,10 +210,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
                   <span
                     className={`text-lg font-bold ${getScoreColor(entry.percentage)}`}
                   >
-                    {entry.total_score.toFixed(1)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    /{entry.max_score.toFixed(1)}
+                    {entry.percentage.toFixed(1)}%
                   </span>
                 </div>
                 <span
