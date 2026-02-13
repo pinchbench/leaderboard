@@ -9,6 +9,8 @@ interface ShareableWrapperProps {
   title: string
   subtitle?: string
   className?: string
+  /** When true, the share button is always visible instead of appearing on hover */
+  alwaysShowButton?: boolean
 }
 
 type ShareAction = 'copy' | 'download' | 'share'
@@ -18,7 +20,7 @@ type ShareAction = 'copy' | 'download' | 'share'
  * The attribution bars are hidden during normal browsing and only shown
  * when capturing an image for sharing.
  */
-export function ShareableWrapper({ children, title, subtitle, className }: ShareableWrapperProps) {
+export function ShareableWrapper({ children, title, subtitle, className, alwaysShowButton }: ShareableWrapperProps) {
   const captureRef = useRef<HTMLDivElement>(null)
   const [isCapturing, setIsCapturing] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -86,7 +88,63 @@ export function ShareableWrapper({ children, title, subtitle, className }: Share
   const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
   return (
-    <div className={`relative group ${className ?? ''}`}>
+    <div className={`relative ${alwaysShowButton ? '' : 'group'} ${className ?? ''}`}>
+      {/* Always-visible share button above content */}
+      {alwaysShowButton && (
+        <div data-share-exclude="true" className="flex justify-end mb-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              disabled={isCapturing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
+              title="Share as image"
+            >
+              {isCapturing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Camera className="w-3.5 h-3.5" />
+              )}
+              Share
+            </button>
+
+            {/* Dropdown menu */}
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
+                  <button
+                    onClick={() => captureImage('copy')}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy to clipboard
+                  </button>
+                  <button
+                    onClick={() => captureImage('download')}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download PNG
+                  </button>
+                  {canShare && (
+                    <button
+                      onClick={() => captureImage('share')}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share...
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Capture target - includes attribution bars */}
       <div ref={captureRef} className="shareable-capture-target">
         {/* Attribution header - hidden by default, shown during capture */}
@@ -121,7 +179,7 @@ export function ShareableWrapper({ children, title, subtitle, className }: Share
                     lineHeight: '1.4',
                   }}
                 >
-                  Claw-some AI Agent Testing
+                   OpenClaw LLM Model Benchmarking
                 </div>
               </div>
             </div>
@@ -187,63 +245,65 @@ export function ShareableWrapper({ children, title, subtitle, className }: Share
         </div>
       </div>
 
-      {/* Share button - floats on top, excluded from capture */}
-      <div
-        data-share-exclude="true"
-        className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-      >
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu((v) => !v)}
-            disabled={isCapturing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
-            title="Share as image"
-          >
-            {isCapturing ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Camera className="w-3.5 h-3.5" />
-            )}
-            Share
-          </button>
+      {/* Share button - floats on top, excluded from capture (hover mode only) */}
+      {!alwaysShowButton && (
+        <div
+          data-share-exclude="true"
+          className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        >
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              disabled={isCapturing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
+              title="Share as image"
+            >
+              {isCapturing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Camera className="w-3.5 h-3.5" />
+              )}
+              Share
+            </button>
 
-          {/* Dropdown menu */}
-          {showMenu && (
-            <>
-              {/* Backdrop to close menu */}
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowMenu(false)}
-              />
-              <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
-                <button
-                  onClick={() => captureImage('copy')}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy to clipboard
-                </button>
-                <button
-                  onClick={() => captureImage('download')}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Download PNG
-                </button>
-                {canShare && (
+            {/* Dropdown menu */}
+            {showMenu && (
+              <>
+                {/* Backdrop to close menu */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
                   <button
-                    onClick={() => captureImage('share')}
+                    onClick={() => captureImage('copy')}
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
                   >
-                    <Share2 className="w-4 h-4" />
-                    Share...
+                    <Copy className="w-4 h-4" />
+                    Copy to clipboard
                   </button>
-                )}
-              </div>
-            </>
-          )}
+                  <button
+                    onClick={() => captureImage('download')}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download PNG
+                  </button>
+                  {canShare && (
+                    <button
+                      onClick={() => captureImage('share')}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share...
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Feedback toast */}
       {feedback && (

@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, Copy } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { ShareButton } from '@/components/share-button'
 import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
 import { PROVIDER_COLORS } from '@/lib/types'
@@ -133,10 +134,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 })}
               </p>
             </div>
-            <Button variant="outline" size="sm" disabled>
-              <Copy className="h-4 w-4 mr-2" />
-              Copy ID
-            </Button>
+            <ShareButton />
           </div>
 
           {/* Metadata */}

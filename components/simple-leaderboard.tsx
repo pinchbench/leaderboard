@@ -114,6 +114,7 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
         <ShareableWrapper
           title="Success Rate by Model"
           subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${displayedEntries.length} models`}
+          alwaysShowButton
         >
           <div className="bg-card border border-border rounded-lg p-6 mb-6">
             <div className="space-y-3">
@@ -131,7 +132,7 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
                         <span className="text-xl" title={`Rank ${entry.rank}`}>
                           {getCrabEmoji(entry.rank)}
                         </span>
-                        <code className="text-xs font-mono text-foreground group-hover:text-primary transition-colors truncate">
+                        <code className="text-xs font-mono text-foreground transition-colors truncate">
                           {entry.model}
                         </code>
                       </div>
@@ -216,7 +217,7 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
                       <td className="px-4 py-3">
                         <Link
                           href={`/submission/${entry.submission_id}`}
-                          className="flex items-center gap-2 hover:text-primary transition-colors"
+                          className="flex items-center gap-2 transition-colors"
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
                           <code className="text-sm font-mono">{entry.model}</code>
@@ -305,101 +306,106 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
           : 'Lowest submission cost per model (best run)'}
       </p>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-muted/50 border-b border-border">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                Rank
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                Model
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                Provider
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                {view === 'speed' ? 'Best Time' : 'Best Cost'}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {ranked.map(({ entry, rank }) => (
-              <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {rank}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/submission/${entry.submission_id}`}
-                    className="flex items-center gap-2 hover:text-primary transition-colors"
-                  >
-                    <code className="text-sm font-mono">{entry.model}</code>
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => onProviderClick?.(entry.provider)}
-                    className="text-xs font-medium hover:underline cursor-pointer"
-                    style={{
-                      color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
-                    }}
-                  >
-                    {entry.provider}
-                  </button>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-medium text-foreground">
-                    {formatValue(entry)}
-                  </span>
-                </td>
+      <ShareableWrapper
+        title={view === 'speed' ? 'Speed Rankings' : 'Cost Rankings'}
+        subtitle={`${ranked.length} models \u2022 Best run`}
+      >
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-muted/50 border-b border-border">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                  Model
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                  Provider
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                  {view === 'speed' ? 'Best Time' : 'Best Cost'}
+                </th>
               </tr>
-            ))}
-            {nullEntries.map((entry) => (
-              <tr key={entry.submission_id} className="text-muted-foreground">
-                <td className="px-4 py-3">--</td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/submission/${entry.submission_id}`}
-                    className="flex items-center gap-2 hover:text-primary transition-colors"
-                  >
-                    <code className="text-sm font-mono">{entry.model}</code>
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => onProviderClick?.(entry.provider)}
-                    className="text-xs font-medium hover:underline cursor-pointer"
-                    style={{
-                      color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
-                    }}
-                  >
-                    {entry.provider}
-                  </button>
-                </td>
-                <td className="px-4 py-3 text-right">N/A</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {showToggle && (
-          <div className="border-t border-border bg-card px-4 py-3 text-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowLowScores((prev) => !prev)}
-            >
-              {showLowScores
-                ? 'Show less'
-                : `Show more (${hiddenEntries.length})`}
-            </Button>
-          </div>
-        )}
-      </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {ranked.map(({ entry, rank }) => (
+                <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {rank}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/submission/${entry.submission_id}`}
+                      className="flex items-center gap-2 transition-colors"
+                    >
+                      <code className="text-sm font-mono">{entry.model}</code>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onProviderClick?.(entry.provider)}
+                      className="text-xs font-medium hover:underline cursor-pointer"
+                      style={{
+                        color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                      }}
+                    >
+                      {entry.provider}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-sm font-medium text-foreground">
+                      {formatValue(entry)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {nullEntries.map((entry) => (
+                <tr key={entry.submission_id} className="text-muted-foreground">
+                  <td className="px-4 py-3">--</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/submission/${entry.submission_id}`}
+                      className="flex items-center gap-2 transition-colors"
+                    >
+                      <code className="text-sm font-mono">{entry.model}</code>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onProviderClick?.(entry.provider)}
+                      className="text-xs font-medium hover:underline cursor-pointer"
+                      style={{
+                        color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                      }}
+                    >
+                      {entry.provider}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-right">N/A</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {showToggle && (
+            <div className="border-t border-border bg-card px-4 py-3 text-center" data-share-exclude="true">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLowScores((prev) => !prev)}
+              >
+                {showLowScores
+                  ? 'Show less'
+                  : `Show more (${hiddenEntries.length})`}
+              </Button>
+            </div>
+          )}
+        </div>
+      </ShareableWrapper>
     </div>
   )
 }
