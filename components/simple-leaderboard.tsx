@@ -1,12 +1,15 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 
 interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
   view: 'success' | 'speed' | 'cost'
+  scoreMode: 'best' | 'average'
 }
 
 const getCrabEmoji = (rank: number) => {
@@ -22,11 +25,22 @@ const getPercentageColor = (percentage: number) => {
   return 'hsl(0, 84%, 60%)' // red
 }
 
-export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
+export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboardProps) {
+  const [showLowScores, setShowLowScores] = useState(false)
+  const lowScoreCutoff = 40
+  const getScorePercentage = (entry: LeaderboardEntry) => {
+    if (scoreMode === 'average') {
+      return entry.average_score_percentage != null
+        ? entry.average_score_percentage * 100
+        : null
+    }
+    return entry.percentage
+  }
+
   const getViewValue = (entry: LeaderboardEntry) => {
     if (view === 'speed') return entry.best_execution_time_seconds ?? null
     if (view === 'cost') return entry.best_cost_usd ?? null
-    return entry.percentage
+    return getScorePercentage(entry)
   }
 
   const sortedEntries = [...entries].sort((a, b) => {
@@ -48,11 +62,38 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
       return aValue - bValue
     }
 
-    return b.percentage - a.percentage
+    const aScore = getScorePercentage(a) ?? -1
+    const bScore = getScorePercentage(b) ?? -1
+    return bScore - aScore
   })
 
   const rankedEntries = sortedEntries.filter((entry) => getViewValue(entry) !== null)
   const nullEntries = sortedEntries.filter((entry) => getViewValue(entry) === null)
+
+  const { displayedEntries, hiddenEntries } = useMemo(() => {
+    if (view !== 'success') {
+      return {
+        displayedEntries: rankedEntries,
+        hiddenEntries: [] as LeaderboardEntry[],
+      }
+    }
+
+    const visible = rankedEntries.filter((entry) => {
+      const scorePercentage = getScorePercentage(entry)
+      return scorePercentage != null && scorePercentage >= lowScoreCutoff
+    })
+    const hidden = rankedEntries.filter((entry) => {
+      const scorePercentage = getScorePercentage(entry)
+      return scorePercentage != null && scorePercentage < lowScoreCutoff
+    })
+
+    return {
+      displayedEntries: showLowScores ? visible.concat(hidden) : visible,
+      hiddenEntries: hidden,
+    }
+  }, [rankedEntries, showLowScores, view, scoreMode])
+
+  const showToggle = view === 'success' && hiddenEntries.length > 0
 
   if (view === 'success') {
     return (
@@ -70,50 +111,67 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
         {/* Bar Chart */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <div className="space-y-3">
-            {rankedEntries.concat(nullEntries).map((entry) => (
-              <Link
-                key={entry.submission_id}
-                href={`/submission/${entry.submission_id}`}
-                className="block group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-48 flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xl" title={`Rank ${entry.rank}`}>
-                      {getCrabEmoji(entry.rank)}
-                    </span>
-                    <code className="text-xs font-mono text-foreground group-hover:text-primary transition-colors truncate">
-                      {entry.model}
-                    </code>
-                  </div>
-                  <div className="flex-1 flex items-center gap-3">
-                    <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
-                        style={{
-                          width: `${entry.percentage}%`,
-                          backgroundColor: getPercentageColor(entry.percentage),
-                        }}
-                      />
-                      <span
-                        className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
-                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                      >
-                        {entry.percentage.toFixed(1)}%
+            {displayedEntries.concat(nullEntries).map((entry) => {
+              const scorePercentage = getScorePercentage(entry)
+              const displayPercentage = scorePercentage ?? 0
+              return (
+                <Link
+                  key={entry.submission_id}
+                  href={`/submission/${entry.submission_id}`}
+                  className="block group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-48 flex items-center gap-2 flex-shrink-0">
+                      <span className="text-xl" title={`Rank ${entry.rank}`}>
+                        {getCrabEmoji(entry.rank)}
                       </span>
+                      <code className="text-xs font-mono text-foreground group-hover:text-primary transition-colors truncate">
+                        {entry.model}
+                      </code>
                     </div>
-                    <div className="w-16 text-right">
-                      <span
-                        className="text-sm font-bold"
-                        style={{ color: getPercentageColor(entry.percentage) }}
-                      >
-                        {entry.percentage.toFixed(1)}%
-                      </span>
+                    <div className="flex-1 flex items-center gap-3">
+                      <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                          style={{
+                            width: `${displayPercentage}%`,
+                            backgroundColor: getPercentageColor(displayPercentage),
+                          }}
+                        />
+                        <span
+                          className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
+                          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                        >
+                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                        </span>
+                      </div>
+                      <div className="w-16 text-right">
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: getPercentageColor(displayPercentage) }}
+                        >
+                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
+          {showToggle && (
+            <div className="mt-4 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLowScores((prev) => !prev)}
+              >
+                {showLowScores
+                  ? 'Show less'
+                  : `Show more (${hiddenEntries.length})`}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Simple Table */}
@@ -136,48 +194,65 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rankedEntries.concat(nullEntries).map((entry) => (
-                <tr
-                  key={entry.submission_id}
-                  className="hover:bg-muted/30 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/submission/${entry.submission_id}`}
-                      className="flex items-center gap-2 hover:text-primary transition-colors"
-                    >
-                      <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
-                      <code className="text-sm font-mono">{entry.model}</code>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="text-xs font-medium"
-                      style={{
-                        color:
-                          PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
-                      }}
-                    >
-                      {entry.provider}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span
-                      className="text-sm font-bold"
-                      style={{ color: getPercentageColor(entry.percentage) }}
-                    >
-                      {entry.percentage.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm font-medium text-foreground">
-                      {entry.percentage.toFixed(1)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {displayedEntries.concat(nullEntries).map((entry) => {
+                const scorePercentage = getScorePercentage(entry)
+                const displayPercentage = scorePercentage ?? 0
+                return (
+                  <tr
+                    key={entry.submission_id}
+                    className="hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/submission/${entry.submission_id}`}
+                        className="flex items-center gap-2 hover:text-primary transition-colors"
+                      >
+                        <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
+                        <code className="text-sm font-mono">{entry.model}</code>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="text-xs font-medium"
+                        style={{
+                          color:
+                            PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                        }}
+                      >
+                        {entry.provider}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: getPercentageColor(displayPercentage) }}
+                      >
+                        {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-sm font-medium text-foreground">
+                        {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
+          {showToggle && (
+            <div className="border-t border-border bg-card px-4 py-3 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLowScores((prev) => !prev)}
+              >
+                {showLowScores
+                  ? 'Show less'
+                  : `Show more (${hiddenEntries.length})`}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -192,7 +267,8 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
     if (view === 'cost') {
       return entry.best_cost_usd == null ? 'N/A' : `$${entry.best_cost_usd.toFixed(2)}`
     }
-    return `${entry.percentage.toFixed(1)}%`
+    const scorePercentage = getScorePercentage(entry)
+    return scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`
   }
 
   const ranked = rankedEntries.map((entry, index) => ({ entry, rank: index + 1 }))
@@ -289,6 +365,19 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
             ))}
           </tbody>
         </table>
+        {showToggle && (
+          <div className="border-t border-border bg-card px-4 py-3 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLowScores((prev) => !prev)}
+            >
+              {showLowScores
+                ? 'Show less'
+                : `Show more (${hiddenEntries.length})`}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

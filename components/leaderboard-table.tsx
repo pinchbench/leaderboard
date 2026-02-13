@@ -30,6 +30,8 @@ const getScoreColor = (percentage: number) => {
 export function LeaderboardTable({ entries }: LeaderboardTableProps) {
   const [sortBy, setSortBy] = useState<'score' | 'date'>('score')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [showLowScores, setShowLowScores] = useState(false)
+  const lowScoreCutoff = 40
 
   const sortedEntries = [...entries].sort((a, b) => {
     if (sortBy === 'score') {
@@ -41,6 +43,17 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
       ? new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       : new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   })
+
+  const visibleEntries = sortedEntries.filter(
+    (entry) => entry.percentage >= lowScoreCutoff
+  )
+  const hiddenEntries = sortedEntries.filter(
+    (entry) => entry.percentage < lowScoreCutoff
+  )
+  const displayedEntries = showLowScores
+    ? visibleEntries.concat(hiddenEntries)
+    : visibleEntries
+  const showToggle = hiddenEntries.length > 0
 
   const toggleSort = (column: 'score' | 'date') => {
     if (sortBy === column) {
@@ -104,7 +117,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {sortedEntries.map((entry) => (
+            {displayedEntries.map((entry) => (
               <tr
                 key={entry.submission_id}
                 className="hover:bg-muted/30 transition-colors group"
@@ -172,11 +185,24 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             ))}
           </tbody>
         </table>
+        {showToggle && (
+          <div className="border-t border-border bg-card px-4 py-3 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLowScores((prev) => !prev)}
+            >
+              {showLowScores
+                ? 'Show less'
+                : `Show more (${hiddenEntries.length})`}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Mobile Cards */}
       <div className="md:hidden divide-y divide-border">
-        {sortedEntries.map((entry) => (
+        {displayedEntries.map((entry) => (
           <Link
             key={entry.submission_id}
             href={`/submission/${entry.submission_id}`}
@@ -228,6 +254,19 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             </div>
           </Link>
         ))}
+        {showToggle && (
+          <div className="border-t border-border bg-card px-4 py-3 text-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLowScores((prev) => !prev)}
+            >
+              {showLowScores
+                ? 'Show less'
+                : `Show more (${hiddenEntries.length})`}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
