@@ -52,16 +52,18 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <VersionSelector versions={versions} currentVersion={currentVersion} />
-                            <span>{filteredEntries.length} models</span>
-                            <Link
-                                href={currentVersion ? `/runs?version=${currentVersion}` : '/runs'}
-                                className="hover:underline hover:text-foreground transition-colors"
-                            >
-                                {totalRuns} runs
-                            </Link>
-                            <span>{lastUpdated}</span>
+                        <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>{filteredEntries.length} models</span>
+                                <Link
+                                    href={currentVersion ? `/runs?version=${currentVersion}` : '/runs'}
+                                    className="hover:underline hover:text-foreground transition-colors"
+                                >
+                                    {totalRuns} runs
+                                </Link>
+                                <VersionSelector versions={versions} currentVersion={currentVersion} />
+                            </div>
+                            <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
                     </div>
 

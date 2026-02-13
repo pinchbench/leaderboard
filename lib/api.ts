@@ -52,3 +52,39 @@ export async function fetchSubmissions(
 export async function fetchStats(): Promise<StatsResponse> {
   return fetchJson<StatsResponse>("/stats");
 }
+
+/**
+ * Fetch a single submission detail (client-side, no ISR caching).
+ * Used by chart components that need task-level data.
+ */
+export async function fetchSubmissionClient(
+  id: string,
+): Promise<SubmissionDetailResponse> {
+  const response = await fetch(`${API_BASE}/submissions/${id}`);
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return response.json() as Promise<SubmissionDetailResponse>;
+}
+
+/**
+ * Fetch the submissions list (client-side, no ISR caching).
+ * Used by chart components that need all submissions for distribution analysis.
+ */
+export async function fetchSubmissionsClient(
+  version?: string,
+  limit: number = 500,
+): Promise<SubmissionsListResponse> {
+  const params = new URLSearchParams();
+  if (version) params.set("version", version);
+  params.set("limit", String(limit));
+  const response = await fetch(`${API_BASE}/submissions?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return response.json() as Promise<SubmissionsListResponse>;
+}

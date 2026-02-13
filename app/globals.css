@@ -52,3 +52,18 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Shareable image attribution bars - hidden by default */
+.shareable-attribution-header,
+.shareable-attribution-footer {
+  display: none;
+  overflow: hidden;
+  max-height: 0;
+}
+
+/* Show attribution bars only during image capture */
+.shareable-capture-target[data-capturing="true"] .shareable-attribution-header,
+.shareable-capture-target[data-capturing="true"] .shareable-attribution-footer {
+  display: block;
+  max-height: none;
+}

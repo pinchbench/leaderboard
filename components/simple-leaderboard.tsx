@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { ShareableWrapper } from '@/components/shareable-wrapper'
 
 interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
@@ -110,156 +111,166 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
         </p>
 
         {/* Bar Chart */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="space-y-3">
-            {displayedEntries.concat(nullEntries).map((entry) => {
-              const scorePercentage = getScorePercentage(entry)
-              const displayPercentage = scorePercentage ?? 0
-              return (
-                <Link
-                  key={entry.submission_id}
-                  href={`/submission/${entry.submission_id}`}
-                  className="block group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-48 flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xl" title={`Rank ${entry.rank}`}>
-                        {getCrabEmoji(entry.rank)}
-                      </span>
-                      <code className="text-xs font-mono text-foreground group-hover:text-primary transition-colors truncate">
-                        {entry.model}
-                      </code>
-                    </div>
-                    <div className="flex-1 flex items-center gap-3">
-                      <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
-                          style={{
-                            width: `${displayPercentage}%`,
-                            backgroundColor: getPercentageColor(displayPercentage),
-                          }}
-                        />
-                        <span
-                          className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
-                          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                        >
-                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+        <ShareableWrapper
+          title="Success Rate by Model"
+          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${displayedEntries.length} models`}
+        >
+          <div className="bg-card border border-border rounded-lg p-6 mb-6">
+            <div className="space-y-3">
+              {displayedEntries.concat(nullEntries).map((entry) => {
+                const scorePercentage = getScorePercentage(entry)
+                const displayPercentage = scorePercentage ?? 0
+                return (
+                  <Link
+                    key={entry.submission_id}
+                    href={`/submission/${entry.submission_id}`}
+                    className="block group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-48 flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xl" title={`Rank ${entry.rank}`}>
+                          {getCrabEmoji(entry.rank)}
                         </span>
+                        <code className="text-xs font-mono text-foreground group-hover:text-primary transition-colors truncate">
+                          {entry.model}
+                        </code>
                       </div>
-                      <div className="w-16 text-right">
+                      <div className="flex-1 flex items-center gap-3">
+                        <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                            style={{
+                              width: `${displayPercentage}%`,
+                              backgroundColor: getPercentageColor(displayPercentage),
+                            }}
+                          />
+                          <span
+                            className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
+                            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                          >
+                            {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                          </span>
+                        </div>
+                        <div className="w-16 text-right">
+                          <span
+                            className="text-sm font-bold"
+                            style={{ color: getPercentageColor(displayPercentage) }}
+                          >
+                            {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+            {showToggle && (
+              <div className="mt-4 text-center" data-share-exclude="true">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLowScores((prev) => !prev)}
+                >
+                  {showLowScores
+                    ? 'Show less'
+                    : `Show more (${hiddenEntries.length})`}
+                </Button>
+              </div>
+            )}
+          </div>
+        </ShareableWrapper>
+
+        {/* Simple Table */}
+        <ShareableWrapper
+          title="Success Rate Rankings"
+          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${displayedEntries.length} models`}
+        >
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                    Model
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                    Provider
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                    Success %
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                    Score
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {displayedEntries.concat(nullEntries).map((entry) => {
+                  const scorePercentage = getScorePercentage(entry)
+                  const displayPercentage = scorePercentage ?? 0
+                  return (
+                    <tr
+                      key={entry.submission_id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/submission/${entry.submission_id}`}
+                          className="flex items-center gap-2 hover:text-primary transition-colors"
+                        >
+                          <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
+                          <code className="text-sm font-mono">{entry.model}</code>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onProviderClick?.(entry.provider)
+                          }}
+                          className="text-xs font-medium hover:underline cursor-pointer"
+                          style={{
+                            color:
+                              PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                          }}
+                        >
+                          {entry.provider}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
                         <span
                           className="text-sm font-bold"
                           style={{ color: getPercentageColor(displayPercentage) }}
                         >
                           {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
                         </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm font-medium text-foreground">
+                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            {showToggle && (
+              <div className="border-t border-border bg-card px-4 py-3 text-center" data-share-exclude="true">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLowScores((prev) => !prev)}
+                >
+                  {showLowScores
+                    ? 'Show less'
+                    : `Show more (${hiddenEntries.length})`}
+                </Button>
+              </div>
+            )}
           </div>
-          {showToggle && (
-            <div className="mt-4 text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowLowScores((prev) => !prev)}
-              >
-                {showLowScores
-                  ? 'Show less'
-                  : `Show more (${hiddenEntries.length})`}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Simple Table */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                  Model
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                  Provider
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                  Success %
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                  Score
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {displayedEntries.concat(nullEntries).map((entry) => {
-                const scorePercentage = getScorePercentage(entry)
-                const displayPercentage = scorePercentage ?? 0
-                return (
-                  <tr
-                    key={entry.submission_id}
-                    className="hover:bg-muted/30 transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/submission/${entry.submission_id}`}
-                        className="flex items-center gap-2 hover:text-primary transition-colors"
-                      >
-                        <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
-                        <code className="text-sm font-mono">{entry.model}</code>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onProviderClick?.(entry.provider)
-                        }}
-                        className="text-xs font-medium hover:underline cursor-pointer"
-                        style={{
-                          color:
-                            PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
-                        }}
-                      >
-                        {entry.provider}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className="text-sm font-bold"
-                        style={{ color: getPercentageColor(displayPercentage) }}
-                      >
-                        {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-sm font-medium text-foreground">
-                        {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          {showToggle && (
-            <div className="border-t border-border bg-card px-4 py-3 text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowLowScores((prev) => !prev)}
-              >
-                {showLowScores
-                  ? 'Show less'
-                  : `Show more (${hiddenEntries.length})`}
-              </Button>
-            </div>
-          )}
-        </div>
+        </ShareableWrapper>
       </div>
     )
   }

@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { ShareableWrapper } from '@/components/shareable-wrapper'
 
 type GraphTab = 'perf-vs-cost' | 'perf-vs-speed'
 
@@ -461,89 +462,94 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-background p-4">
-          <ResponsiveContainer width="100%" height={520}>
-            <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+        <ShareableWrapper
+          title={isCost ? 'Success Rate vs. Cost' : 'Success Rate vs. Execution Time'}
+          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${data.length} models`}
+        >
+          <div className="rounded-lg border border-border bg-background p-4">
+            <ResponsiveContainer width="100%" height={520}>
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
 
-              {/* Green "most attractive" quadrant */}
-              <ReferenceArea
-                x1={xDomain[0]}
-                x2={quadrantX}
-                y1={quadrantY}
-                y2={yDomain[1]}
-                fill="hsl(142, 71%, 45%)"
-                fillOpacity={0.08}
-                stroke="hsl(142, 71%, 45%)"
-                strokeOpacity={0.15}
-              />
-
-              <XAxis
-                type="number"
-                dataKey="x"
-                scale="log"
-                domain={xDomain}
-                tickFormatter={formatXTick}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={{ stroke: 'hsl(var(--border))' }}
-              >
-                <Label
-                  value={isCost ? 'Cost (USD, Log Scale)' : 'Execution Time (seconds, Log Scale)'}
-                  position="bottom"
-                  offset={20}
-                  style={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                {/* Green "most attractive" quadrant */}
+                <ReferenceArea
+                  x1={xDomain[0]}
+                  x2={quadrantX}
+                  y1={quadrantY}
+                  y2={yDomain[1]}
+                  fill="hsl(142, 71%, 45%)"
+                  fillOpacity={0.08}
+                  stroke="hsl(142, 71%, 45%)"
+                  strokeOpacity={0.15}
                 />
-              </XAxis>
 
-              <YAxis
-                type="number"
-                dataKey="y"
-                domain={yDomain}
-                tickFormatter={(val: number) => `${val}%`}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={{ stroke: 'hsl(var(--border))' }}
-              >
-                <Label
-                  value="Success Rate (%)"
-                  angle={-90}
-                  position="insideLeft"
-                  offset={-5}
-                  style={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))', textAnchor: 'middle' }}
-                />
-              </YAxis>
-
-              <Tooltip
-                content={<CustomTooltip xLabel={xLabel} />}
-                cursor={{ strokeDasharray: '3 3', stroke: 'hsl(var(--muted-foreground))', strokeOpacity: 0.3 }}
-              />
-
-              <Scatter
-                data={data}
-                shape={<SimpleDot />}
-                isAnimationActive={false}
-              >
-                {data.map((point, index) => (
-                  <Cell key={`cell-${index}`} fill={point.color} />
-                ))}
-              </Scatter>
-
-              {/* Labels with collision avoidance, rendered as a separate layer */}
-              <Customized
-                component={(rechartProps: Record<string, unknown>) => (
-                  <ScatterLabels
-                    {...(rechartProps as {
-                      xAxisMap?: Record<string, { scale: (v: number) => number }>
-                      yAxisMap?: Record<string, { scale: (v: number) => number }>
-                    })}
-                    data={data}
+                <XAxis
+                  type="number"
+                  dataKey="x"
+                  scale="log"
+                  domain={xDomain}
+                  tickFormatter={formatXTick}
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--border))' }}
+                  tickLine={{ stroke: 'hsl(var(--border))' }}
+                >
+                  <Label
+                    value={isCost ? 'Cost (USD, Log Scale)' : 'Execution Time (seconds, Log Scale)'}
+                    position="bottom"
+                    offset={20}
+                    style={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                   />
-                )}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div>
+                </XAxis>
+
+                <YAxis
+                  type="number"
+                  dataKey="y"
+                  domain={yDomain}
+                  tickFormatter={(val: number) => `${val}%`}
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--border))' }}
+                  tickLine={{ stroke: 'hsl(var(--border))' }}
+                >
+                  <Label
+                    value="Success Rate (%)"
+                    angle={-90}
+                    position="insideLeft"
+                    offset={-5}
+                    style={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))', textAnchor: 'middle' }}
+                  />
+                </YAxis>
+
+                <Tooltip
+                  content={<CustomTooltip xLabel={xLabel} />}
+                  cursor={{ strokeDasharray: '3 3', stroke: 'hsl(var(--muted-foreground))', strokeOpacity: 0.3 }}
+                />
+
+                <Scatter
+                  data={data}
+                  shape={<SimpleDot />}
+                  isAnimationActive={false}
+                >
+                  {data.map((point, index) => (
+                    <Cell key={`cell-${index}`} fill={point.color} />
+                  ))}
+                </Scatter>
+
+                {/* Labels with collision avoidance, rendered as a separate layer */}
+                <Customized
+                  component={(rechartProps: Record<string, unknown>) => (
+                    <ScatterLabels
+                      {...(rechartProps as {
+                        xAxisMap?: Record<string, { scale: (v: number) => number }>
+                        yAxisMap?: Record<string, { scale: (v: number) => number }>
+                      })}
+                      data={data}
+                    />
+                  )}
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+        </ShareableWrapper>
       )}
 
       {/* Hidden models note */}
