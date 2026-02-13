@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ['latin'] })
 const _geistMono = Geist_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PinchBench Leaderboard - LLM Agent Benchmarking',
+  title: 'PinchBench Leaderboard - OpenClaw LLM Model Benchmarking',
   description: 'Benchmarking LLM models as OpenClaw agents across 10 standardized coding tasks',
   generator: 'v0.app',
 }
