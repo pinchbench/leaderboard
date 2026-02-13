@@ -179,7 +179,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                   key={category}
                   className="p-4 bg-card border-border flex flex-col"
                 >
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2 capitalize">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                     {category}
                   </div>
                   <div className="flex items-baseline gap-2 mb-1">
