@@ -64,7 +64,7 @@ export function SimpleLeaderboard({ entries, view }: SimpleLeaderboardProps) {
           </h2>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          Percentage of tasks completed successfully out of 10 standardized OpenClaw agent tests
+          Percentage of tasks completed successfully across standardized OpenClaw agent tests
         </p>
 
         {/* Bar Chart */}
