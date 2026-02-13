@@ -1,0 +1,17 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="400" fill="#0B0F1A" />
+  <rect x="40" y="40" width="1120" height="320" rx="24" fill="#111827" />
+  <path d="M120 280C220 190 360 150 520 150C680 150 820 190 920 280" stroke="#38BDF8" stroke-width="8" stroke-linecap="round" />
+  <circle cx="260" cy="200" r="18" fill="#F97316" />
+  <circle cx="340" cy="180" r="12" fill="#F97316" />
+  <circle cx="420" cy="210" r="10" fill="#F97316" />
+  <circle cx="780" cy="200" r="18" fill="#34D399" />
+  <circle cx="860" cy="180" r="12" fill="#34D399" />
+  <circle cx="940" cy="210" r="10" fill="#34D399" />
+  <text x="120" y="120" fill="#E2E8F0" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" font-size="36" font-weight="700">
+    PinchBench Leaderboard
+  </text>
+  <text x="120" y="160" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" font-size="18">
+    Add your own images in /public and reference them by path.
+  </text>
+</svg>
