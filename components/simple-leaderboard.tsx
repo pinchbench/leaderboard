@@ -10,6 +10,7 @@ interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
   view: 'success' | 'speed' | 'cost'
   scoreMode: 'best' | 'average'
+  onProviderClick?: (provider: string) => void
 }
 
 const getCrabEmoji = (rank: number) => {
@@ -25,7 +26,7 @@ const getPercentageColor = (percentage: number) => {
   return 'hsl(0, 84%, 60%)' // red
 }
 
-export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboardProps) {
+export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }: SimpleLeaderboardProps) {
   const [showLowScores, setShowLowScores] = useState(false)
   const lowScoreCutoff = 40
   const getScorePercentage = (entry: LeaderboardEntry) => {
@@ -212,15 +213,20 @@ export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboar
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className="text-xs font-medium"
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onProviderClick?.(entry.provider)
+                        }}
+                        className="text-xs font-medium hover:underline cursor-pointer"
                         style={{
                           color:
                             PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
                         }}
                       >
                         {entry.provider}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
@@ -323,14 +329,16 @@ export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboar
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  <span
-                    className="text-xs font-medium"
+                  <button
+                    type="button"
+                    onClick={() => onProviderClick?.(entry.provider)}
+                    className="text-xs font-medium hover:underline cursor-pointer"
                     style={{
                       color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
                     }}
                   >
                     {entry.provider}
-                  </span>
+                  </button>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="text-sm font-medium text-foreground">
@@ -341,7 +349,7 @@ export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboar
             ))}
             {nullEntries.map((entry) => (
               <tr key={entry.submission_id} className="text-muted-foreground">
-                <td className="px-4 py-3">—</td>
+                <td className="px-4 py-3">--</td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/submission/${entry.submission_id}`}
@@ -351,14 +359,16 @@ export function SimpleLeaderboard({ entries, view, scoreMode }: SimpleLeaderboar
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  <span
-                    className="text-xs font-medium"
+                  <button
+                    type="button"
+                    onClick={() => onProviderClick?.(entry.provider)}
+                    className="text-xs font-medium hover:underline cursor-pointer"
                     style={{
                       color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
                     }}
                   >
                     {entry.provider}
-                  </span>
+                  </button>
                 </td>
                 <td className="px-4 py-3 text-right">N/A</td>
               </tr>

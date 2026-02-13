@@ -1,9 +1,17 @@
-import { fetchLeaderboard } from '@/lib/api'
+import { fetchLeaderboard, fetchBenchmarkVersions } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { LeaderboardView } from '@/components/leaderboard-view'
 
-export default async function Home() {
-  const response = await fetchLeaderboard()
+interface HomeProps {
+  searchParams: Promise<{ version?: string }>
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const { version } = await searchParams
+  const [response, versionsResponse] = await Promise.all([
+    fetchLeaderboard(version),
+    fetchBenchmarkVersions(),
+  ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
   const latestTimestamp = entries.reduce((latest, entry) => {
     const current = new Date(entry.timestamp).getTime()
@@ -20,5 +28,12 @@ export default async function Home() {
     })
     : 'Unknown'
 
-  return <LeaderboardView entries={entries} lastUpdated={lastUpdated} />
+  return (
+    <LeaderboardView
+      entries={entries}
+      lastUpdated={lastUpdated}
+      versions={versionsResponse.versions}
+      currentVersion={version ?? null}
+    />
+  )
 }

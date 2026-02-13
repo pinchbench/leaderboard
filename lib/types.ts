@@ -110,9 +110,47 @@ export interface ApiTaskResult {
   };
 }
 
+export interface ApiSubmissionListItem {
+  id: string;
+  model: string;
+  provider: string;
+  score_percentage: number;
+  total_score: number;
+  max_score: number;
+  total_execution_time_seconds: number;
+  total_cost_usd: number;
+  timestamp: string;
+  created_at: string;
+  client_version: string | null;
+  openclaw_version: string | null;
+  benchmark_version: string;
+  claimed: number;
+}
+
+export interface SubmissionsListResponse {
+  submissions: ApiSubmissionListItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+  benchmark_version: string | null;
+  benchmark_versions: string[];
+}
+
 export interface StatsResponse {
   updated_at?: string;
   models_count?: number;
+}
+
+export interface BenchmarkVersion {
+  id: string;
+  created_at: string;
+  is_current: boolean;
+  submission_count: number;
+}
+
+export interface BenchmarkVersionsResponse {
+  versions: BenchmarkVersion[];
 }
 
 export const CATEGORY_ICONS: Record<string, string> = {
