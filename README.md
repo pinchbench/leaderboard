@@ -5,6 +5,7 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 ## Features
 
 ### Main Leaderboard (`/`)
+
 - **Clean tabbed interface** for Success Rate, Speed, and Cost views
 - **Crab-themed rankings** - Lobster for #1, Crab for #2, Shrimp for #3
 - **Visual bar chart** showing model performance at a glance
@@ -14,6 +15,7 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 - **Minimal, data-focused design** inspired by SkateBench
 
 ### Submission Detail Page (`/submission/[id]`)
+
 - **Circular score gauge** showing overall performance percentage
 - **Category breakdown** with scores by task type (Calendar, Coding, Research, etc.)
 - **Expandable task cards** with detailed criterion-by-criterion scoring
@@ -22,6 +24,7 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 - **Metadata display** including OpenClaw version and submission timestamp
 
 ### Design Features
+
 - **Dark, minimal theme** with focus on data clarity
 - **Crab and lobster emojis** throughout for fun, themed experience
 - **Streamlined layout** - removed unnecessary sections
@@ -62,17 +65,20 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - pnpm (recommended)
 
 ### Installation
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Run the development server:**
+
    ```bash
    pnpm dev
    ```
@@ -87,6 +93,23 @@ pnpm build
 pnpm start
 ```
 
+## Deploying to Cloudflare Pages (Recommended)
+
+This project is a Next.js App Router app and should be deployed with **Cloudflare Pages**, not **Workers**. The error you saw (`Missing entry-point to Worker script or to assets directory`) happens when Wrangler is used without a Worker entry-point.
+
+### Pages Build Settings
+
+- **Framework preset:** Next.js
+- **Build command:** `pnpm run build`
+- **Build output directory:** `.next`
+- **Root directory:** `/`
+
+### Notes
+
+- Do **not** use `npx wrangler deploy` for Pages. Pages builds and deploys automatically from the repo.
+- If you already created a Workers project, create a new **Pages** project and connect this repo.
+- Node.js 18+ and pnpm are supported by Pages; no extra config is required for this repo.
+
 ## Connecting to Real APIs
 
 Currently, the app uses mock data from `lib/mock-data.ts`. To connect to real benchmark APIs:
@@ -98,20 +121,20 @@ Create files in `app/api/`:
 ```typescript
 // app/api/leaderboard/route.ts
 export async function GET() {
-  const response = await fetch('YOUR_API_ENDPOINT/leaderboard')
-  const data = await response.json()
-  return Response.json(data)
+  const response = await fetch("YOUR_API_ENDPOINT/leaderboard");
+  const data = await response.json();
+  return Response.json(data);
 }
 
 // app/api/results/[id]/route.ts
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params
-  const response = await fetch(`YOUR_API_ENDPOINT/results/${id}`)
-  const data = await response.json()
-  return Response.json(data)
+  const { id } = await params;
+  const response = await fetch(`YOUR_API_ENDPOINT/results/${id}`);
+  const data = await response.json();
+  return Response.json(data);
 }
 ```
 
@@ -121,8 +144,8 @@ Update components to fetch from API routes instead of importing mock data:
 
 ```typescript
 // In app/page.tsx
-const response = await fetch('/api/leaderboard')
-const entries = await response.json()
+const response = await fetch("/api/leaderboard");
+const entries = await response.json();
 ```
 
 ### 3. Add Environment Variables
@@ -156,11 +179,11 @@ Edit `lib/types.ts` to add/modify provider brand colors:
 
 ```typescript
 export const PROVIDER_COLORS: Record<string, string> = {
-  anthropic: '#d97757',
-  openai: '#10a37f',
-  google: '#4285f4',
+  anthropic: "#d97757",
+  openai: "#10a37f",
+  google: "#4285f4",
   // Add more providers
-}
+};
 ```
 
 ### Task Categories
@@ -169,30 +192,36 @@ Add new task categories in `lib/types.ts`:
 
 ```typescript
 export const CATEGORY_ICONS: Record<string, string> = {
-  calendar: '📅',
-  coding: '💻',
+  calendar: "📅",
+  coding: "💻",
   // Add more categories
-}
+};
 ```
 
 ## Key Components
 
 ### LeaderboardTable
+
 Responsive table with sorting, filtering, and mobile card layout.
 
 **Props:**
+
 - `entries: LeaderboardEntry[]` - Array of leaderboard entries
 
 ### TaskBreakdown
+
 Expandable accordion showing detailed task results with criterion breakdowns.
 
 **Props:**
+
 - `tasks: TaskResult[]` - Array of task results
 
 ### ScoreGauge
+
 Circular progress indicator showing overall score percentage.
 
 **Props:**
+
 - `score: number` - Current score
 - `maxScore: number` - Maximum possible score
 
