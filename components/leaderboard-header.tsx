@@ -40,13 +40,13 @@ export function LeaderboardHeader({
         <header className="border-b border-border">
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <span className="text-3xl md:text-4xl">🦞</span>
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
                             <p className="hidden md:block text-sm text-muted-foreground">Claw-some AI Agent Testing</p>
                         </div>
-                    </div>
+                    </Link>
                     <div className="flex flex-col items-end gap-3">
                         <div className="flex items-center gap-3">
                             <Link
