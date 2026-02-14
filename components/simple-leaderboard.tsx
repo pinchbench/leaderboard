@@ -11,6 +11,7 @@ interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
   view: 'success' | 'speed' | 'cost'
   scoreMode: 'best' | 'average'
+  onScoreModeChange?: (mode: 'best' | 'average') => void
   onProviderClick?: (provider: string) => void
 }
 
@@ -27,7 +28,13 @@ const getPercentageColor = (percentage: number) => {
   return 'hsl(0, 84%, 60%)' // red
 }
 
-export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }: SimpleLeaderboardProps) {
+export function SimpleLeaderboard({
+  entries,
+  view,
+  scoreMode,
+  onScoreModeChange,
+  onProviderClick,
+}: SimpleLeaderboardProps) {
   const [showLowScores, setShowLowScores] = useState(false)
   const lowScoreCutoff = 40
   const getScorePercentage = (entry: LeaderboardEntry) => {
@@ -100,11 +107,33 @@ export function SimpleLeaderboard({ entries, view, scoreMode, onProviderClick }:
   if (view === 'success') {
     return (
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-2xl">🦀</span>
-          <h2 className="text-xl font-bold text-foreground">
-            Success rate by model
-          </h2>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🦀</span>
+            <h2 className="text-xl font-bold text-foreground">
+              Success rate by model
+            </h2>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
+            <button
+              onClick={() => onScoreModeChange?.('best')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'best'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
+            >
+              Best score
+            </button>
+            <button
+              onClick={() => onScoreModeChange?.('average')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'average'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
+            >
+              Average score
+            </button>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
           Percentage of tasks completed successfully across standardized OpenClaw agent tests
