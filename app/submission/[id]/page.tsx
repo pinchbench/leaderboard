@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 import { ShareButton } from '@/components/share-button'
+import { RunSelector } from '@/components/run-selector'
 import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
 import { PROVIDER_COLORS } from '@/lib/types'
@@ -127,12 +128,18 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                   {submission.provider}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Submitted{' '}
-                {formatDistanceToNow(new Date(submission.timestamp), {
-                  addSuffix: true,
-                })}
-              </p>
+              <div className="flex items-center gap-4 flex-wrap">
+                <p className="text-sm text-muted-foreground">
+                  Submitted{' '}
+                  {formatDistanceToNow(new Date(submission.timestamp), {
+                    addSuffix: true,
+                  })}
+                </p>
+                <RunSelector
+                  model={submission.model}
+                  currentSubmissionId={submission.submission_id}
+                />
+              </div>
             </div>
             <ShareButton />
           </div>

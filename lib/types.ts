@@ -137,6 +137,22 @@ export interface SubmissionsListResponse {
   benchmark_versions: string[];
 }
 
+export interface ApiModelSubmissionItem {
+  id: string;
+  score_percentage: number;
+  total_score: number;
+  max_score: number;
+  timestamp: string;
+  is_best: boolean;
+}
+
+export interface ModelSubmissionsResponse {
+  submissions: ApiModelSubmissionItem[];
+  model: string;
+  benchmark_version: string;
+  benchmark_versions: string[];
+}
+
 export interface StatsResponse {
   updated_at?: string;
   models_count?: number;

@@ -4,6 +4,7 @@ import type {
   SubmissionsListResponse,
   StatsResponse,
   BenchmarkVersionsResponse,
+  ModelSubmissionsResponse,
 } from "@/lib/types";
 
 const API_BASE = "https://api.pinchbench.com/api";
@@ -73,6 +74,24 @@ export async function fetchSubmissionClient(
  * Fetch the submissions list (client-side, no ISR caching).
  * Used by chart components that need all submissions for distribution analysis.
  */
+/**
+ * Fetch all submissions for a specific model (client-side, no ISR caching).
+ * Used by the RunSelector component on the submission detail page.
+ */
+export async function fetchModelSubmissionsClient(
+  model: string,
+): Promise<ModelSubmissionsResponse> {
+  const response = await fetch(
+    `${API_BASE}/model-submissions?model=${encodeURIComponent(model)}`,
+  );
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return response.json() as Promise<ModelSubmissionsResponse>;
+}
+
 export async function fetchSubmissionsClient(
   version?: string,
   limit: number = 500,
