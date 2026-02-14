@@ -38,7 +38,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         : 'success'
     const initialScoreMode = VALID_SCORE_MODES.includes(searchParams.get('score') as ScoreMode)
         ? (searchParams.get('score') as ScoreMode)
-        : 'best'
+        : 'average'
     const initialProvider = searchParams.get('provider') || null
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
@@ -61,7 +61,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         }
         // Remove defaults to keep URL clean
         if (params.get('view') === 'success') params.delete('view')
-        if (params.get('score') === 'best') params.delete('score')
+        if (params.get('score') === 'average') params.delete('score')
         router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }, [searchParams, router, pathname])
 
