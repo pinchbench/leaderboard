@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
   RadarChart,
   Radar,
@@ -50,8 +51,36 @@ function normalizeToPercent(value: number, min: number, max: number): number {
 }
 
 export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
-  const [selectedModels, setSelectedModels] = useState<string[]>([])
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Initialize selected models from URL params
+  const [selectedModels, setSelectedModels] = useState<string[]>(() => {
+    const param = searchParams.get('models')
+    if (!param) return []
+    const modelNames = param.split(',').map(m => m.trim()).filter(Boolean)
+    const validModels = new Set(entries.map(e => e.model))
+    return modelNames.filter(m => validModels.has(m)).slice(0, MAX_SELECTED)
+  })
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Sync selected models to URL, ensuring graph=radar and view=graphs are set
+  const updateModelsInUrl = useCallback((models: string[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (models.length === 0) {
+      params.delete('models')
+    } else {
+      params.set('models', models.join(','))
+      // Ensure the URL navigates to the radar graph view
+      params.set('view', 'graphs')
+      params.set('graph', 'radar')
+    }
+    // Clean up defaults
+    if (params.get('view') === 'success') params.delete('view')
+    if (params.get('score') === 'best') params.delete('score')
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [searchParams, router, pathname])
 
   // Compute normalized metrics for all models
   const { metrics, radarData } = useMemo(() => {
@@ -142,13 +171,16 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
 
   const toggleModel = (model: string) => {
     setSelectedModels(prev => {
+      let next: string[]
       if (prev.includes(model)) {
-        return prev.filter(m => m !== model)
+        next = prev.filter(m => m !== model)
+      } else if (prev.length >= MAX_SELECTED) {
+        next = [...prev.slice(1), model]
+      } else {
+        next = [...prev, model]
       }
-      if (prev.length >= MAX_SELECTED) {
-        return [...prev.slice(1), model]
-      }
-      return [...prev, model]
+      updateModelsInUrl(next)
+      return next
     })
   }
 
@@ -214,7 +246,10 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
                   </button>
                 ))}
                 <button
-                  onClick={() => setSelectedModels([])}
+                  onClick={() => {
+                    setSelectedModels([])
+                    updateModelsInUrl([])
+                  }}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
                 >
                   Clear all
