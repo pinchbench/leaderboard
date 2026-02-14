@@ -139,13 +139,13 @@ export function SimpleLeaderboard({
           Percentage of tasks completed successfully across standardized OpenClaw agent tests
         </p>
 
-        {/* Bar Chart */}
+        {/* Bar Chart - hidden on mobile */}
         <ShareableWrapper
           title="Success Rate by Model"
           subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${displayedEntries.length} models`}
           alwaysShowButton
         >
-          <div className="bg-card border border-border rounded-lg p-6 mb-6">
+          <div className="hidden md:block bg-card border border-border rounded-lg p-6 mb-6">
             <div className="space-y-3">
               {displayedEntries.concat(nullEntries).map((entry) => {
                 const scorePercentage = getScorePercentage(entry)
@@ -220,16 +220,16 @@ export function SimpleLeaderboard({
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                  <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                     Model
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                     Provider
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                  <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     Success %
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                  <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     Score
                   </th>
                 </tr>
@@ -243,16 +243,16 @@ export function SimpleLeaderboard({
                       key={entry.submission_id}
                       className="hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-2 md:px-4 py-3">
                         <Link
                           href={`/submission/${entry.submission_id}`}
                           className="flex items-center gap-2 transition-colors"
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
-                          <code className="text-sm font-mono">{entry.model}</code>
+                          <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
                         </Link>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="hidden md:table-cell px-4 py-3">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -268,7 +268,7 @@ export function SimpleLeaderboard({
                           {entry.provider}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-2 md:px-4 py-3 text-right">
                         <span
                           className="text-sm font-bold"
                           style={{ color: getPercentageColor(displayPercentage) }}
@@ -276,7 +276,7 @@ export function SimpleLeaderboard({
                           {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="hidden md:table-cell px-4 py-3 text-right">
                         <span className="text-sm font-medium text-foreground">
                           {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
                         </span>
@@ -343,16 +343,16 @@ export function SimpleLeaderboard({
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Rank
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                <th className="px-2 md:px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Model
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Provider
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                   {view === 'speed' ? 'Best Time' : 'Best Cost'}
                 </th>
               </tr>
@@ -360,20 +360,20 @@ export function SimpleLeaderboard({
             <tbody className="divide-y divide-border">
               {ranked.map(({ entry, rank }) => (
                 <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
+                  <td className="px-2 md:px-4 py-3">
                     <span className="text-sm font-medium text-muted-foreground">
                       {rank}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 md:px-4 py-3">
                     <Link
                       href={`/submission/${entry.submission_id}`}
                       className="flex items-center gap-2 transition-colors"
                     >
-                      <code className="text-sm font-mono">{entry.model}</code>
+                      <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden md:table-cell px-4 py-3">
                     <button
                       type="button"
                       onClick={() => onProviderClick?.(entry.provider)}
@@ -385,7 +385,7 @@ export function SimpleLeaderboard({
                       {entry.provider}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 md:px-4 py-3 text-right">
                     <span className="text-sm font-medium text-foreground">
                       {formatValue(entry)}
                     </span>
@@ -394,16 +394,16 @@ export function SimpleLeaderboard({
               ))}
               {nullEntries.map((entry) => (
                 <tr key={entry.submission_id} className="text-muted-foreground">
-                  <td className="px-4 py-3">--</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 md:px-4 py-3">--</td>
+                  <td className="px-2 md:px-4 py-3">
                     <Link
                       href={`/submission/${entry.submission_id}`}
                       className="flex items-center gap-2 transition-colors"
                     >
-                      <code className="text-sm font-mono">{entry.model}</code>
+                      <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden md:table-cell px-4 py-3">
                     <button
                       type="button"
                       onClick={() => onProviderClick?.(entry.provider)}
@@ -415,7 +415,7 @@ export function SimpleLeaderboard({
                       {entry.provider}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-right">N/A</td>
+                  <td className="px-2 md:px-4 py-3 text-right">N/A</td>
                 </tr>
               ))}
             </tbody>

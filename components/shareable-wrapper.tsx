@@ -245,11 +245,11 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
         </div>
       </div>
 
-      {/* Share button - floats on top, excluded from capture (hover mode only) */}
+      {/* Share button - floats on top, excluded from capture (hover mode only, hidden on mobile) */}
       {!alwaysShowButton && (
         <div
           data-share-exclude="true"
-          className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="hidden md:block absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         >
           <div className="relative">
             <button

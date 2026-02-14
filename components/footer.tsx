@@ -12,7 +12,7 @@ export function Footer() {
                     </p>
 
                     {/* Links */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                         <Link
                             href="/about"
                             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -20,7 +20,7 @@ export function Footer() {
                             <Info className="h-4 w-4" />
                             <span>About</span>
                         </Link>
-                        <span className="text-border">|</span>
+                        <span className="text-border hidden md:inline">|</span>
                         <a
                             href="https://github.com/pinchbench"
                             target="_blank"
@@ -30,7 +30,7 @@ export function Footer() {
                             <Github className="h-4 w-4" />
                             <span>GitHub</span>
                         </a>
-                        <span className="text-border">|</span>
+                        <span className="text-border hidden md:inline">|</span>
                         <a
                             href="https://boleary.dev"
                             target="_blank"
@@ -40,7 +40,7 @@ export function Footer() {
                             <ExternalLink className="h-3.5 w-3.5" />
                             <span>boleary.dev</span>
                         </a>
-                        <span className="text-border">|</span>
+                        <span className="text-border hidden md:inline">|</span>
                         <a
                             href="https://kilo.ai"
                             target="_blank"
@@ -50,7 +50,7 @@ export function Footer() {
                             <ExternalLink className="h-3.5 w-3.5" />
                             <span>kilo.ai</span>
                         </a>
-                        <span className="text-border">|</span>
+                        <span className="text-border hidden md:inline">|</span>
                         <a
                             href="https://twitter.com/olearycrew"
                             target="_blank"
