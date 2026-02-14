@@ -1,4 +1,5 @@
-import { Github, ExternalLink } from 'lucide-react'
+import { Github, ExternalLink, Info } from 'lucide-react'
+import Link from 'next/link'
 
 export function Footer() {
     return (
@@ -12,6 +13,14 @@ export function Footer() {
 
                     {/* Links */}
                     <div className="flex items-center gap-6">
+                        <Link
+                            href="/about"
+                            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <Info className="h-4 w-4" />
+                            <span>About</span>
+                        </Link>
+                        <span className="text-border">|</span>
                         <a
                             href="https://github.com/pinchbench"
                             target="_blank"

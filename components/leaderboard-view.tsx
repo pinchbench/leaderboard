@@ -123,6 +123,12 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                                 >
                                     {totalRuns} runs
                                 </Link>
+                                <Link
+                                    href="/about"
+                                    className="hover:underline hover:text-foreground transition-colors"
+                                >
+                                    About
+                                </Link>
                                 <VersionSelector versions={versions} currentVersion={currentVersion} />
                             </div>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
