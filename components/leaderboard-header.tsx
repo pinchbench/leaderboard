@@ -39,6 +39,18 @@ export function LeaderboardHeader({
     return (
         <header className="border-b border-border">
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
+                {/* Run benchmark CTA */}
+                <div className="flex justify-end mb-4">
+                    <a
+                        href="https://github.com/pinchbench/skill"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                    >
+                        <span>Run the benchmark yourself →</span>
+                    </a>
+                </div>
+
                 <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <span className="text-3xl md:text-4xl">🦞</span>
