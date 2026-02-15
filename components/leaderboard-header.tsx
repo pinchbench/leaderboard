@@ -40,13 +40,25 @@ export function LeaderboardHeader({
         <header className="border-b border-border">
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 <div className="flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <span className="text-3xl md:text-4xl">🦞</span>
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
-                            <p className="hidden md:block text-sm text-muted-foreground">Claw-some AI Agent Testing</p>
+                    <div className="flex flex-col items-center gap-2">
+                        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                            <span className="text-3xl md:text-4xl">🦞</span>
+                            <div>
+                                <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
+                                <p className="hidden md:block text-sm text-muted-foreground">Claw-some AI Agent Testing</p>
+                            </div>
+                        </Link>
+                        <div className="flex justify-end mb-4 md:inline-block hidden">
+                            <a
+                                href="https://github.com/pinchbench/skill"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <span>Run the benchmark yourself →</span>
+                            </a>
                         </div>
-                    </Link>
+                    </div>
                     <div className="flex flex-col items-end gap-3">
                         <div className="flex items-center gap-3">
                             <Link

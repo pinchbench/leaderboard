@@ -1,5 +1,7 @@
 # PinchBench Leaderboard
 
+[**Run the benchmark yourself →**](https://github.com/pinchbench/skill)
+
 A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as OpenClaw coding agents. Built with Next.js 16, React 19, and Tailwind CSS.
 
 ## Features

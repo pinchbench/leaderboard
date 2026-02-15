@@ -99,24 +99,36 @@ export default function AboutPage() {
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {[
-                            { id: 'task_01', name: 'Calendar Event Creation', icon: '📅' },
-                            { id: 'task_02', name: 'Stock Price Research', icon: '📈' },
-                            { id: 'task_03', name: 'Blog Post Writing', icon: '✍️' },
-                            { id: 'task_04', name: 'Weather Script Creation', icon: '🌤️' },
-                            { id: 'task_05', name: 'Document Summarization', icon: '📄' },
-                            { id: 'task_06', name: 'Tech Conference Research', icon: '🎤' },
-                            { id: 'task_07', name: 'Professional Email Drafting', icon: '✉️' },
-                            { id: 'task_08', name: 'Memory Retrieval', icon: '🧠' },
-                            { id: 'task_09', name: 'File Structure Creation', icon: '📁' },
-                            { id: 'task_10', name: 'Multi-step API Workflow', icon: '🔄' },
+                            { id: 'task_01_calendar', name: 'Calendar Event Creation', icon: '📅', description: 'Parse a natural language request and generate a valid ICS calendar file with correct date, time, attendees, and description.', grading: 'automated' },
+                            { id: 'task_02_stock', name: 'Stock Price Research', icon: '📈', description: 'Research a current stock price using web tools and save a formatted report with ticker, price, date, and market context.', grading: 'automated' },
+                            { id: 'task_03_blog', name: 'Blog Post Writing', icon: '✍️', description: 'Write a structured ~500-word blog post on a given topic with proper markdown formatting, clear arguments, and examples.', grading: 'llm_judge' },
+                            { id: 'task_04_weather', name: 'Weather Script Creation', icon: '🌤️', description: 'Create a Python script that fetches weather data from an API, parses the response, and includes error handling.', grading: 'automated' },
+                            { id: 'task_05_summary', name: 'Document Summarization', icon: '📄', description: 'Read a provided document and write a concise 3-paragraph summary capturing the main themes and key points.', grading: 'llm_judge' },
+                            { id: 'task_06_events', name: 'Tech Conference Research', icon: '🎤', description: 'Research and compile 5 real tech conferences with accurate names, dates, locations, and URLs.', grading: 'llm_judge' },
+                            { id: 'task_07_email', name: 'Professional Email Drafting', icon: '✉️', description: 'Draft a polite, professional email declining a meeting while maintaining good relationships and offering alternatives.', grading: 'llm_judge' },
+                            { id: 'task_08_memory', name: 'Memory Retrieval', icon: '🧠', description: 'Extract specific facts from a provided project notes file (dates, team members, tech stack) and answer questions accurately.', grading: 'automated' },
+                            { id: 'task_09_files', name: 'File Structure Creation', icon: '📁', description: 'Create a standard project directory structure with source files, README, and .gitignore with correct content.', grading: 'automated' },
+                            { id: 'task_10_workflow', name: 'Multi-step API Workflow', icon: '🔄', description: 'Read a config file, extract API settings, create a Python script to call the endpoint, and document the process.', grading: 'hybrid' },
                         ].map((task) => (
-                            <div
+                            <a
                                 key={task.id}
-                                className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border"
+                                href={`https://github.com/pinchbench/skill/blob/main/tasks/${task.id}.md`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-3 p-3 rounded-lg bg-card border border-border hover:border-primary transition-colors group"
                             >
-                                <span className="text-xl">{task.icon}</span>
-                                <span className="text-foreground">{task.name}</span>
-                            </div>
+                                <span className="text-xl mt-0.5">{task.icon}</span>
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-foreground font-medium">{task.name}</span>
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider">{task.grading}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{task.description}</p>
+                                    <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1 inline-block">
+                                        View task definition on GitHub
+                                    </span>
+                                </div>
+                            </a>
                         ))}
                     </div>
                 </section>
