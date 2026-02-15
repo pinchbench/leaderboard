@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
@@ -11,8 +13,53 @@ interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
   view: 'success' | 'speed' | 'cost'
   scoreMode: 'best' | 'average'
+  benchmarkVersion?: string | null
   onScoreModeChange?: (mode: 'best' | 'average') => void
   onProviderClick?: (provider: string) => void
+}
+
+function ColumnTooltip({
+  label,
+  description,
+  benchmarkVersion,
+}: {
+  label: string
+  description: string
+  benchmarkVersion?: string | null
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-1 cursor-help">
+          {label}
+          <Info className="h-3 w-3 text-muted-foreground/60" />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs p-3 normal-case">
+        <p className="font-medium text-foreground text-xs mb-1">{label}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+        {benchmarkVersion && (
+          <p className="text-xs text-muted-foreground mt-1.5">
+            Benchmark version: <code className="font-mono">{benchmarkVersion}</code>
+          </p>
+        )}
+        <div className="flex items-center gap-2 mt-2">
+          <a href="/about" className="text-xs text-primary hover:underline">
+            How we benchmark
+          </a>
+          <span className="text-xs text-muted-foreground">·</span>
+          <a
+            href="https://github.com/pinchbench/skill/tree/main/tasks"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            View tasks
+          </a>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )
 }
 
 const getCrabEmoji = (rank: number) => {
@@ -32,6 +79,7 @@ export function SimpleLeaderboard({
   entries,
   view,
   scoreMode,
+  benchmarkVersion,
   onScoreModeChange,
   onProviderClick,
 }: SimpleLeaderboardProps) {
@@ -135,8 +183,30 @@ export function SimpleLeaderboard({
             </button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mb-6">
-          Percentage of tasks completed successfully across standardized OpenClaw agent tests
+        <p className="text-sm text-muted-foreground mb-2">
+          Percentage of tasks completed successfully across standardized{' '}
+          <Link
+            href="https://github.com/pinchbench/skill/tree/main/tasks"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            OpenClaw agent tests
+          </Link>
+        </p>
+        <p className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5">
+          <Info className="h-3 w-3 flex-shrink-0" />
+          Scores are graded via automated checks and LLM judge.{' '}
+          <Link href="/about" className="text-primary hover:underline">
+            How we benchmark
+          </Link>
+          <span>·</span>
+          <a
+            href="https://github.com/pinchbench/skill/tree/main/tasks"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            View all tasks
+          </a>
         </p>
 
         {/* Bar Chart - hidden on mobile */}
@@ -150,48 +220,94 @@ export function SimpleLeaderboard({
               {displayedEntries.concat(nullEntries).map((entry) => {
                 const scorePercentage = getScorePercentage(entry)
                 const displayPercentage = scorePercentage ?? 0
+                const bestPct = entry.percentage
+                const avgPct = entry.average_score_percentage != null
+                  ? entry.average_score_percentage * 100
+                  : null
                 return (
-                  <Link
-                    key={entry.submission_id}
-                    href={`/submission/${entry.submission_id}`}
-                    className="block group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-48 flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xl" title={`Rank ${entry.rank}`}>
-                          {getCrabEmoji(entry.rank)}
+                  <Tooltip key={entry.submission_id}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={`/submission/${entry.submission_id}`}
+                        className="block group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-48 flex items-center gap-2 flex-shrink-0">
+                            <span className="text-xl" title={`Rank ${entry.rank}`}>
+                              {getCrabEmoji(entry.rank)}
+                            </span>
+                            <code className="text-xs font-mono text-foreground transition-colors truncate">
+                              {entry.model}
+                            </code>
+                          </div>
+                          <div className="flex-1 flex items-center gap-3">
+                            <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                                style={{
+                                  width: `${displayPercentage}%`,
+                                  backgroundColor: getPercentageColor(displayPercentage),
+                                }}
+                              />
+                              <span
+                                className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
+                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                              >
+                                {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                              </span>
+                            </div>
+                            <div className="w-16 text-right">
+                              <span
+                                className="text-sm font-bold"
+                                style={{ color: getPercentageColor(displayPercentage) }}
+                              >
+                                {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs p-3">
+                      <p className="font-medium text-foreground text-xs mb-1.5">
+                        {entry.model}
+                        <span className="ml-1.5 font-normal text-muted-foreground">
+                          via {entry.provider}
                         </span>
-                        <code className="text-xs font-mono text-foreground transition-colors truncate">
-                          {entry.model}
-                        </code>
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <span className="text-muted-foreground">Best score</span>
+                        <span className="text-foreground font-medium text-right">{bestPct.toFixed(1)}%</span>
+                        {avgPct != null && (
+                          <>
+                            <span className="text-muted-foreground">Avg score</span>
+                            <span className="text-foreground font-medium text-right">{avgPct.toFixed(1)}%</span>
+                          </>
+                        )}
+                        {entry.best_execution_time_seconds != null && (
+                          <>
+                            <span className="text-muted-foreground">Fastest run</span>
+                            <span className="text-foreground font-medium text-right">{entry.best_execution_time_seconds.toFixed(0)}s</span>
+                          </>
+                        )}
+                        {entry.best_cost_usd != null && (
+                          <>
+                            <span className="text-muted-foreground">Lowest cost</span>
+                            <span className="text-foreground font-medium text-right">${entry.best_cost_usd.toFixed(2)}</span>
+                          </>
+                        )}
+                        {entry.submission_count != null && (
+                          <>
+                            <span className="text-muted-foreground">Runs</span>
+                            <span className="text-foreground font-medium text-right">{entry.submission_count}</span>
+                          </>
+                        )}
                       </div>
-                      <div className="flex-1 flex items-center gap-3">
-                        <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
-                            style={{
-                              width: `${displayPercentage}%`,
-                              backgroundColor: getPercentageColor(displayPercentage),
-                            }}
-                          />
-                          <span
-                            className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
-                            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                          >
-                            {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                          </span>
-                        </div>
-                        <div className="w-16 text-right">
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: getPercentageColor(displayPercentage) }}
-                          >
-                            {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Click for full task breakdown
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 )
               })}
             </div>
@@ -227,10 +343,20 @@ export function SimpleLeaderboard({
                     Provider
                   </th>
                   <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                    Success %
+                    <ColumnTooltip
+                      label="Success %"
+                      description={scoreMode === 'best'
+                        ? 'Highest success rate across all runs for this model. Tasks are graded via automated checks, LLM judge evaluation, or a hybrid of both.'
+                        : 'Average success rate across all runs for this model. Tasks are graded via automated checks, LLM judge evaluation, or a hybrid of both.'}
+                      benchmarkVersion={benchmarkVersion}
+                    />
                   </th>
                   <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                    Score
+                    <ColumnTooltip
+                      label="Score"
+                      description="Raw success percentage. Click any row to see the per-task scoring breakdown with individual pass/fail details."
+                      benchmarkVersion={benchmarkVersion}
+                    />
                   </th>
                 </tr>
               </thead>
@@ -299,6 +425,18 @@ export function SimpleLeaderboard({
                 </Button>
               </div>
             )}
+            <div className="border-t border-border bg-muted/20 px-4 py-2 text-center text-xs text-muted-foreground">
+              All tasks and grading criteria are{' '}
+              <a
+                href="https://github.com/pinchbench/skill"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                open source
+              </a>
+              . Hover column headers for details.
+            </div>
           </div>
         </ShareableWrapper>
       </div>
@@ -353,7 +491,13 @@ export function SimpleLeaderboard({
                   Provider
                 </th>
                 <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                  {view === 'speed' ? 'Best Time' : 'Best Cost'}
+                  <ColumnTooltip
+                    label={view === 'speed' ? 'Best Time' : 'Best Cost'}
+                    description={view === 'speed'
+                      ? 'Wall-clock time for the model\'s fastest complete benchmark run across all submissions.'
+                      : 'Total API cost (USD) for the model\'s cheapest complete benchmark run.'}
+                    benchmarkVersion={benchmarkVersion}
+                  />
                 </th>
               </tr>
             </thead>
@@ -433,6 +577,18 @@ export function SimpleLeaderboard({
               </Button>
             </div>
           )}
+          <div className="border-t border-border bg-muted/20 px-4 py-2 text-center text-xs text-muted-foreground">
+            All tasks and grading criteria are{' '}
+            <a
+              href="https://github.com/pinchbench/skill"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              open source
+            </a>
+            . Hover column headers for details.
+          </div>
         </div>
       </ShareableWrapper>
     </div>

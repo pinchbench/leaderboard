@@ -159,6 +159,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         entries={filteredEntries}
                         view={view}
                         scoreMode={scoreMode}
+                        benchmarkVersion={currentVersion}
                         onScoreModeChange={setScoreMode}
                         onProviderClick={setProviderFilter}
                     />

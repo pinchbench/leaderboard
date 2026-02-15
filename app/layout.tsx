@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Footer } from '@/components/footer'
 import { PostHogProvider } from '@/components/posthog-provider'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 import './globals.css'
 
@@ -52,8 +53,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <PostHogProvider>
-          {children}
-          <Footer />
+          <TooltipProvider delayDuration={300}>
+            {children}
+            <Footer />
+          </TooltipProvider>
         </PostHogProvider>
       </body>
     </html>
