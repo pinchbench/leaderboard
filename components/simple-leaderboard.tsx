@@ -184,13 +184,15 @@ export function SimpleLeaderboard({
           </div>
         </div>
         <p className="text-sm text-muted-foreground mb-2">
-          Percentage of tasks completed successfully across standardized{' '}
+          Percentage of{' '}
           <Link
             href="https://github.com/pinchbench/skill/tree/main/tasks"
             className="underline underline-offset-2 hover:text-foreground"
+            target="_blank"
           >
-            OpenClaw agent tests
-          </Link>
+            tasks
+          </Link> completed successfully across standardized
+          OpenClaw agent tests
         </p>
         <p className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5">
           <Info className="h-3 w-3 flex-shrink-0" />
