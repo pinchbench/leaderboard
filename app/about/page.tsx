@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Github, ExternalLink, FileCode, Database, BarChart3, Cog } from 'lucide-react'
+import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, GitCommit } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -163,6 +163,67 @@ export default function AboutPage() {
                                 Combines automated checks for verifiable criteria with LLM judge for qualitative assessment.
                             </p>
                         </div>
+                    </div>
+                </section>
+
+                {/* Benchmark Versioning */}
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                        <GitCommit className="h-6 w-6 text-primary" />
+                        Benchmark Versioning
+                    </h2>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                        Each benchmark version is identified by the git commit hash of the{' '}
+                        <a
+                            href="https://github.com/pinchbench/skill"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                        >
+                            pinchbench/skill
+                        </a>{' '}
+                        repository at the time the run was executed. This means any change to the repo &mdash; no matter
+                        how small &mdash; produces a new version hash, giving every result a precise, auditable link back
+                        to the exact task definitions and grading logic that were used.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                        Not every new commit changes the substance of the benchmark, though. Commits that only
+                        touch documentation, CI configuration, tooling, or other files unrelated to task prompts
+                        and scoring logic do not affect results. We mark all versions that share the same underlying
+                        task definitions and grading criteria as{' '}
+                        <span className="text-green-500 font-medium">current</span>, so scores across those versions
+                        are directly comparable. When a commit does alter a task prompt, grading rubric, or scoring
+                        function, older versions lose their &ldquo;current&rdquo; status and results from different
+                        generations of the benchmark are kept separate.
+                    </p>
+                    <div className="p-4 rounded-lg bg-card border border-border">
+                        <h3 className="font-semibold text-foreground mb-2">In practice</h3>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                                <span className="text-primary mt-0.5">•</span>
+                                <span>
+                                    <strong className="text-foreground">Same business logic</strong> &mdash; If only a
+                                    README, helper script, or config file changed, the new version is still marked
+                                    current and its scores sit alongside previous current versions on the leaderboard.
+                                </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-primary mt-0.5">•</span>
+                                <span>
+                                    <strong className="text-foreground">Changed scoring or tasks</strong> &mdash; If a
+                                    task prompt, grading function, or rubric was modified, a new generation begins and
+                                    only versions with the updated logic are considered current.
+                                </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-primary mt-0.5">•</span>
+                                <span>
+                                    <strong className="text-foreground">Historical results</strong> &mdash; Older,
+                                    non-current versions and their results are never deleted. You can always select a
+                                    specific version from the version picker to view historical leaderboards.
+                                </span>
+                            </li>
+                        </ul>
                     </div>
                 </section>
 
