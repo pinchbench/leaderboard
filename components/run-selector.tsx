@@ -29,6 +29,12 @@ function getScoreColor(percentage: number): string {
   return 'text-red-500'
 }
 
+function formatTaskCount(maxScore: number): string {
+  if (!Number.isFinite(maxScore)) return ''
+  const count = Math.max(0, Math.round(maxScore))
+  return `${count} task${count === 1 ? '' : 's'}`
+}
+
 export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
   const router = useRouter()
   const [submissions, setSubmissions] = useState<ApiModelSubmissionItem[]>([])
@@ -102,6 +108,7 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
         {submissions.map((sub, index) => {
           const score = sub.score_percentage * 100
           const isCurrent = sub.id === currentSubmissionId
+          const taskCountLabel = formatTaskCount(sub.max_score)
 
           return (
             <DropdownMenuItem
@@ -138,7 +145,12 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
               </span>
 
               {/* Best badge, pushed to the right */}
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                {taskCountLabel && (
+                  <span className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                    {taskCountLabel}
+                  </span>
+                )}
                 {sub.is_best && (
                   <Badge
                     variant="outline"
