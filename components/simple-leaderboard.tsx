@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
@@ -84,6 +85,7 @@ export function SimpleLeaderboard({
   onProviderClick,
 }: SimpleLeaderboardProps) {
   const [showLowScores, setShowLowScores] = useState(false)
+  const [showZeroCostResults, setShowZeroCostResults] = useState(false)
   const lowScoreCutoff = 40
   const getScorePercentage = (entry: LeaderboardEntry) => {
     if (scoreMode === 'average') {
@@ -127,11 +129,23 @@ export function SimpleLeaderboard({
   const rankedEntries = sortedEntries.filter((entry) => getViewValue(entry) !== null)
   const nullEntries = sortedEntries.filter((entry) => getViewValue(entry) === null)
 
-  const { displayedEntries, hiddenEntries } = useMemo(() => {
+  const { displayedEntries, hiddenEntries, zeroCostEntries } = useMemo(() => {
+    if (view === 'cost') {
+      // Filter out $0 results unless showZeroCostResults is enabled
+      const nonZero = rankedEntries.filter((entry) => entry.best_cost_usd !== 0)
+      const zero = rankedEntries.filter((entry) => entry.best_cost_usd === 0)
+      return {
+        displayedEntries: showZeroCostResults ? rankedEntries : nonZero,
+        hiddenEntries: [] as LeaderboardEntry[],
+        zeroCostEntries: zero,
+      }
+    }
+
     if (view !== 'success') {
       return {
         displayedEntries: rankedEntries,
         hiddenEntries: [] as LeaderboardEntry[],
+        zeroCostEntries: [] as LeaderboardEntry[],
       }
     }
 
@@ -147,8 +161,9 @@ export function SimpleLeaderboard({
     return {
       displayedEntries: showLowScores ? visible.concat(hidden) : visible,
       hiddenEntries: hidden,
+      zeroCostEntries: [] as LeaderboardEntry[],
     }
-  }, [rankedEntries, showLowScores, view, scoreMode])
+  }, [rankedEntries, showLowScores, showZeroCostResults, view, scoreMode])
 
   const showToggle = view === 'success' && hiddenEntries.length > 0
 
@@ -458,16 +473,45 @@ export function SimpleLeaderboard({
     return scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`
   }
 
-  const ranked = rankedEntries.map((entry, index) => ({ entry, rank: index + 1 }))
+  // For cost view, use displayedEntries (which respects the zero cost filter)
+  const entriesToRank = view === 'cost' ? displayedEntries : rankedEntries
+  const ranked = entriesToRank.map((entry, index) => ({ entry, rank: index + 1 }))
 
   // Speed and Cost views - simple table only
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl">{view === 'speed' ? '⚡' : '💰'}</span>
-        <h2 className="text-xl font-bold text-foreground">
-          {view === 'speed' ? 'Speed by model' : 'Cost by model'}
-        </h2>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{view === 'speed' ? '⚡' : '💰'}</span>
+          <h2 className="text-xl font-bold text-foreground">
+            {view === 'speed' ? 'Speed by model' : 'Cost by model'}
+          </h2>
+        </div>
+        {view === 'cost' && zeroCostEntries.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="show-zero-cost"
+              checked={showZeroCostResults}
+              onCheckedChange={(checked) => setShowZeroCostResults(checked === true)}
+            />
+            <label
+              htmlFor="show-zero-cost"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Show $0 Results
+            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs p-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Cost tracking can be unreliable for some providers, resulting in $0 values being saved incorrectly. These results are hidden by default.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         {view === 'speed'
