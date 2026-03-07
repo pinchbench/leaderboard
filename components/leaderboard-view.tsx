@@ -12,11 +12,11 @@ import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
 
-type ViewMode = 'success' | 'speed' | 'cost' | 'graphs'
+type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 type GraphSubTab = 'scatter' | 'heatmap' | 'distribution' | 'radar'
 
-const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'graphs']
+const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
 
@@ -167,7 +167,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 ) : (
                     <SimpleLeaderboard
                         entries={filteredEntries}
-                        view={view}
+                        view={view as 'success' | 'speed' | 'cost' | 'value'}
                         scoreMode={scoreMode}
                         benchmarkVersion={currentVersion}
                         onScoreModeChange={setScoreMode}

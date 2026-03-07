@@ -11,6 +11,10 @@ export interface LeaderboardEntry {
   best_cost_usd?: number | null;
   submission_count?: number;
   average_score_percentage?: number | null;
+  /** Value Score = score_percentage / best_cost_usd (null if cost missing/zero) */
+  value_score?: number | null;
+  /** Cost Per Successful Task = best_cost_usd / estimated_successful_tasks (null if unavailable) */
+  cpst?: number | null;
 }
 
 export interface TaskResult {
@@ -168,6 +172,8 @@ export interface BenchmarkVersion {
 export interface BenchmarkVersionsResponse {
   versions: BenchmarkVersion[];
 }
+
+export type SortMode = "quality" | "value";
 
 export const CATEGORY_ICONS: Record<string, string> = {
   api: "🔌",
