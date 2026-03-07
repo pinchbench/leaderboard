@@ -23,9 +23,12 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchLeaderboard(version?: string): Promise<LeaderboardResponse> {
-  const params = version ? `?version=${encodeURIComponent(version)}` : "";
-  return fetchJson<LeaderboardResponse>(`/leaderboard${params}`);
+export async function fetchLeaderboard(version?: string, verified?: boolean): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams();
+  if (version) params.set("version", version);
+  if (verified !== undefined) params.set("verified", String(verified));
+  const queryString = params.toString();
+  return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
 }
 
 export async function fetchBenchmarkVersions(): Promise<BenchmarkVersionsResponse> {
