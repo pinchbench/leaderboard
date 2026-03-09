@@ -90,7 +90,7 @@ export function LeaderboardHeader({
                                     type="checkbox"
                                     checked={!officialOnly}
                                     onChange={(e) => onOfficialOnlyChange(!e.target.checked)}
-                                    className="h-3.5 w-3.5 rounded border-border/70 bg-secondary/60 accent-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                                    className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                                 Include unofficial runs
                             </label>
