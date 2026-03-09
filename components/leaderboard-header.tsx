@@ -85,12 +85,12 @@ export function LeaderboardHeader({
                         </div>
                         <div className="hidden md:flex flex-col items-end gap-2">
                             <VersionSelector versions={versions} currentVersion={currentVersion} />
-                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground/90 cursor-pointer hover:text-foreground transition-colors">
                                 <input
                                     type="checkbox"
                                     checked={!officialOnly}
                                     onChange={(e) => onOfficialOnlyChange(!e.target.checked)}
-                                    className="rounded border-border"
+                                    className="h-3.5 w-3.5 rounded border-border/70 bg-secondary/60 accent-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                                 Include unofficial runs
                             </label>
