@@ -43,7 +43,7 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
       // Wait for layout to settle
       await new Promise((r) => setTimeout(r, 100))
 
-      const dataUrl = await toPng(captureRef.current, {
+      const captureOptions = {
         backgroundColor: '#09090b', // background color (dark theme)
         pixelRatio: 2, // 2x for crisp images on retina
         quality: 0.95,
@@ -52,7 +52,18 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
           if (node.getAttribute?.('data-share-exclude') === 'true') return false
           return true
         },
-      })
+      }
+
+      // First call warms up the cache - this is a known workaround for Safari
+      // where the first toPng call often returns a blank/incomplete image.
+      // See: https://github.com/bubkoo/html-to-image/issues/488
+      await toPng(captureRef.current, captureOptions)
+
+      // Small delay to ensure fonts and SVGs are fully processed
+      await new Promise((r) => setTimeout(r, 50))
+
+      // Second call produces the actual image
+      const dataUrl = await toPng(captureRef.current, captureOptions)
 
       if (action === 'copy') {
         const blob = await (await fetch(dataUrl)).blob()

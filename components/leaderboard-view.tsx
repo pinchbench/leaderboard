@@ -25,10 +25,10 @@ interface LeaderboardViewProps {
     lastUpdated: string
     versions: BenchmarkVersion[]
     currentVersion: string | null
-    verifiedOnly?: boolean
+    verifiedOnly: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, verifiedOnly = false }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, verifiedOnly }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -45,6 +45,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
 
+    const [verified, setVerifiedState] = useState<boolean>(verifiedOnly)
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
@@ -86,9 +87,15 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const setVerified = useCallback((v: boolean) => {
+        setVerifiedState(v)
+        // verified=true is default, so only add param when false
+        updateUrl({ verified: v ? null : 'false' })
+    }, [updateUrl])
+
     const handleVerifiedToggle = useCallback(() => {
-        updateUrl({ verified: verifiedOnly ? null : 'true' })
-    }, [updateUrl, verifiedOnly])
+        setVerified(!verified)
+    }, [setVerified, verified])
 
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
@@ -117,9 +124,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
-                verifiedOnly={verifiedOnly}
+                verifiedOnly={verified}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
+                onVerifiedChange={setVerified}
                 onClearProviderFilter={() => setProviderFilter(null)}
                 onVerifiedToggle={handleVerifiedToggle}
             />

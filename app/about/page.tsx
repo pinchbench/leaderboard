@@ -95,10 +95,11 @@ export default function AboutPage() {
                         Current Benchmark Tasks
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                        The benchmark includes 10 tasks across different categories:
+                        The benchmark includes 23 tasks across different categories:
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {[
+                            { id: 'task_00_sanity', name: 'Sanity Check', icon: '✅', description: 'Confirm the agent can process and respond to simple instructions with a greeting.', grading: 'automated' },
                             { id: 'task_01_calendar', name: 'Calendar Event Creation', icon: '📅', description: 'Parse a natural language request and generate a valid ICS calendar file with correct date, time, attendees, and description.', grading: 'automated' },
                             { id: 'task_02_stock', name: 'Stock Price Research', icon: '📈', description: 'Research a current stock price using web tools and save a formatted report with ticker, price, date, and market context.', grading: 'automated' },
                             { id: 'task_03_blog', name: 'Blog Post Writing', icon: '✍️', description: 'Write a structured ~500-word blog post on a given topic with proper markdown formatting, clear arguments, and examples.', grading: 'llm_judge' },
@@ -106,9 +107,21 @@ export default function AboutPage() {
                             { id: 'task_05_summary', name: 'Document Summarization', icon: '📄', description: 'Read a provided document and write a concise 3-paragraph summary capturing the main themes and key points.', grading: 'llm_judge' },
                             { id: 'task_06_events', name: 'Tech Conference Research', icon: '🎤', description: 'Research and compile 5 real tech conferences with accurate names, dates, locations, and URLs.', grading: 'llm_judge' },
                             { id: 'task_07_email', name: 'Professional Email Drafting', icon: '✉️', description: 'Draft a polite, professional email declining a meeting while maintaining good relationships and offering alternatives.', grading: 'llm_judge' },
-                            { id: 'task_08_memory', name: 'Memory Retrieval', icon: '🧠', description: 'Extract specific facts from a provided project notes file (dates, team members, tech stack) and answer questions accurately.', grading: 'automated' },
+                            { id: 'task_08_memory', name: 'Memory Retrieval from Context', icon: '🧠', description: 'Extract specific facts from a provided project notes file (dates, team members, tech stack) and answer questions accurately.', grading: 'automated' },
                             { id: 'task_09_files', name: 'File Structure Creation', icon: '📁', description: 'Create a standard project directory structure with source files, README, and .gitignore with correct content.', grading: 'automated' },
                             { id: 'task_10_workflow', name: 'Multi-step API Workflow', icon: '🔄', description: 'Read a config file, extract API settings, create a Python script to call the endpoint, and document the process.', grading: 'hybrid' },
+                            { id: 'task_11_clawdhub', name: 'Install ClawdHub Skill', icon: '🔌', description: 'Install a skill from the OpenClaw skill registry and verify it is available.', grading: 'automated' },
+                            { id: 'task_12_skill_search', name: 'Search and Install Skill', icon: '🔍', description: 'Search the skill registry for weather-related skills and install the appropriate one.', grading: 'automated' },
+                            { id: 'task_13_image_gen', name: 'AI Image Generation', icon: '🎨', description: 'Generate an image matching a description using AI image generation tools and save it to a file.', grading: 'hybrid' },
+                            { id: 'task_14_humanizer', name: 'Humanize AI-Generated Blog', icon: '🤖', description: 'Transform robotic AI-generated content into natural, human-sounding writing using a humanizer skill.', grading: 'llm_judge' },
+                            { id: 'task_15_daily_summary', name: 'Daily Research Summary', icon: '📊', description: 'Synthesize multiple research documents into a coherent daily summary with key findings.', grading: 'llm_judge' },
+                            { id: 'task_16_email_triage', name: 'Email Inbox Triage', icon: '📬', description: 'Analyze multiple emails, prioritize by urgency, and create an organized triage report.', grading: 'hybrid' },
+                            { id: 'task_17_email_search', name: 'Email Search and Summarization', icon: '🔎', description: 'Search through email archives to find relevant messages and summarize findings.', grading: 'hybrid' },
+                            { id: 'task_18_market_research', name: 'Competitive Market Research', icon: '🏢', description: 'Research the competitive landscape for enterprise APM, identifying top players and key differentiators.', grading: 'hybrid' },
+                            { id: 'task_19_spreadsheet_summary', name: 'CSV and Excel Summarization', icon: '📑', description: 'Analyze CSV and Excel files to extract insights and create data summaries.', grading: 'hybrid' },
+                            { id: 'task_20_eli5_pdf_summary', name: 'ELI5 PDF Summarization', icon: '👶', description: 'Read a technical PDF and create an "Explain Like I\'m 5" summary using simple language and analogies.', grading: 'llm_judge' },
+                            { id: 'task_21_openclaw_comprehension', name: 'OpenClaw Report Comprehension', icon: '📖', description: 'Extract specific information from a research report PDF and answer targeted questions.', grading: 'automated' },
+                            { id: 'task_22_second_brain', name: 'Second Brain Knowledge Persistence', icon: '💾', description: 'Store information in memory, then recall it accurately across multiple sessions.', grading: 'hybrid' },
                         ].map((task) => (
                             <a
                                 key={task.id}

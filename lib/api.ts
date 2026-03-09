@@ -27,9 +27,9 @@ async function fetchJson<T>(path: string): Promise<T> {
 export async function fetchLeaderboard(version?: string, verified?: boolean): Promise<LeaderboardResponse> {
   const params = new URLSearchParams();
   if (version) params.set("version", version);
-  if (verified) params.set("verified", "true");
-  const query = params.toString();
-  return fetchJson<LeaderboardResponse>(`/leaderboard${query ? `?${query}` : ""}`);
+  if (verified !== undefined) params.set("verified", String(verified));
+  const queryString = params.toString();
+  return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
 }
 
 export async function fetchUserSubmissions(

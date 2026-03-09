@@ -42,9 +42,10 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
 
 export default async function Home({ searchParams }: HomeProps) {
   const { version, verified: verifiedParam } = await searchParams
-  const verifiedOnly = verifiedParam === 'true'
+  // Default to verified=true for public leaderboard integrity
+  const verified = verifiedParam !== 'false'
   const [response, versionsResponse] = await Promise.all([
-    fetchLeaderboard(version, verifiedOnly),
+    fetchLeaderboard(version, verified),
     fetchBenchmarkVersions(),
   ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
@@ -69,7 +70,7 @@ export default async function Home({ searchParams }: HomeProps) {
       lastUpdated={lastUpdated}
       versions={versionsResponse.versions}
       currentVersion={version ?? null}
-      verifiedOnly={verifiedOnly}
+      verifiedOnly={verified}
     />
   )
 }

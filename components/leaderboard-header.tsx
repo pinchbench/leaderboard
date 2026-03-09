@@ -20,6 +20,7 @@ interface LeaderboardHeaderProps {
     verifiedOnly: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
+    onVerifiedChange: (verified: boolean) => void
     onClearProviderFilter: () => void
     onVerifiedToggle: () => void
 }
@@ -37,6 +38,7 @@ export function LeaderboardHeader({
     verifiedOnly,
     onViewChange,
     onScoreModeChange,
+    onVerifiedChange,
     onClearProviderFilter,
     onVerifiedToggle,
 }: LeaderboardHeaderProps) {
@@ -83,8 +85,17 @@ export function LeaderboardHeader({
                                 <span className="hidden sm:inline">GitHub</span>
                             </a>
                         </div>
-                        <div className="hidden md:flex flex-col items-end gap-1">
+                        <div className="hidden md:flex flex-col items-end gap-2">
                             <VersionSelector versions={versions} currentVersion={currentVersion} />
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={verifiedOnly}
+                                    onChange={(e) => onVerifiedChange(e.target.checked)}
+                                    className="rounded border-border"
+                                />
+                                Verified runs only
+                            </label>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
                     </div>
