@@ -24,10 +24,10 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchLeaderboard(version?: string, verified?: boolean): Promise<LeaderboardResponse> {
+export async function fetchLeaderboard(version?: string): Promise<LeaderboardResponse> {
   const params = new URLSearchParams();
+  params.set("official", "true");
   if (version) params.set("version", version);
-  if (verified !== undefined) params.set("verified", String(verified));
   const queryString = params.toString();
   return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
 }
@@ -62,6 +62,7 @@ export async function fetchSubmissions(
   offset: number = 0,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
+  params.set("official", "true");
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
@@ -100,7 +101,7 @@ export async function fetchModelSubmissionsClient(
   model: string,
 ): Promise<ModelSubmissionsResponse> {
   const response = await fetch(
-    `${API_BASE}/model-submissions?model=${encodeURIComponent(model)}`,
+    `${API_BASE}/model-submissions?official=true&model=${encodeURIComponent(model)}`,
   );
   if (!response.ok) {
     throw new Error(
@@ -115,6 +116,7 @@ export async function fetchSubmissionsClient(
   limit: number = 500,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
+  params.set("official", "true");
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   const response = await fetch(`${API_BASE}/submissions?${params.toString()}`);

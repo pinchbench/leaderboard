@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ArrowLeft, BadgeCheck } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { ShareButton } from '@/components/share-button'
 import { RunSelector } from '@/components/run-selector'
 import { ScoreGauge } from '@/components/score-gauge'
@@ -20,14 +20,10 @@ interface SubmissionPageProps {
 export default async function SubmissionPage({ params }: SubmissionPageProps) {
   const { id } = await params
   let submission
-  let verified: boolean = false
-  let verifiedBy: string | null = null
 
   try {
     const response = await fetchSubmission(id)
     submission = transformSubmission(response.submission)
-    verified = response.submission.verified ?? false
-    verifiedBy = response.submission.verified_by ?? null
   } catch (error) {
     return (
       <div className="min-h-screen bg-background">
@@ -131,23 +127,6 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 >
                   {submission.provider}
                 </Badge>
-                {verified && (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-500">
-                    <BadgeCheck className="h-4 w-4" />
-                    Verified
-                    {verifiedBy && (
-                      <span className="text-muted-foreground font-normal">
-                        by{' '}
-                        <Link
-                          href={`/user/${verifiedBy}`}
-                          className="text-green-500 hover:underline"
-                        >
-                          {verifiedBy}
-                        </Link>
-                      </span>
-                    )}
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-4 flex-wrap">
                 <p className="text-sm text-muted-foreground">

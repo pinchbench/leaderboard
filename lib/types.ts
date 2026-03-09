@@ -86,8 +86,6 @@ export interface ApiSubmissionDetail {
   usage_summary?: UsageSummary;
   rank?: number;
   percentile?: number;
-  verified?: boolean;
-  verified_by?: string | null;
   run_id?: string;
 }
 

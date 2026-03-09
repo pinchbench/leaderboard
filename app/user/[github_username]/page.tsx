@@ -75,7 +75,7 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
                 </a>
               </div>
               <p className="text-sm text-muted-foreground">
-                Verified PinchBench submissions
+                PinchBench submissions
               </p>
             </div>
           </div>

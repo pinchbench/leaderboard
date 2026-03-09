@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
@@ -25,10 +24,9 @@ interface LeaderboardViewProps {
     lastUpdated: string
     versions: BenchmarkVersion[]
     currentVersion: string | null
-    verifiedOnly: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, verifiedOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -45,7 +43,6 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
 
-    const [verified, setVerifiedState] = useState<boolean>(verifiedOnly)
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
@@ -87,16 +84,6 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
-    const setVerified = useCallback((v: boolean) => {
-        setVerifiedState(v)
-        // verified=true is default, so only add param when false
-        updateUrl({ verified: v ? null : 'false' })
-    }, [updateUrl])
-
-    const handleVerifiedToggle = useCallback(() => {
-        setVerified(!verified)
-    }, [setVerified, verified])
-
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
         return entries.filter(
@@ -124,12 +111,9 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
-                verifiedOnly={verified}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
-                onVerifiedChange={setVerified}
                 onClearProviderFilter={() => setProviderFilter(null)}
-                onVerifiedToggle={handleVerifiedToggle}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
