@@ -174,6 +174,12 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
               </code>
             </div>
             <div>
+              <span className="text-muted-foreground">Benchmark Version: </span>
+              <code className="font-mono text-foreground">
+                {submission.benchmark_version}
+              </code>
+            </div>
+            <div>
               <span className="text-muted-foreground">Submission ID: </span>
               <code className="font-mono text-foreground text-xs">
                 {submission.submission_id}

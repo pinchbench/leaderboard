@@ -30,6 +30,7 @@ export interface Submission {
   submission_id: string;
   timestamp: string;
   openclaw_version: string;
+  benchmark_version: string;
   model: string;
   provider: string;
   task_results: TaskResult[];
@@ -71,6 +72,7 @@ export interface ApiSubmissionDetail {
   id: string;
   timestamp: string;
   openclaw_version: string | null;
+  benchmark_version?: string | null;
   model: string;
   provider: string;
   tasks: ApiTaskResult[];

@@ -81,6 +81,7 @@ export function transformSubmission(
     submission_id: apiSubmission.id,
     timestamp: apiSubmission.timestamp,
     openclaw_version: apiSubmission.openclaw_version ?? "unknown",
+    benchmark_version: apiSubmission.benchmark_version ?? "unknown",
     model: apiSubmission.model,
     provider: normalizeProvider(apiSubmission.provider),
     task_results: apiSubmission.tasks.map(transformTaskResult),
