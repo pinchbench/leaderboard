@@ -85,7 +85,38 @@ export interface ApiSubmissionDetail {
   rank?: number;
   percentile?: number;
   verified?: boolean;
+  verified_by?: string | null;
   run_id?: string;
+}
+
+export interface UserSubmission {
+  id: string;
+  model: string;
+  provider: string;
+  score_percentage: number;
+  total_score: number;
+  max_score: number;
+  total_execution_time_seconds: number;
+  total_cost_usd: number;
+  timestamp: string;
+  created_at: string;
+  client_version: string | null;
+  openclaw_version: string | null;
+  benchmark_version: string;
+}
+
+export interface UserSubmissionsResponse {
+  github_username: string;
+  submissions: UserSubmission[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+  benchmark_versions: string[];
+  summary: {
+    total_submissions: number;
+    best_score_percentage: number;
+  };
 }
 
 export interface SubmissionDetailResponse {

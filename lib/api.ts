@@ -5,6 +5,7 @@ import type {
   StatsResponse,
   BenchmarkVersionsResponse,
   ModelSubmissionsResponse,
+  UserSubmissionsResponse,
 } from "@/lib/types";
 
 const API_BASE = "https://api.pinchbench.com/api";
@@ -29,6 +30,20 @@ export async function fetchLeaderboard(version?: string, verified?: boolean): Pr
   if (verified !== undefined) params.set("verified", String(verified));
   const queryString = params.toString();
   return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
+}
+
+export async function fetchUserSubmissions(
+  githubUsername: string,
+  options?: { version?: string; limit?: number; offset?: number },
+): Promise<UserSubmissionsResponse> {
+  const params = new URLSearchParams();
+  if (options?.version) params.set("version", options.version);
+  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.offset != null) params.set("offset", String(options.offset));
+  const query = params.toString();
+  return fetchJson<UserSubmissionsResponse>(
+    `/users/${encodeURIComponent(githubUsername)}/submissions${query ? `?${query}` : ""}`,
+  );
 }
 
 export async function fetchBenchmarkVersions(): Promise<BenchmarkVersionsResponse> {

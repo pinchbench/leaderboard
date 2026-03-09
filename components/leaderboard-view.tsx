@@ -93,6 +93,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ verified: v ? null : 'false' })
     }, [updateUrl])
 
+    const handleVerifiedToggle = useCallback(() => {
+        setVerified(!verified)
+    }, [setVerified, verified])
+
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
         return entries.filter(
@@ -125,6 +129,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onScoreModeChange={setScoreMode}
                 onVerifiedChange={setVerified}
                 onClearProviderFilter={() => setProviderFilter(null)}
+                onVerifiedToggle={handleVerifiedToggle}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
