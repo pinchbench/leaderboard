@@ -140,3 +140,23 @@ export async function fetchSubmissionsClient(
   }
   return response.json() as Promise<SubmissionsListResponse>;
 }
+
+/**
+ * Fetch leaderboard data (client-side, no ISR caching).
+ * Used when toggling official/unofficial filter.
+ */
+export async function fetchLeaderboardClient(
+  version?: string,
+  options?: OfficialFilterOptions,
+): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
+  if (version) params.set("version", version);
+  const response = await fetch(`${API_BASE}/leaderboard?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return response.json() as Promise<LeaderboardResponse>;
+}

@@ -1,15 +1,18 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { fetchLeaderboardClient } from '@/lib/api'
+import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
 import { TaskHeatmap } from '@/components/task-heatmap'
 import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
+import { CrabLoader, useMinLoadingTime } from '@/components/crab-loader'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -19,6 +22,8 @@ const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
 
+const MIN_LOADING_MS = 400 // Show crab for at least 400ms
+
 interface LeaderboardViewProps {
     entries: LeaderboardEntry[]
     lastUpdated: string
@@ -27,7 +32,7 @@ interface LeaderboardViewProps {
     officialOnly: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries: initialEntries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -49,6 +54,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
+    
+    // Client-side data fetching state
+    const [entries, setEntries] = useState<LeaderboardEntry[]>(initialEntries)
+    const [isLoading, setIsLoading] = useState(false)
+    const showLoader = useMinLoadingTime(isLoading, MIN_LOADING_MS)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -86,10 +96,23 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
-    const setOfficialOnly = useCallback((v: boolean) => {
+    // Fetch data when official toggle changes
+    const setOfficialOnly = useCallback(async (v: boolean) => {
         setOfficialOnlyState(v)
         updateUrl({ official: v ? null : 'false' })
-    }, [updateUrl])
+        
+        // Fetch new data client-side
+        setIsLoading(true)
+        try {
+            const response = await fetchLeaderboardClient(currentVersion ?? undefined, { officialOnly: v })
+            const newEntries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
+            setEntries(newEntries)
+        } catch (error) {
+            console.error('Failed to fetch leaderboard:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [updateUrl, currentVersion])
 
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
@@ -126,7 +149,9 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
-                {view === 'graphs' ? (
+                {showLoader ? (
+                    <CrabLoader message="Fetching benchmarks..." />
+                ) : view === 'graphs' ? (
                     <div>
                         {/* Graph sub-tabs */}
                         <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
