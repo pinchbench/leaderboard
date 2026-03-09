@@ -6,13 +6,14 @@ import { fetchSubmissions, fetchBenchmarkVersions } from '@/lib/api'
 import { formatDistanceToNow } from 'date-fns'
 
 interface RunsPageProps {
-  searchParams: Promise<{ version?: string }>
+  searchParams: Promise<{ version?: string; official?: string }>
 }
 
 export default async function RunsPage({ searchParams }: RunsPageProps) {
-  const { version } = await searchParams
+  const { version, official } = await searchParams
+  const officialOnly = official !== 'false'
   const [submissionsResponse, versionsResponse] = await Promise.all([
-    fetchSubmissions(version, 500),
+    fetchSubmissions(version, 500, 0, { officialOnly }),
     fetchBenchmarkVersions(),
   ])
 
@@ -33,7 +34,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
       <header className="border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <Link href={version ? `/?version=${version}` : '/'}>
+            <Link href={version ? `/?version=${version}${officialOnly ? '' : '&official=false'}` : (officialOnly ? '/' : '/?official=false')}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -46,6 +47,9 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
                 <p className="text-xs text-muted-foreground">
                   All Runs &mdash; {versionLabel}
                 </p>
+                {!officialOnly && (
+                  <p className="text-xs text-amber-300">Including unofficial runs</p>
+                )}
               </div>
             </div>
           </div>
@@ -94,10 +98,15 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
                   <tr key={sub.id} className="border-b border-border/50 hover:bg-muted/30">
                     <td className="py-2 pr-4">
                       <Link
-                        href={`/submission/${sub.id}`}
-                        className="font-mono text-foreground hover:underline"
+                        href={officialOnly ? `/submission/${sub.id}` : `/submission/${sub.id}?official=false`}
+                        className="inline-flex items-center gap-2 font-mono text-foreground hover:underline"
                       >
                         {sub.model}
+                        {sub.official === false && (
+                          <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                            Unofficial
+                          </span>
+                        )}
                       </Link>
                     </td>
                     <td className="py-2 pr-4">

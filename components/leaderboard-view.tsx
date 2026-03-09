@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
@@ -25,10 +24,10 @@ interface LeaderboardViewProps {
     lastUpdated: string
     versions: BenchmarkVersion[]
     currentVersion: string | null
-    verifiedOnly: boolean
+    officialOnly: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, verifiedOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -45,8 +44,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
 
-    const [verified, setVerifiedState] = useState<boolean>(verifiedOnly)
     const [view, setViewState] = useState<ViewMode>(initialView)
+    const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
@@ -87,15 +86,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
-    const setVerified = useCallback((v: boolean) => {
-        setVerifiedState(v)
-        // verified=true is default, so only add param when false
-        updateUrl({ verified: v ? null : 'false' })
+    const setOfficialOnly = useCallback((v: boolean) => {
+        setOfficialOnlyState(v)
+        updateUrl({ official: v ? null : 'false' })
     }, [updateUrl])
-
-    const handleVerifiedToggle = useCallback(() => {
-        setVerified(!verified)
-    }, [setVerified, verified])
 
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
@@ -124,12 +118,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
-                verifiedOnly={verified}
+                officialOnly={officialOnlyState}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
-                onVerifiedChange={setVerified}
+                onOfficialOnlyChange={setOfficialOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
-                onVerifiedToggle={handleVerifiedToggle}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
@@ -163,7 +156,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} />
                         )}
                         {graphSubTab === 'distribution' && (
-                            <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} />
+                            <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
                         )}
                         {graphSubTab === 'radar' && (
                             <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
@@ -175,6 +168,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         view={view}
                         scoreMode={scoreMode}
                         benchmarkVersion={currentVersion}
+                        officialOnly={officialOnlyState}
                         onScoreModeChange={setScoreMode}
                         onProviderClick={setProviderFilter}
                     />

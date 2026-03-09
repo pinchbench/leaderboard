@@ -43,9 +43,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const view = searchParams.get('view') || 'success'
   const version = searchParams.get('version') || undefined
+  const officialOnly = searchParams.get('official') !== 'false'
 
   try {
-    const response = await fetchLeaderboard(version)
+    const response = await fetchLeaderboard(version, { officialOnly })
     const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
 
     // Get top entries based on view

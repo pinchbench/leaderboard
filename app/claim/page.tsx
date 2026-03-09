@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Verify Your PinchBench Submissions',
-  description: 'Link your GitHub account to verify your PinchBench submissions on the leaderboard.',
+  title: 'Claim Your PinchBench Submissions',
+  description: 'Link your GitHub account to claim your PinchBench submissions on the leaderboard.',
 }
 
 const API_BASE = 'https://api.pinchbench.com/api'
@@ -37,9 +37,9 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <span className="text-6xl block mb-4">🦞</span>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Verify Your Runs</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Claim Your Runs</h1>
             <p className="text-muted-foreground">
-              Link your GitHub account to verify your PinchBench submissions on the leaderboard.
+              Link your GitHub account to claim your PinchBench submissions on the leaderboard.
             </p>
           </div>
 
@@ -48,8 +48,8 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
               <div className="space-y-4">
                 <div className="text-sm text-muted-foreground space-y-2">
                   <p>
-                    Signing in with GitHub will link your identity to your API token. Once verified,
-                    your submissions will display a verified badge on the leaderboard.
+                    Signing in with GitHub links your identity to your API token so your runs are attached
+                    to your GitHub profile on the leaderboard.
                   </p>
                   <p>
                     This is a one-time step — you only need to do it once per token.
