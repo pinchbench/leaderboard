@@ -24,9 +24,10 @@ interface LeaderboardViewProps {
     lastUpdated: string
     versions: BenchmarkVersion[]
     currentVersion: string | null
+    officialOnly: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -44,6 +45,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         : 'scatter'
 
     const [view, setViewState] = useState<ViewMode>(initialView)
+    const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
@@ -84,6 +86,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const setOfficialOnly = useCallback((v: boolean) => {
+        setOfficialOnlyState(v)
+        updateUrl({ official: v ? null : 'false' })
+    }, [updateUrl])
+
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
         return entries.filter(
@@ -111,8 +118,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
+                officialOnly={officialOnlyState}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
+                onOfficialOnlyChange={setOfficialOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
             />
 
@@ -147,7 +156,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} />
                         )}
                         {graphSubTab === 'distribution' && (
-                            <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} />
+                            <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
                         )}
                         {graphSubTab === 'radar' && (
                             <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
@@ -159,6 +168,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         view={view}
                         scoreMode={scoreMode}
                         benchmarkVersion={currentVersion}
+                        officialOnly={officialOnlyState}
                         onScoreModeChange={setScoreMode}
                         onProviderClick={setProviderFilter}
                     />

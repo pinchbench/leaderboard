@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   best_cost_usd?: number | null;
   submission_count?: number;
   average_score_percentage?: number | null;
+  official?: boolean;
 }
 
 export interface TaskResult {
@@ -62,10 +63,12 @@ export interface ApiLeaderboardEntry {
   best_cost_usd?: number | null;
   submission_count?: number;
   average_score_percentage?: number | null;
+  official?: boolean;
 }
 
 export interface LeaderboardResponse {
   leaderboard: ApiLeaderboardEntry[];
+  official_only?: boolean;
 }
 
 export interface ApiSubmissionDetail {
@@ -156,6 +159,7 @@ export interface ApiSubmissionListItem {
   openclaw_version: string | null;
   benchmark_version: string;
   claimed: number;
+  official?: boolean;
 }
 
 export interface SubmissionsListResponse {
@@ -166,6 +170,7 @@ export interface SubmissionsListResponse {
   has_more: boolean;
   benchmark_version: string | null;
   benchmark_versions: string[];
+  official_only?: boolean;
 }
 
 export interface ApiModelSubmissionItem {
@@ -175,6 +180,7 @@ export interface ApiModelSubmissionItem {
   max_score: number;
   timestamp: string;
   is_best: boolean;
+  official?: boolean;
 }
 
 export interface ModelSubmissionsResponse {
@@ -182,6 +188,7 @@ export interface ModelSubmissionsResponse {
   model: string;
   benchmark_version: string;
   benchmark_versions: string[];
+  official_only?: boolean;
 }
 
 export interface StatsResponse {

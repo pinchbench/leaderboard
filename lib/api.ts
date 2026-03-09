@@ -10,6 +10,10 @@ import type {
 
 const API_BASE = "https://api.pinchbench.com/api";
 
+interface OfficialFilterOptions {
+  officialOnly?: boolean;
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     next: { revalidate: 60 },
@@ -24,9 +28,12 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchLeaderboard(version?: string): Promise<LeaderboardResponse> {
+export async function fetchLeaderboard(
+  version?: string,
+  options?: OfficialFilterOptions,
+): Promise<LeaderboardResponse> {
   const params = new URLSearchParams();
-  params.set("official", "true");
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   const queryString = params.toString();
   return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
@@ -60,9 +67,10 @@ export async function fetchSubmissions(
   version?: string,
   limit: number = 200,
   offset: number = 0,
+  options?: OfficialFilterOptions,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
-  params.set("official", "true");
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
@@ -99,9 +107,13 @@ export async function fetchSubmissionClient(
  */
 export async function fetchModelSubmissionsClient(
   model: string,
+  options?: OfficialFilterOptions,
 ): Promise<ModelSubmissionsResponse> {
+  const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
+  params.set("model", model);
   const response = await fetch(
-    `${API_BASE}/model-submissions?official=true&model=${encodeURIComponent(model)}`,
+    `${API_BASE}/model-submissions?${params.toString()}`,
   );
   if (!response.ok) {
     throw new Error(
@@ -114,9 +126,10 @@ export async function fetchModelSubmissionsClient(
 export async function fetchSubmissionsClient(
   version?: string,
   limit: number = 500,
+  options?: OfficialFilterOptions,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
-  params.set("official", "true");
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   const response = await fetch(`${API_BASE}/submissions?${params.toString()}`);

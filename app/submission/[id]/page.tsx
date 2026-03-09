@@ -15,10 +15,13 @@ import { transformSubmission } from '@/lib/transforms'
 
 interface SubmissionPageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ official?: string }>
 }
 
-export default async function SubmissionPage({ params }: SubmissionPageProps) {
+export default async function SubmissionPage({ params, searchParams }: SubmissionPageProps) {
   const { id } = await params
+  const { official } = await searchParams
+  const officialOnly = official !== 'false'
   let submission
 
   try {
@@ -30,7 +33,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
         <header className="border-b border-border">
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex items-center justify-between">
-              <Link href="/">
+              <Link href={officialOnly ? '/' : '/?official=false'}>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -83,7 +86,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
       <header className="border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <Link href="/">
+            <Link href={officialOnly ? '/' : '/?official=false'}>
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -138,11 +141,17 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 <RunSelector
                   model={submission.model}
                   currentSubmissionId={submission.submission_id}
+                  officialOnly={officialOnly}
                 />
               </div>
             </div>
             <ShareButton />
           </div>
+          {!officialOnly && (
+            <div className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              Showing official + unofficial runs for this model
+            </div>
+          )}
 
           {/* Metadata */}
           <div className="flex flex-wrap gap-4 text-sm">

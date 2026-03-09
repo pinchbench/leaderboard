@@ -4,14 +4,15 @@ import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { LeaderboardView } from '@/components/leaderboard-view'
 
 interface HomeProps {
-  searchParams: Promise<{ version?: string; view?: string }>
+  searchParams: Promise<{ version?: string; view?: string; official?: string }>
 }
 
 export async function generateMetadata({ searchParams }: HomeProps): Promise<Metadata> {
-  const { version, view } = await searchParams
+  const { version, view, official } = await searchParams
   const ogParams = new URLSearchParams()
   if (view) ogParams.set('view', view)
   if (version) ogParams.set('version', version)
+  if (official === 'false') ogParams.set('official', 'false')
   const ogUrl = `/api/og${ogParams.toString() ? `?${ogParams.toString()}` : ''}`
 
   const viewTitles: Record<string, string> = {
@@ -41,9 +42,10 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { version } = await searchParams
+  const { version, official } = await searchParams
+  const officialOnly = official !== 'false'
   const [response, versionsResponse] = await Promise.all([
-    fetchLeaderboard(version),
+    fetchLeaderboard(version, { officialOnly }),
     fetchBenchmarkVersions(),
   ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
@@ -68,6 +70,7 @@ export default async function Home({ searchParams }: HomeProps) {
       lastUpdated={lastUpdated}
       versions={versionsResponse.versions}
       currentVersion={version ?? null}
+      officialOnly={officialOnly}
     />
   )
 }

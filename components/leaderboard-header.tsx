@@ -17,8 +17,10 @@ interface LeaderboardHeaderProps {
     providerColor?: string
     view: ViewMode
     scoreMode: ScoreMode
+    officialOnly: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
+    onOfficialOnlyChange: (officialOnly: boolean) => void
     onClearProviderFilter: () => void
 }
 
@@ -32,8 +34,10 @@ export function LeaderboardHeader({
     providerColor,
     view,
     scoreMode,
+    officialOnly,
     onViewChange,
     onScoreModeChange,
+    onOfficialOnlyChange,
     onClearProviderFilter,
 }: LeaderboardHeaderProps) {
     return (
@@ -81,10 +85,25 @@ export function LeaderboardHeader({
                         </div>
                         <div className="hidden md:flex flex-col items-end gap-2">
                             <VersionSelector versions={versions} currentVersion={currentVersion} />
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={!officialOnly}
+                                    onChange={(e) => onOfficialOnlyChange(!e.target.checked)}
+                                    className="rounded border-border"
+                                />
+                                Include unofficial runs
+                            </label>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
                     </div>
                 </div>
+
+                {!officialOnly && (
+                    <div className="mt-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                        Showing official + unofficial results
+                    </div>
+                )}
 
                 {providerFilter && (
                     <div className="flex items-center gap-2 mt-4">
@@ -150,10 +169,21 @@ export function LeaderboardHeader({
                         <span className="mr-2">📊</span>
                         Graphs
                     </button>
+                    <button
+                        onClick={() => onOfficialOnlyChange(!officialOnly)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${officialOnly
+                            ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            }`}
+                    >
+                        {officialOnly ? 'Official (default)' : 'All runs (includes unofficial)'}
+                    </button>
                     <div className="hidden md:flex md:ml-auto items-center gap-4 text-sm text-muted-foreground">
                         <span>{filteredEntryCount} models</span>
                         <Link
-                            href={currentVersion ? `/runs?version=${currentVersion}` : '/runs'}
+                            href={currentVersion
+                                ? `/runs?version=${currentVersion}${officialOnly ? '' : '&official=false'}`
+                                : (officialOnly ? '/runs' : '/runs?official=false')}
                             className="hover:underline hover:text-foreground transition-colors"
                         >
                             {totalRuns} runs

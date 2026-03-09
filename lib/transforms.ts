@@ -29,6 +29,7 @@ export function transformLeaderboardEntry(
     best_cost_usd: apiEntry.best_cost_usd ?? null,
     submission_count: apiEntry.submission_count,
     average_score_percentage: apiEntry.average_score_percentage ?? null,
+    official: apiEntry.official,
   };
 }
 
