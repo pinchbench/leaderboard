@@ -169,15 +169,6 @@ export function LeaderboardHeader({
                         <span className="mr-2">📊</span>
                         Graphs
                     </button>
-                    <button
-                        onClick={() => onOfficialOnlyChange(!officialOnly)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${officialOnly
-                            ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            }`}
-                    >
-                        {officialOnly ? 'Official (default)' : 'All runs (includes unofficial)'}
-                    </button>
                     <div className="hidden md:flex md:ml-auto items-center gap-4 text-sm text-muted-foreground">
                         <span>{filteredEntryCount} models</span>
                         <Link
