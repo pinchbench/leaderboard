@@ -36,7 +36,7 @@ export async function fetchLeaderboard(
   params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   const queryString = params.toString();
-  return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
+  return fetchJson<LeaderboardResponse>(`/leaderboard?${queryString}`);
 }
 
 export async function fetchUserSubmissions(
