@@ -4,7 +4,7 @@ import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { LeaderboardView } from '@/components/leaderboard-view'
 
 interface HomeProps {
-  searchParams: Promise<{ version?: string; view?: string }>
+  searchParams: Promise<{ version?: string; view?: string; verified?: string }>
 }
 
 export async function generateMetadata({ searchParams }: HomeProps): Promise<Metadata> {
@@ -41,9 +41,10 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { version } = await searchParams
+  const { version, verified: verifiedParam } = await searchParams
+  const verifiedOnly = verifiedParam === 'true'
   const [response, versionsResponse] = await Promise.all([
-    fetchLeaderboard(version),
+    fetchLeaderboard(version, verifiedOnly),
     fetchBenchmarkVersions(),
   ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
@@ -68,6 +69,7 @@ export default async function Home({ searchParams }: HomeProps) {
       lastUpdated={lastUpdated}
       versions={versionsResponse.versions}
       currentVersion={version ?? null}
+      verifiedOnly={verifiedOnly}
     />
   )
 }

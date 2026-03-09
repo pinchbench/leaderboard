@@ -25,9 +25,10 @@ interface LeaderboardViewProps {
     lastUpdated: string
     versions: BenchmarkVersion[]
     currentVersion: string | null
+    verifiedOnly?: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, verifiedOnly = false }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -85,6 +86,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const handleVerifiedToggle = useCallback(() => {
+        updateUrl({ verified: verifiedOnly ? null : 'true' })
+    }, [updateUrl, verifiedOnly])
+
     const filteredEntries = useMemo(() => {
         if (!providerFilter) return entries
         return entries.filter(
@@ -112,9 +117,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
+                verifiedOnly={verifiedOnly}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
                 onClearProviderFilter={() => setProviderFilter(null)}
+                onVerifiedToggle={handleVerifiedToggle}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">

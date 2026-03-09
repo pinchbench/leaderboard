@@ -17,9 +17,11 @@ interface LeaderboardHeaderProps {
     providerColor?: string
     view: ViewMode
     scoreMode: ScoreMode
+    verifiedOnly: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
     onClearProviderFilter: () => void
+    onVerifiedToggle: () => void
 }
 
 export function LeaderboardHeader({
@@ -32,9 +34,11 @@ export function LeaderboardHeader({
     providerColor,
     view,
     scoreMode,
+    verifiedOnly,
     onViewChange,
     onScoreModeChange,
     onClearProviderFilter,
+    onVerifiedToggle,
 }: LeaderboardHeaderProps) {
     return (
         <header className="border-b border-border">
@@ -149,6 +153,16 @@ export function LeaderboardHeader({
                     >
                         <span className="mr-2">📊</span>
                         Graphs
+                    </button>
+                    <button
+                        onClick={onVerifiedToggle}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${verifiedOnly
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/40'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            }`}
+                    >
+                        <span>✓</span>
+                        Verified only
                     </button>
                     <div className="hidden md:flex md:ml-auto items-center gap-4 text-sm text-muted-foreground">
                         <span>{filteredEntryCount} models</span>

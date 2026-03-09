@@ -5,6 +5,7 @@ import type {
   StatsResponse,
   BenchmarkVersionsResponse,
   ModelSubmissionsResponse,
+  UserSubmissionsResponse,
 } from "@/lib/types";
 
 const API_BASE = "https://api.pinchbench.com/api";
@@ -23,9 +24,26 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchLeaderboard(version?: string): Promise<LeaderboardResponse> {
-  const params = version ? `?version=${encodeURIComponent(version)}` : "";
-  return fetchJson<LeaderboardResponse>(`/leaderboard${params}`);
+export async function fetchLeaderboard(version?: string, verified?: boolean): Promise<LeaderboardResponse> {
+  const params = new URLSearchParams();
+  if (version) params.set("version", version);
+  if (verified) params.set("verified", "true");
+  const query = params.toString();
+  return fetchJson<LeaderboardResponse>(`/leaderboard${query ? `?${query}` : ""}`);
+}
+
+export async function fetchUserSubmissions(
+  githubUsername: string,
+  options?: { version?: string; limit?: number; offset?: number },
+): Promise<UserSubmissionsResponse> {
+  const params = new URLSearchParams();
+  if (options?.version) params.set("version", options.version);
+  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.offset != null) params.set("offset", String(options.offset));
+  const query = params.toString();
+  return fetchJson<UserSubmissionsResponse>(
+    `/users/${encodeURIComponent(githubUsername)}/submissions${query ? `?${query}` : ""}`,
+  );
 }
 
 export async function fetchBenchmarkVersions(): Promise<BenchmarkVersionsResponse> {
