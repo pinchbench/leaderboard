@@ -12,9 +12,40 @@ const EPSILON = 1e-6;
 
 const normalizeProvider = (provider: string) => provider.toLowerCase();
 
+/**
+ * Estimate the number of successful tasks from a score percentage.
+ * Uses best_score_percentage * max_score (from API) — but since max_score
+ * is not in ApiLeaderboardEntry, we approximate using a standard task count of 40
+ * (the current PinchBench task count). Falls back to null if score is unavailable.
+ */
+function estimateSuccessfulTasks(
+  scorePercentage: number | null | undefined,
+  taskCount = 40,
+): number | null {
+  if (scorePercentage == null) return null;
+  return Math.max(1, Math.round(scorePercentage * taskCount));
+}
+
 export function transformLeaderboardEntry(
   apiEntry: ApiLeaderboardEntry,
 ): LeaderboardEntry {
+  const scorePercentage = apiEntry.best_score_percentage; // 0-1 range
+  const bestCost = apiEntry.best_cost_usd ?? null;
+
+  // Value Score = score_percentage (0-100 scale) / cost_usd
+  // Guard: cost must be > 0
+  let value_score: number | null = null;
+  if (bestCost != null && bestCost > EPSILON && scorePercentage != null) {
+    value_score = (scorePercentage * 100) / bestCost;
+  }
+
+  // CPST = cost_usd / estimated_successful_tasks
+  let cpst: number | null = null;
+  const successfulTasks = estimateSuccessfulTasks(scorePercentage);
+  if (bestCost != null && bestCost > EPSILON && successfulTasks != null && successfulTasks > 0) {
+    cpst = bestCost / successfulTasks;
+  }
+
   return {
     rank: 0,
     model: apiEntry.model,
@@ -26,9 +57,11 @@ export function transformLeaderboardEntry(
       apiEntry.average_execution_time_seconds ?? null,
     best_execution_time_seconds: apiEntry.best_execution_time_seconds ?? null,
     average_cost_usd: apiEntry.average_cost_usd ?? null,
-    best_cost_usd: apiEntry.best_cost_usd ?? null,
+    best_cost_usd: bestCost,
     submission_count: apiEntry.submission_count,
     average_score_percentage: apiEntry.average_score_percentage ?? null,
+    value_score,
+    cpst,
     official: apiEntry.official,
   };
 }

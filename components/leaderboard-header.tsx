@@ -4,7 +4,7 @@ import Link from 'next/link'
 import type { BenchmarkVersion } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
 
-type ViewMode = 'success' | 'speed' | 'cost' | 'graphs'
+type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 
 interface LeaderboardHeaderProps {
@@ -127,8 +127,8 @@ export function LeaderboardHeader({
                     </div>
                 )}
 
-                {/* Navigation buttons - 2x2 grid on mobile, inline on desktop */}
-                <div className="grid grid-cols-2 gap-2 mt-4 md:mt-6 md:flex md:flex-wrap md:items-center">
+                {/* Navigation buttons - 2x3 grid on mobile, inline on desktop */}
+                <div className="grid grid-cols-3 gap-2 mt-4 md:mt-6 md:flex md:flex-wrap md:items-center">
                     <button
                         onClick={() => onViewChange('success')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'success'
@@ -158,6 +158,16 @@ export function LeaderboardHeader({
                     >
                         <span className="mr-2">💰</span>
                         Cost
+                    </button>
+                    <button
+                        onClick={() => onViewChange('value')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'value'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            }`}
+                    >
+                        <span className="mr-2">💎</span>
+                        Value
                     </button>
                     <button
                         onClick={() => onViewChange('graphs')}
