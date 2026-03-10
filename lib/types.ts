@@ -46,6 +46,7 @@ export interface Submission {
     task_count: number;
   };
   usage_summary?: UsageSummary;
+  official?: boolean;
 }
 
 export interface UsageSummary {
@@ -94,6 +95,7 @@ export interface ApiSubmissionDetail {
   rank?: number;
   percentile?: number;
   run_id?: string;
+  official?: boolean;
 }
 
 export interface UserSubmission {

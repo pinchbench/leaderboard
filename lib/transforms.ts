@@ -127,5 +127,6 @@ export function transformSubmission(
         apiSubmission.metadata?.task_count ?? apiSubmission.tasks.length,
     },
     usage_summary: apiSubmission.usage_summary,
+    official: apiSubmission.official,
   };
 }

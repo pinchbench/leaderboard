@@ -130,6 +130,14 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                 >
                   {submission.provider}
                 </Badge>
+                {submission.official && (
+                  <Badge
+                    variant="outline"
+                    className="text-sm border-green-500 text-green-500"
+                  >
+                    Official
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-4 flex-wrap">
                 <p className="text-sm text-muted-foreground">
