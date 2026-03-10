@@ -46,10 +46,10 @@ export function LeaderboardHeader({
                 <div className="flex items-center justify-between">
                     <div className="flex flex-col items-center gap-2">
                         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                            <img src="/apple-touch-icon.png" alt="PinchBench" className="w-8 h-8 md:w-10 md:h-10" />
+                            <img src="/apple-touch-icon.png" alt="PinchBench - OpenClaw Benchmark" className="w-8 h-8 md:w-10 md:h-10" />
                             <div>
                                 <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
-                                <p className="hidden md:block text-sm text-muted-foreground">Claw-some AI Agent Testing</p>
+                                <h2 className="hidden md:block text-sm text-muted-foreground">Compare AI Models for OpenClaw</h2>
                             </div>
                         </Link>
                         <div className="flex justify-end mb-4 md:inline-block hidden">

@@ -13,8 +13,9 @@ const _geistMono = Geist_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://pinchbench.com'),
-  title: 'PinchBench Leaderboard - OpenClaw LLM Model Benchmarking',
-  description: 'Benchmarking LLM models as OpenClaw agents across 10 standardized coding tasks',
+  title: 'PinchBench - AI Coding Agent Benchmark for OpenClaw',
+  description: 'Compare and benchmark LLM models as OpenClaw AI coding agents. Test success rates, speed, and cost across standardized coding tasks.',
+  keywords: ['OpenClaw', 'benchmark', 'AI coding agent', 'LLM benchmark', 'model comparison', 'coding assistant', 'AI agent testing'],
   generator: 'v0.app',
   icons: {
     icon: [
