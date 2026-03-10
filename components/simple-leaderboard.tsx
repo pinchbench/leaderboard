@@ -254,7 +254,7 @@ export function SimpleLeaderboard({
                           className="block group"
                         >
                         <div className="flex items-center gap-3">
-                          <div className="w-48 flex items-center gap-2 flex-shrink-0">
+                          <div className="w-72 flex items-center gap-2 flex-shrink-0">
                             <span className="text-xl" title={`Rank ${entry.rank}`}>
                               {getCrabEmoji(entry.rank)}
                             </span>
