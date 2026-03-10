@@ -135,7 +135,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                     variant="outline"
                     className="text-sm border-green-500 text-green-500"
                   >
-                    Official
+                   🎖️ Official
                   </Badge>
                 )}
               </div>
