@@ -1,0 +1,6 @@
+# PinchBench robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://pinchbench.com/sitemap.xml
