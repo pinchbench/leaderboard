@@ -5,9 +5,14 @@ import type {
   StatsResponse,
   BenchmarkVersionsResponse,
   ModelSubmissionsResponse,
+  UserSubmissionsResponse,
 } from "@/lib/types";
 
 const API_BASE = "https://api.pinchbench.com/api";
+
+interface OfficialFilterOptions {
+  officialOnly?: boolean;
+}
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -23,12 +28,29 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchLeaderboard(version?: string, verified?: boolean): Promise<LeaderboardResponse> {
+export async function fetchLeaderboard(
+  version?: string,
+  options?: OfficialFilterOptions,
+): Promise<LeaderboardResponse> {
   const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
-  if (verified !== undefined) params.set("verified", String(verified));
   const queryString = params.toString();
-  return fetchJson<LeaderboardResponse>(`/leaderboard${queryString ? `?${queryString}` : ""}`);
+  return fetchJson<LeaderboardResponse>(`/leaderboard?${queryString}`);
+}
+
+export async function fetchUserSubmissions(
+  githubUsername: string,
+  options?: { version?: string; limit?: number; offset?: number },
+): Promise<UserSubmissionsResponse> {
+  const params = new URLSearchParams();
+  if (options?.version) params.set("version", options.version);
+  if (options?.limit != null) params.set("limit", String(options.limit));
+  if (options?.offset != null) params.set("offset", String(options.offset));
+  const query = params.toString();
+  return fetchJson<UserSubmissionsResponse>(
+    `/users/${encodeURIComponent(githubUsername)}/submissions${query ? `?${query}` : ""}`,
+  );
 }
 
 export async function fetchBenchmarkVersions(): Promise<BenchmarkVersionsResponse> {
@@ -45,8 +67,10 @@ export async function fetchSubmissions(
   version?: string,
   limit: number = 200,
   offset: number = 0,
+  options?: OfficialFilterOptions,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
@@ -83,9 +107,13 @@ export async function fetchSubmissionClient(
  */
 export async function fetchModelSubmissionsClient(
   model: string,
+  options?: OfficialFilterOptions,
 ): Promise<ModelSubmissionsResponse> {
+  const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
+  params.set("model", model);
   const response = await fetch(
-    `${API_BASE}/model-submissions?model=${encodeURIComponent(model)}`,
+    `${API_BASE}/model-submissions?${params.toString()}`,
   );
   if (!response.ok) {
     throw new Error(
@@ -98,8 +126,10 @@ export async function fetchModelSubmissionsClient(
 export async function fetchSubmissionsClient(
   version?: string,
   limit: number = 500,
+  options?: OfficialFilterOptions,
 ): Promise<SubmissionsListResponse> {
   const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
   if (version) params.set("version", version);
   params.set("limit", String(limit));
   const response = await fetch(`${API_BASE}/submissions?${params.toString()}`);

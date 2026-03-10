@@ -21,6 +21,7 @@ import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 interface RunSelectorProps {
   model: string
   currentSubmissionId: string
+  officialOnly: boolean
 }
 
 function getScoreColor(percentage: number): string {
@@ -35,7 +36,7 @@ function formatTaskCount(maxScore: number): string {
   return `${count} task${count === 1 ? '' : 's'}`
 }
 
-export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
+export function RunSelector({ model, currentSubmissionId, officialOnly }: RunSelectorProps) {
   const router = useRouter()
   const [submissions, setSubmissions] = useState<ApiModelSubmissionItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +45,7 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
   useEffect(() => {
     let cancelled = false
 
-    fetchModelSubmissionsClient(model)
+    fetchModelSubmissionsClient(model, { officialOnly })
       .then((response) => {
         if (!cancelled) {
           setSubmissions(response.submissions)
@@ -64,7 +65,7 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
     return () => {
       cancelled = true
     }
-  }, [model])
+  }, [model, officialOnly])
 
   // Show skeleton while loading to prevent layout shift
   if (loading) {
@@ -116,7 +117,7 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
               className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
               onSelect={() => {
                 if (!isCurrent) {
-                  router.push(`/submission/${sub.id}`)
+                  router.push(officialOnly ? `/submission/${sub.id}` : `/submission/${sub.id}?official=false`)
                 }
               }}
             >
@@ -157,6 +158,14 @@ export function RunSelector({ model, currentSubmissionId }: RunSelectorProps) {
                     className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/50 text-yellow-500"
                   >
                     Best
+                  </Badge>
+                )}
+                {sub.official === false && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 h-4 border-amber-500/50 text-amber-300"
+                  >
+                    Unofficial
                   </Badge>
                 )}
               </div>

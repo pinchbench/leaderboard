@@ -62,6 +62,7 @@ export function transformLeaderboardEntry(
     average_score_percentage: apiEntry.average_score_percentage ?? null,
     value_score,
     cpst,
+    official: apiEntry.official,
   };
 }
 
@@ -114,6 +115,7 @@ export function transformSubmission(
     submission_id: apiSubmission.id,
     timestamp: apiSubmission.timestamp,
     openclaw_version: apiSubmission.openclaw_version ?? "unknown",
+    benchmark_version: apiSubmission.benchmark_version ?? "unknown",
     model: apiSubmission.model,
     provider: normalizeProvider(apiSubmission.provider),
     task_results: apiSubmission.tasks.map(transformTaskResult),

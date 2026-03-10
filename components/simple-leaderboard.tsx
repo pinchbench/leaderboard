@@ -15,6 +15,7 @@ interface SimpleLeaderboardProps {
   view: 'success' | 'speed' | 'cost' | 'value'
   scoreMode: 'best' | 'average'
   benchmarkVersion?: string | null
+  officialOnly: boolean
   onScoreModeChange?: (mode: 'best' | 'average') => void
   onProviderClick?: (provider: string) => void
 }
@@ -87,6 +88,7 @@ export function SimpleLeaderboard({
   view,
   scoreMode,
   benchmarkVersion,
+  officialOnly,
   onScoreModeChange,
   onProviderClick,
 }: SimpleLeaderboardProps) {
@@ -96,6 +98,9 @@ export function SimpleLeaderboard({
   const [maxCostFilter, setMaxCostFilter] = useState<string>('')
   const lowScoreCutoff = 40
 
+  const submissionHref = (submissionId: string) => (
+    officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
+  )
   const getScorePercentage = (entry: LeaderboardEntry) => {
     if (scoreMode === 'average') {
       return entry.average_score_percentage != null
@@ -525,18 +530,23 @@ export function SimpleLeaderboard({
                 return (
                   <Tooltip key={entry.submission_id}>
                     <TooltipTrigger asChild>
-                      <Link
-                        href={`/submission/${entry.submission_id}`}
-                        className="block group"
-                      >
+                        <Link
+                          href={submissionHref(entry.submission_id)}
+                          className="block group"
+                        >
                         <div className="flex items-center gap-3">
-                          <div className="w-48 flex items-center gap-2 flex-shrink-0">
+                          <div className="w-72 flex items-center gap-2 flex-shrink-0">
                             <span className="text-xl" title={`Rank ${entry.rank}`}>
                               {getCrabEmoji(entry.rank)}
                             </span>
                             <code className="text-xs font-mono text-foreground transition-colors truncate">
                               {entry.model}
                             </code>
+                            {entry.official === false && (
+                              <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                                Unofficial
+                              </span>
+                            )}
                           </div>
                           <div className="flex-1 flex items-center gap-3">
                             <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
@@ -684,11 +694,16 @@ export function SimpleLeaderboard({
                     >
                       <td className="px-2 md:px-4 py-3">
                         <Link
-                          href={`/submission/${entry.submission_id}`}
+                          href={submissionHref(entry.submission_id)}
                           className="flex items-center gap-2 transition-colors"
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
                           <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
+                          {entry.official === false && (
+                            <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                              Unofficial
+                            </span>
+                          )}
                         </Link>
                       </td>
                       <td className="hidden md:table-cell px-4 py-3">
@@ -865,10 +880,15 @@ export function SimpleLeaderboard({
                   </td>
                   <td className="px-2 md:px-4 py-3">
                     <Link
-                      href={`/submission/${entry.submission_id}`}
+                      href={submissionHref(entry.submission_id)}
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                      {entry.official === false && (
+                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                          Unofficial
+                        </span>
+                      )}
                     </Link>
                   </td>
                   <td className="hidden md:table-cell px-4 py-3">
@@ -895,10 +915,15 @@ export function SimpleLeaderboard({
                   <td className="px-2 md:px-4 py-3">--</td>
                   <td className="px-2 md:px-4 py-3">
                     <Link
-                      href={`/submission/${entry.submission_id}`}
+                      href={submissionHref(entry.submission_id)}
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                      {entry.official === false && (
+                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                          Unofficial
+                        </span>
+                      )}
                     </Link>
                   </td>
                   <td className="hidden md:table-cell px-4 py-3">

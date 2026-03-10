@@ -19,6 +19,7 @@ interface ScoreDistributionProps {
   entries: LeaderboardEntry[]
   scoreMode: 'best' | 'average'
   currentVersion: string | null
+  officialOnly: boolean
 }
 
 interface BoxPlotData {
@@ -154,7 +155,7 @@ function BoxPlotTooltip({ active, payload }: {
   )
 }
 
-export function ScoreDistribution({ entries, scoreMode, currentVersion }: ScoreDistributionProps) {
+export function ScoreDistribution({ entries, scoreMode, currentVersion, officialOnly }: ScoreDistributionProps) {
   const [submissions, setSubmissions] = useState<ApiSubmissionListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -168,7 +169,7 @@ export function ScoreDistribution({ entries, scoreMode, currentVersion }: ScoreD
       setError(null)
 
       try {
-        const response = await fetchSubmissionsClient(currentVersion ?? undefined, 500)
+        const response = await fetchSubmissionsClient(currentVersion ?? undefined, 500, { officialOnly })
         if (!cancelled) {
           setSubmissions(response.submissions)
           setLoading(false)
@@ -183,7 +184,7 @@ export function ScoreDistribution({ entries, scoreMode, currentVersion }: ScoreD
 
     loadData()
     return () => { cancelled = true }
-  }, [currentVersion])
+  }, [currentVersion, officialOnly])
 
   const boxPlotData = useMemo(() => {
     // Group submissions by model

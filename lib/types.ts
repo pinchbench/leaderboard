@@ -15,6 +15,7 @@ export interface LeaderboardEntry {
   value_score?: number | null;
   /** Cost Per Successful Task = best_cost_usd / estimated_successful_tasks (null if unavailable) */
   cpst?: number | null;
+  official?: boolean;
 }
 
 export interface TaskResult {
@@ -34,6 +35,7 @@ export interface Submission {
   submission_id: string;
   timestamp: string;
   openclaw_version: string;
+  benchmark_version: string;
   model: string;
   provider: string;
   task_results: TaskResult[];
@@ -65,16 +67,19 @@ export interface ApiLeaderboardEntry {
   best_cost_usd?: number | null;
   submission_count?: number;
   average_score_percentage?: number | null;
+  official?: boolean;
 }
 
 export interface LeaderboardResponse {
   leaderboard: ApiLeaderboardEntry[];
+  official_only?: boolean;
 }
 
 export interface ApiSubmissionDetail {
   id: string;
   timestamp: string;
   openclaw_version: string | null;
+  benchmark_version?: string | null;
   model: string;
   provider: string;
   tasks: ApiTaskResult[];
@@ -88,8 +93,37 @@ export interface ApiSubmissionDetail {
   usage_summary?: UsageSummary;
   rank?: number;
   percentile?: number;
-  verified?: boolean;
   run_id?: string;
+}
+
+export interface UserSubmission {
+  id: string;
+  model: string;
+  provider: string;
+  score_percentage: number;
+  total_score: number;
+  max_score: number;
+  total_execution_time_seconds: number;
+  total_cost_usd: number;
+  timestamp: string;
+  created_at: string;
+  client_version: string | null;
+  openclaw_version: string | null;
+  benchmark_version: string;
+}
+
+export interface UserSubmissionsResponse {
+  github_username: string;
+  submissions: UserSubmission[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+  benchmark_versions: string[];
+  summary: {
+    total_submissions: number;
+    best_score_percentage: number;
+  };
 }
 
 export interface SubmissionDetailResponse {
@@ -129,6 +163,7 @@ export interface ApiSubmissionListItem {
   openclaw_version: string | null;
   benchmark_version: string;
   claimed: number;
+  official?: boolean;
 }
 
 export interface SubmissionsListResponse {
@@ -139,6 +174,7 @@ export interface SubmissionsListResponse {
   has_more: boolean;
   benchmark_version: string | null;
   benchmark_versions: string[];
+  official_only?: boolean;
 }
 
 export interface ApiModelSubmissionItem {
@@ -148,6 +184,7 @@ export interface ApiModelSubmissionItem {
   max_score: number;
   timestamp: string;
   is_best: boolean;
+  official?: boolean;
 }
 
 export interface ModelSubmissionsResponse {
@@ -155,6 +192,7 @@ export interface ModelSubmissionsResponse {
   model: string;
   benchmark_version: string;
   benchmark_versions: string[];
+  official_only?: boolean;
 }
 
 export interface StatsResponse {

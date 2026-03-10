@@ -17,10 +17,10 @@ interface LeaderboardHeaderProps {
     providerColor?: string
     view: ViewMode
     scoreMode: ScoreMode
-    verifiedOnly: boolean
+    officialOnly: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
-    onVerifiedChange: (verified: boolean) => void
+    onOfficialOnlyChange: (officialOnly: boolean) => void
     onClearProviderFilter: () => void
 }
 
@@ -34,10 +34,10 @@ export function LeaderboardHeader({
     providerColor,
     view,
     scoreMode,
-    verifiedOnly,
+    officialOnly,
     onViewChange,
     onScoreModeChange,
-    onVerifiedChange,
+    onOfficialOnlyChange,
     onClearProviderFilter,
 }: LeaderboardHeaderProps) {
     return (
@@ -85,19 +85,25 @@ export function LeaderboardHeader({
                         </div>
                         <div className="hidden md:flex flex-col items-end gap-2">
                             <VersionSelector versions={versions} currentVersion={currentVersion} />
-                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground/90 cursor-pointer hover:text-foreground transition-colors">
                                 <input
                                     type="checkbox"
-                                    checked={verifiedOnly}
-                                    onChange={(e) => onVerifiedChange(e.target.checked)}
-                                    className="rounded border-border"
+                                    checked={!officialOnly}
+                                    onChange={(e) => onOfficialOnlyChange(!e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
-                                Verified runs only
+                                Include unofficial runs
                             </label>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
                     </div>
                 </div>
+
+                {!officialOnly && (
+                    <div className="mt-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                        Showing official + unofficial results
+                    </div>
+                )}
 
                 {providerFilter && (
                     <div className="flex items-center gap-2 mt-4">
@@ -176,7 +182,9 @@ export function LeaderboardHeader({
                     <div className="hidden md:flex md:ml-auto items-center gap-4 text-sm text-muted-foreground">
                         <span>{filteredEntryCount} models</span>
                         <Link
-                            href={currentVersion ? `/runs?version=${currentVersion}` : '/runs'}
+                            href={currentVersion
+                                ? `/runs?version=${currentVersion}${officialOnly ? '' : '&official=false'}`
+                                : (officialOnly ? '/runs' : '/runs?official=false')}
                             className="hover:underline hover:text-foreground transition-colors"
                         >
                             {totalRuns} runs
