@@ -243,4 +243,5 @@ export const PROVIDER_COLORS: Record<string, string> = {
   deepseek: "#3C5DFF",
   stepfun: "#00D4AA",
   mistralai: "#FF7000",
+  nvidia: "#76B900",
 };
