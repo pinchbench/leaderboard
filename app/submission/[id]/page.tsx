@@ -184,12 +184,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
             </div>
           </div>
 
-          {/* Hardware Info */}
-          {submission.metadata.system && (
-            <div className="mt-4">
-              <HardwareInfo system={submission.metadata.system} />
-            </div>
-          )}
+
         </div>
 
         {/* Score Overview */}
@@ -246,6 +241,13 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
             </p>
           </div>
           <TaskBreakdown tasks={submission.task_results} />
+          
+          {/* Hardware Info */}
+          {submission.metadata.system && (
+            <div className="mt-6">
+              <HardwareInfo system={submission.metadata.system} />
+            </div>
+          )}
         </div>
 
         {/* Help Section */}
