@@ -8,6 +8,7 @@ import { ShareButton } from '@/components/share-button'
 import { RunSelector } from '@/components/run-selector'
 import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
+import { HardwareInfo } from '@/components/hardware-info'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
@@ -182,6 +183,13 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
               </code>
             </div>
           </div>
+
+          {/* Hardware Info */}
+          {submission.metadata.system && (
+            <div className="mt-4">
+              <HardwareInfo system={submission.metadata.system} />
+            </div>
+          )}
         </div>
 
         {/* Score Overview */}
