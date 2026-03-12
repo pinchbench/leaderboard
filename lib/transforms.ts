@@ -111,6 +111,20 @@ export function transformTaskResult(apiTask: ApiTaskResult): TaskResult {
 export function transformSubmission(
   apiSubmission: ApiSubmissionDetail,
 ): Submission {
+  const systemRaw = apiSubmission.metadata?.system;
+  const system = systemRaw
+    ? {
+        os: systemRaw.os as string | undefined,
+        os_release: systemRaw.os_release as string | undefined,
+        architecture: systemRaw.architecture as string | undefined,
+        python_version: systemRaw.python_version as string | undefined,
+        cpu_count: systemRaw.cpu_count as number | undefined,
+        cpu_model: systemRaw.cpu_model as string | undefined,
+        memory_total_gb: systemRaw.memory_total_gb as number | undefined,
+        memory_available_gb: systemRaw.memory_available_gb as number | undefined,
+      }
+    : undefined;
+
   return {
     submission_id: apiSubmission.id,
     timestamp: apiSubmission.timestamp,
@@ -125,6 +139,7 @@ export function transformSubmission(
       run_timestamp: apiSubmission.metadata?.run_timestamp ?? 0,
       task_count:
         apiSubmission.metadata?.task_count ?? apiSubmission.tasks.length,
+      system,
     },
     usage_summary: apiSubmission.usage_summary,
     official: apiSubmission.official,

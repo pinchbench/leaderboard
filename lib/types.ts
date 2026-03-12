@@ -44,6 +44,7 @@ export interface Submission {
   metadata: {
     run_timestamp: number;
     task_count: number;
+    system?: SystemInfo;
   };
   usage_summary?: UsageSummary;
   official?: boolean;
@@ -54,6 +55,17 @@ export interface UsageSummary {
   total_output_tokens: number;
   total_requests: number;
   total_cost_usd: number;
+}
+
+export interface SystemInfo {
+  os?: string;
+  os_release?: string;
+  architecture?: string;
+  python_version?: string;
+  cpu_count?: number;
+  cpu_model?: string;
+  memory_total_gb?: number;
+  memory_available_gb?: number;
 }
 
 export interface ApiLeaderboardEntry {
