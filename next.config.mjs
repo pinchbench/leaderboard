@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  skipTrailingSlashRedirect: true,
+  skipTrailingSlashRedirect: true, // PostHog sends trailing-slash requests that Next.js would otherwise 308-redirect
   typescript: {
     ignoreBuildErrors: true,
   },
