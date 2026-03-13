@@ -7,7 +7,8 @@ import { useEffect, Suspense } from 'react'
 
 if (typeof window !== 'undefined') {
   posthog.init('phc_GK2Pxl0HPj5ZPfwhLRjXrtdz8eD7e9MKnXiFrOqnB6z', {
-    api_host: 'https://us.i.posthog.com',
+    api_host: '/ingest',
+    ui_host: 'https://us.posthog.com',
     capture_pageview: false, // We capture manually below
     capture_pageleave: true,
   })
