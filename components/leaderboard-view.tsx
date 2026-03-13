@@ -4,12 +4,14 @@ import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { ALL_CATEGORIES } from '@/lib/categories'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
 import { TaskHeatmap } from '@/components/task-heatmap'
 import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
+import { CategoryFilter } from '@/components/category-filter'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -43,12 +45,25 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
+    
+    // Category filter - parse from URL or default to all
+    const initialCategories = useMemo(() => {
+        const param = searchParams.get('categories')
+        if (!param) return [...ALL_CATEGORIES]
+        const cats = param.split(',').filter(c => ALL_CATEGORIES.includes(c))
+        return cats.length > 0 ? cats : [...ALL_CATEGORIES]
+    }, [searchParams])
+    
+    // Hide partial runs filter (default: true = hide models that didn't run all categories)
+    const initialHidePartial = searchParams.get('partial') !== 'show'
 
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
+    const [selectedCategories, setSelectedCategoriesState] = useState<string[]>(initialCategories)
+    const [hidePartialRuns, setHidePartialRunsState] = useState<boolean>(initialHidePartial)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -84,6 +99,19 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const setGraphSubTab = useCallback((t: GraphSubTab) => {
         setGraphSubTabState(t)
         updateUrl({ graph: t === 'scatter' ? null : t })
+    }, [updateUrl])
+
+    const setSelectedCategories = useCallback((cats: string[]) => {
+        setSelectedCategoriesState(cats)
+        // Only add to URL if not all categories selected
+        const isAll = cats.length === ALL_CATEGORIES.length && ALL_CATEGORIES.every(c => cats.includes(c))
+        updateUrl({ categories: isAll ? null : cats.join(',') })
+    }, [updateUrl])
+
+    const setHidePartialRuns = useCallback((hide: boolean) => {
+        setHidePartialRunsState(hide)
+        // Default is hide (true), so only add param when showing partial
+        updateUrl({ partial: hide ? null : 'show' })
     }, [updateUrl])
 
     const setOfficialOnly = useCallback((v: boolean) => {
@@ -128,38 +156,71 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {view === 'graphs' ? (
                     <div>
-                        {/* Graph sub-tabs */}
-                        <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
-                            {([
-                                ['scatter', 'Scatter Plots'],
-                                ['heatmap', 'Task Heatmap'],
-                                ['distribution', 'Score Distribution'],
-                                ['radar', 'Model Comparison'],
-                            ] as const).map(([tab, label]) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setGraphSubTab(tab)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
+                        {/* Graph sub-tabs and filters */}
+                        <div className="flex flex-wrap items-center gap-4 mb-6">
+                            <div className="flex gap-1 rounded-lg border border-border bg-background p-1">
+                                {([
+                                    ['scatter', 'Scatter Plots'],
+                                    ['heatmap', 'Task Heatmap'],
+                                    ['distribution', 'Score Distribution'],
+                                    ['radar', 'Model Comparison'],
+                                ] as const).map(([tab, label]) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setGraphSubTab(tab)}
+                                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {/* Category filter - show for heatmap and radar */}
+                            {(graphSubTab === 'heatmap' || graphSubTab === 'radar') && (
+                                <CategoryFilter
+                                    selectedCategories={selectedCategories}
+                                    onChange={setSelectedCategories}
+                                />
+                            )}
+                            
+                            {/* Hide partial runs toggle - show for heatmap and radar */}
+                            {(graphSubTab === 'heatmap' || graphSubTab === 'radar') && (
+                                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={hidePartialRuns}
+                                        onChange={(e) => setHidePartialRuns(e.target.checked)}
+                                        className="rounded border-border"
+                                    />
+                                    <span>Hide partial runs</span>
+                                </label>
+                            )}
                         </div>
 
                         {graphSubTab === 'scatter' && (
                             <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
                         )}
                         {graphSubTab === 'heatmap' && (
-                            <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} />
+                            <TaskHeatmap 
+                                entries={filteredEntries} 
+                                scoreMode={scoreMode}
+                                selectedCategories={selectedCategories}
+                                hidePartialRuns={hidePartialRuns}
+                            />
                         )}
                         {graphSubTab === 'distribution' && (
                             <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
                         )}
                         {graphSubTab === 'radar' && (
-                            <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
+                            <ModelRadar 
+                                entries={filteredEntries} 
+                                scoreMode={scoreMode}
+                                selectedCategories={selectedCategories}
+                                hidePartialRuns={hidePartialRuns}
+                            />
                         )}
                     </div>
                 ) : (

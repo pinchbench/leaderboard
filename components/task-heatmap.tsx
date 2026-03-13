@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LeaderboardEntry, TaskResult } from '@/lib/types'
 import { PROVIDER_COLORS, CATEGORY_ICONS } from '@/lib/types'
+import { ALL_CATEGORIES, hasAllCategories, calculateFilteredScore } from '@/lib/categories'
 import { fetchSubmissionClient } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
@@ -10,6 +11,8 @@ import { ShareableWrapper } from '@/components/shareable-wrapper'
 interface TaskHeatmapProps {
   entries: LeaderboardEntry[]
   scoreMode: 'best' | 'average'
+  selectedCategories?: string[]
+  hidePartialRuns?: boolean
 }
 
 interface ModelTaskData {
@@ -17,6 +20,8 @@ interface ModelTaskData {
   provider: string
   percentage: number
   tasks: Map<string, { score: number; maxScore: number; taskName: string; category: string }>
+  taskResults: TaskResult[]  // Keep full task results for filtering
+  isComplete: boolean        // Has all categories
 }
 
 function getScoreColor(ratio: number): string {
@@ -36,7 +41,12 @@ function getScoreTextColor(ratio: number): string {
   return 'hsl(0, 70%, 75%)'
 }
 
-export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
+export function TaskHeatmap({ 
+  entries, 
+  scoreMode,
+  selectedCategories = ALL_CATEGORIES,
+  hidePartialRuns = true,
+}: TaskHeatmapProps) {
   const [modelData, setModelData] = useState<ModelTaskData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +91,8 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
                   provider: entry.provider,
                   percentage: entry.percentage,
                   tasks: taskMap,
+                  taskResults: submission.task_results,
+                  isComplete: hasAllCategories(submission.task_results),
                 } as ModelTaskData
               } catch {
                 return null
@@ -107,12 +119,22 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
     return () => { cancelled = true }
   }, [entries])
 
-  // Collect all unique tasks and sort by category
+  // Filter models based on hidePartialRuns
+  const filteredModelData = useMemo(() => {
+    if (!hidePartialRuns) return modelData
+    return modelData.filter(m => m.isComplete)
+  }, [modelData, hidePartialRuns])
+
+  // Count how many were filtered out
+  const partialRunsCount = modelData.length - filteredModelData.length
+
+  // Collect all unique tasks and sort by category, filtered by selectedCategories
   const allTasks = useMemo(() => {
     const taskMap = new Map<string, { taskName: string; category: string }>()
-    for (const model of modelData) {
+    for (const model of filteredModelData) {
       for (const [taskId, task] of model.tasks) {
-        if (!taskMap.has(taskId)) {
+        // Only include tasks from selected categories
+        if (selectedCategories.includes(task.category) && !taskMap.has(taskId)) {
           taskMap.set(taskId, { taskName: task.taskName, category: task.category })
         }
       }
@@ -125,18 +147,26 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
         if (catCmp !== 0) return catCmp
         return a.taskName.localeCompare(b.taskName)
       })
-  }, [modelData])
+  }, [filteredModelData, selectedCategories])
 
-  // Sort models
+  // Sort models, with recalculated scores based on selected categories
   const sortedModels = useMemo(() => {
-    const sorted = [...modelData]
+    const modelsWithFilteredScores = filteredModelData.map(model => {
+      // Calculate filtered score based on selected categories
+      const filteredScore = calculateFilteredScore(model.taskResults, selectedCategories)
+      return {
+        ...model,
+        displayPercentage: filteredScore?.percentage ?? model.percentage,
+      }
+    })
+
     if (sortBy === 'score') {
-      sorted.sort((a, b) => b.percentage - a.percentage)
+      modelsWithFilteredScores.sort((a, b) => b.displayPercentage - a.displayPercentage)
     } else {
-      sorted.sort((a, b) => a.model.localeCompare(b.model))
+      modelsWithFilteredScores.sort((a, b) => a.model.localeCompare(b.model))
     }
-    return sorted
-  }, [modelData, sortBy])
+    return modelsWithFilteredScores
+  }, [filteredModelData, sortBy, selectedCategories])
 
   // Group tasks by category for header display
   const categoryGroups = useMemo(() => {
@@ -180,7 +210,7 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
     )
   }
 
-  if (modelData.length === 0 || allTasks.length === 0) {
+  if (modelData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 rounded-lg border border-border bg-muted/30">
         <p className="text-sm text-muted-foreground">No task data available.</p>
@@ -188,14 +218,46 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
     )
   }
 
+  if (filteredModelData.length === 0 && hidePartialRuns) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 rounded-lg border border-border bg-muted/30 gap-2">
+        <p className="text-sm text-muted-foreground">
+          All {modelData.length} models are partial runs (missing some categories).
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Uncheck &quot;Hide partial runs&quot; to see them.
+        </p>
+      </div>
+    )
+  }
+
+  if (allTasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 rounded-lg border border-border bg-muted/30">
+        <p className="text-sm text-muted-foreground">No tasks match the selected categories.</p>
+      </div>
+    )
+  }
+
+  const isFiltered = selectedCategories.length < ALL_CATEGORIES.length
+  const categoryLabel = isFiltered 
+    ? `${selectedCategories.length} categories selected`
+    : 'all categories'
+
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground mb-1">
         Task-Level Performance Heatmap
       </h2>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-2">
         Each cell shows the score percentage for a model on a specific task.
         Tasks are grouped by category.
+      </p>
+      <p className="text-xs text-muted-foreground mb-4">
+        Showing {sortedModels.length} models across {categoryLabel}
+        {partialRunsCount > 0 && hidePartialRuns && (
+          <span className="text-amber-500"> • {partialRunsCount} partial runs hidden</span>
+        )}
       </p>
 
       {/* Controls */}

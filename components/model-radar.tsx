@@ -19,6 +19,8 @@ import { ShareableWrapper } from '@/components/shareable-wrapper'
 interface ModelRadarProps {
   entries: LeaderboardEntry[]
   scoreMode: 'best' | 'average'
+  selectedCategories?: string[]
+  hidePartialRuns?: boolean
 }
 
 const MAX_SELECTED = 4
@@ -50,7 +52,16 @@ function normalizeToPercent(value: number, min: number, max: number): number {
   return Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
 }
 
-export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
+export function ModelRadar({ 
+  entries, 
+  scoreMode,
+  selectedCategories,
+  hidePartialRuns,
+}: ModelRadarProps) {
+  // Note: Category filtering and partial run hiding would require fetching 
+  // task-level data for each model. Currently this component uses aggregate 
+  // leaderboard data. The filters are passed but not yet implemented here.
+  // TODO: Add task-level data fetching to support category filtering
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
