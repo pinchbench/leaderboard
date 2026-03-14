@@ -53,6 +53,8 @@ export function transformLeaderboardEntry(
     percentage: apiEntry.best_score_percentage * 100,
     timestamp: apiEntry.latest_submission,
     submission_id: apiEntry.best_submission_id,
+    weights: apiEntry.weights ?? null,
+    hf_link: apiEntry.hf_link ?? null,
     average_execution_time_seconds:
       apiEntry.average_execution_time_seconds ?? null,
     best_execution_time_seconds: apiEntry.best_execution_time_seconds ?? null,
