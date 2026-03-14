@@ -5,6 +5,8 @@ export interface LeaderboardEntry {
   percentage: number;
   timestamp: string;
   submission_id: string;
+  weights?: "Open" | "Closed" | "Unknown" | null;
+  hf_link?: string | null;
   average_execution_time_seconds?: number | null;
   best_execution_time_seconds?: number | null;
   average_cost_usd?: number | null;
@@ -74,6 +76,8 @@ export interface ApiLeaderboardEntry {
   best_score_percentage: number;
   latest_submission: string;
   best_submission_id: string;
+  weights?: "Open" | "Closed" | "Unknown" | null;
+  hf_link?: string | null;
   average_execution_time_seconds?: number | null;
   best_execution_time_seconds?: number | null;
   average_cost_usd?: number | null;

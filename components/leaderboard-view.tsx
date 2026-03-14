@@ -40,6 +40,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? (searchParams.get('score') as ScoreMode)
         : 'best'
     const initialProvider = searchParams.get('provider') || null
+    const initialOpenWeights = searchParams.get('weights') === 'open'
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
@@ -48,6 +49,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
+    const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
 
     // Helper to update URL params without full page reload
@@ -63,6 +65,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         // Remove defaults to keep URL clean
         if (params.get('view') === 'success') params.delete('view')
         if (params.get('score') === 'best') params.delete('score')
+        if (params.get('weights') !== 'open') params.delete('weights')
         router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }, [searchParams, router, pathname])
 
@@ -81,6 +84,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ provider: p })
     }, [updateUrl])
 
+    const setOpenWeightsOnly = useCallback((v: boolean) => {
+        setOpenWeightsOnlyState(v)
+        updateUrl({ weights: v ? 'open' : null })
+    }, [updateUrl])
+
     const setGraphSubTab = useCallback((t: GraphSubTab) => {
         setGraphSubTabState(t)
         updateUrl({ graph: t === 'scatter' ? null : t })
@@ -92,11 +100,17 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     }, [updateUrl])
 
     const filteredEntries = useMemo(() => {
-        if (!providerFilter) return entries
-        return entries.filter(
-            (entry) => entry.provider.toLowerCase() === providerFilter.toLowerCase()
-        )
-    }, [entries, providerFilter])
+        let result = entries
+        if (providerFilter) {
+            result = result.filter(
+                (entry) => entry.provider.toLowerCase() === providerFilter.toLowerCase()
+            )
+        }
+        if (openWeightsOnly) {
+            result = result.filter((entry) => entry.weights === 'Open')
+        }
+        return result
+    }, [entries, providerFilter, openWeightsOnly])
 
     const providerColor = providerFilter
         ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
@@ -119,9 +133,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 view={view}
                 scoreMode={scoreMode}
                 officialOnly={officialOnlyState}
+                openWeightsOnly={openWeightsOnly}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
                 onOfficialOnlyChange={setOfficialOnly}
+                onOpenWeightsOnlyChange={setOpenWeightsOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
             />
 
