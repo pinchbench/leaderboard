@@ -313,13 +313,11 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
     const providerSet = new Map<string, string>()
 
     for (const entry of entries) {
-      const yVal = scoreMode === 'best'
-        ? entry.percentage
-        : (entry.average_score_percentage != null ? entry.average_score_percentage * 100 : null)
+      const yVal = entry.average_score_percentage != null ? entry.average_score_percentage * 100 : null
 
       const xVal = isCost
-        ? (scoreMode === 'best' ? entry.best_cost_usd : entry.average_cost_usd)
-        : (scoreMode === 'best' ? entry.best_execution_time_seconds : entry.average_execution_time_seconds)
+        ? entry.average_cost_usd
+        : entry.average_execution_time_seconds
 
       if (yVal == null || xVal == null || xVal <= 0) continue
 
@@ -381,7 +379,7 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
       yDomain: [yMin, yMax] as [number, number],
       quadrantY: qY,
     }
-  }, [entries, scoreMode, graphTab])
+  }, [entries, graphTab])
 
   // Filter by visible providers
   const data = useMemo(() => {
@@ -434,7 +432,7 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
         {isCost ? 'Success Rate vs. Cost' : 'Success Rate vs. Execution Time'}
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        {scoreMode === 'best' ? 'Best' : 'Average'} score vs. {scoreMode === 'best' ? 'best' : 'average'}{' '}
+        Average score vs. average{' '}
         {isCost ? 'cost (USD)' : 'execution time (seconds)'}
         {' \u2022 Click a provider to hide/show'}
       </p>
@@ -464,7 +462,7 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
       ) : (
         <ShareableWrapper
           title={isCost ? 'Success Rate vs. Cost' : 'Success Rate vs. Execution Time'}
-          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score \u2022 ${data.length} models`}
+          subtitle={`Average score \u2022 ${data.length} models`}
         >
           <div className="rounded-lg border border-border bg-background p-4">
             <ResponsiveContainer width="100%" height={520}>
