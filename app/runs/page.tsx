@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissions, fetchBenchmarkVersions } from '@/lib/api'
+import { normalizeProvider } from '@/lib/transforms'
 import { formatDistanceToNow } from 'date-fns'
 
 interface RunsPageProps {
@@ -91,7 +92,8 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
             <tbody>
               {sorted.map((sub) => {
                 const pct = (sub.score_percentage * 100).toFixed(1)
-                const providerColor = PROVIDER_COLORS[sub.provider.toLowerCase()] || '#666'
+                const provider = normalizeProvider(sub.provider, sub.model)
+                const providerColor = PROVIDER_COLORS[provider] || '#666'
                 const costStr = sub.total_cost_usd > 0 ? `$${sub.total_cost_usd.toFixed(2)}` : '-'
                 const timeMin = (sub.total_execution_time_seconds / 60).toFixed(1)
                 return (
@@ -110,7 +112,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
                       </Link>
                     </td>
                     <td className="py-2 pr-4">
-                      <span style={{ color: providerColor }}>{sub.provider}</span>
+                      <span style={{ color: providerColor }}>{provider}</span>
                     </td>
                     <td className="py-2 pr-4 text-right font-mono">{pct}%</td>
                     <td className="py-2 pr-4 text-right font-mono text-muted-foreground">{costStr}</td>
