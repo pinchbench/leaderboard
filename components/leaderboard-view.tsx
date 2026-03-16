@@ -189,13 +189,6 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         onProviderClick={setProviderFilter}
                     />
                 )}
-
-                {/* Disclaimer */}
-                <div className="mt-12 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-                    <p>
-                        This leaderboard is for entertainment purposes only and should not be relied upon for making critical decisions.
-                    </p>
-                </div>
             </main>
         </div>
     )
