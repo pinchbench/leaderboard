@@ -49,13 +49,17 @@ export function LeaderboardHeader({
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 <div className="flex items-center justify-between">
                     <div className="flex flex-col items-center gap-2">
-                        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <div className="flex items-center gap-3">
                             <img src="/apple-touch-icon.png" alt="PinchBench - OpenClaw Benchmark" className="w-8 h-8 md:w-10 md:h-10" />
                             <div>
-                                <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
-                                <h2 className="hidden md:block text-sm text-muted-foreground">Compare AI Models for OpenClaw</h2>
+                                <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                                    <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
+                                </Link>
+                                <Link href="https://kilo.ai" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                                    <h2 className="hidden md:block text-sm text-muted-foreground"> Made with 🦀 by the humans at kilo.ai</h2>
+                                </Link>
                             </div>
-                        </Link>
+                        </div>
                         <div className="flex justify-end mb-4 md:inline-block hidden">
                             <a
                                 href="https://github.com/pinchbench/skill"
