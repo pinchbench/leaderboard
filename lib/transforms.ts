@@ -10,7 +10,21 @@ import { TASK_FALLBACK } from "@/lib/task-metadata";
 
 const EPSILON = 1e-6;
 
-const normalizeProvider = (provider: string) => provider.toLowerCase();
+/**
+ * Normalize provider name. When the provider is "openrouter", the real
+ * provider is encoded as the first segment of the model id
+ * (e.g. model="anthropic/claude-sonnet-4.6" → provider "anthropic").
+ */
+export const normalizeProvider = (provider: string, model?: string): string => {
+  const p = provider.toLowerCase();
+  if (p === "openrouter" && model) {
+    const firstSlash = model.indexOf("/");
+    if (firstSlash > 0) {
+      return model.slice(0, firstSlash).toLowerCase();
+    }
+  }
+  return p;
+};
 
 /**
  * Estimate the number of successful tasks from a score percentage.
@@ -49,7 +63,7 @@ export function transformLeaderboardEntry(
   return {
     rank: 0,
     model: apiEntry.model,
-    provider: normalizeProvider(apiEntry.provider),
+    provider: normalizeProvider(apiEntry.provider, apiEntry.model),
     percentage: apiEntry.best_score_percentage * 100,
     timestamp: apiEntry.latest_submission,
     submission_id: apiEntry.best_submission_id,
@@ -133,7 +147,7 @@ export function transformSubmission(
     openclaw_version: apiSubmission.openclaw_version ?? "unknown",
     benchmark_version: apiSubmission.benchmark_version ?? "unknown",
     model: apiSubmission.model,
-    provider: normalizeProvider(apiSubmission.provider),
+    provider: normalizeProvider(apiSubmission.provider, apiSubmission.model),
     task_results: apiSubmission.tasks.map(transformTaskResult),
     total_score: apiSubmission.total_score,
     max_score: apiSubmission.max_score,
