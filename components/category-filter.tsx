@@ -30,7 +30,8 @@ export function CategoryFilter({ selectedCategories, onChange, className = '' }:
   const selectNone = () => onChange([])
   
   const label = useMemo(() => {
-    if (allSelected || noneSelected) return 'All categories'
+    if (allSelected) return 'All categories'
+    if (noneSelected) return 'No categories'
     if (selectedCategories.length === 1) {
       return `${CATEGORY_ICONS[selectedCategories[0]] || ''} ${selectedCategories[0]}`
     }

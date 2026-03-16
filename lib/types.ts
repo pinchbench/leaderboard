@@ -232,16 +232,21 @@ export interface BenchmarkVersionsResponse {
 export type SortMode = "quality" | "value";
 
 export const CATEGORY_ICONS: Record<string, string> = {
-  api: "🔌",
-  validation: "✅",
+  basic: "✅",
   calendar: "📅",
-  research: "🔍",
-  writing: "✍️",
   coding: "💻",
-  comprehension: "📖",
-  context: "🧠",
   complex: "🔗",
-  other: "📌",
+  comprehension: "📖",
+  content_transformation: "🔄",
+  context: "🧠",
+  creative: "🎨",
+  data_analysis: "📊",
+  file_ops: "📁",
+  memory: "💾",
+  organization: "📋",
+  research: "🔍",
+  synthesis: "🧩",
+  writing: "✍️",
 };
 
 export const PROVIDER_COLORS: Record<string, string> = {
