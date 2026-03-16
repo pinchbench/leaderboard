@@ -47,7 +47,7 @@ export default function AboutPage() {
                     </p>
                     <br />
                     <p className="text-muted-foreground leading-relaxed">
-                        PinchBench was made by <a href="https://kilo.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Kilo</a>, the makers of <a href="https://kilo.ai/kiloclaw" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">KiloClaw</a>, as a way to help users choose from Kilo's over 500+ AI Models when setting up their Claw agents.
+                        PinchBench was made by <a href="https://kilo.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Kilo Code</a>, the makers of <a href="https://kilo.ai/kiloclaw" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">KiloClaw</a>, as a way to help users choose from Kilo's over 500+ AI Models when setting up their Claw agents.
                     </p>
                 </section>
 
