@@ -55,8 +55,12 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         return cats.length > 0 ? cats : [...ALL_CATEGORIES]
     }, [searchParams])
     
-    // Hide partial runs filter (default: true = hide models that didn't run all categories)
-    const initialHidePartial = searchParams.get('partial') !== 'show'
+    // Hide partial runs filter (default: false)
+    // Why default to false: hasAllCategories() checks against the full CATEGORY_ICONS list (15 categories),
+    // but older benchmark versions only had 7-9 categories. Defaulting to true would hide all submissions
+    // from older benchmarks since they're "missing" categories that didn't exist in their version.
+    // Until we track per-version category counts, showing all runs is the safer default.
+    const initialHidePartial = searchParams.get('partial') === 'hide'
 
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
@@ -118,8 +122,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
     const setHidePartialRuns = useCallback((hide: boolean) => {
         setHidePartialRunsState(hide)
-        // Default is hide (true), so only add param when showing partial
-        updateUrl({ partial: hide ? null : 'show' })
+        // Default is show (false), so only add param when hiding partial
+        updateUrl({ partial: hide ? 'hide' : null })
     }, [updateUrl])
 
     const setOfficialOnly = useCallback((v: boolean) => {

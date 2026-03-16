@@ -45,7 +45,9 @@ export function TaskHeatmap({
   entries, 
   scoreMode,
   selectedCategories = ALL_CATEGORIES,
-  hidePartialRuns = true,
+  // Default to false: older benchmark versions have fewer categories than CATEGORY_ICONS,
+  // so hasAllCategories() would incorrectly filter them out as "partial" runs.
+  hidePartialRuns = false,
 }: TaskHeatmapProps) {
   const [modelData, setModelData] = useState<ModelTaskData[]>([])
   const [loading, setLoading] = useState(true)
