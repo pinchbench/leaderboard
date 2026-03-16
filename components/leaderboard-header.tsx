@@ -56,7 +56,7 @@ export function LeaderboardHeader({
                                     <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
                                 </Link>
                                 <Link href="https://kilo.ai" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                                    <h2 className="hidden md:block text-sm text-muted-foreground"> Made with 🦀 by the humans at https://kilo.ai</h2>
+                                    <h2 className="hidden md:block text-sm text-muted-foreground"> Made with 🦀 by the humans at kilo.ai</h2>
                                 </Link>
                             </div>
                         </div>
