@@ -18,9 +18,11 @@ interface LeaderboardHeaderProps {
     view: ViewMode
     scoreMode: ScoreMode
     officialOnly: boolean
+    openWeightsOnly: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
     onOfficialOnlyChange: (officialOnly: boolean) => void
+    onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
     onClearProviderFilter: () => void
 }
 
@@ -35,9 +37,11 @@ export function LeaderboardHeader({
     view,
     scoreMode,
     officialOnly,
+    openWeightsOnly,
     onViewChange,
     onScoreModeChange,
     onOfficialOnlyChange,
+    onOpenWeightsOnlyChange,
     onClearProviderFilter,
 }: LeaderboardHeaderProps) {
     return (
@@ -93,6 +97,15 @@ export function LeaderboardHeader({
                                     className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                                 Include unofficial runs
+                            </label>
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground/90 cursor-pointer hover:text-foreground transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={openWeightsOnly}
+                                    onChange={(e) => onOpenWeightsOnlyChange(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                                />
+                                Open-weight only
                             </label>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
@@ -190,6 +203,27 @@ export function LeaderboardHeader({
                             {totalRuns} runs
                         </Link>
                     </div>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground md:hidden">
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={!officialOnly}
+                            onChange={(e) => onOfficialOnlyChange(!e.target.checked)}
+                            className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                        />
+                        Include unofficial runs
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={openWeightsOnly}
+                            onChange={(e) => onOpenWeightsOnlyChange(e.target.checked)}
+                            className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                        />
+                        Open-weight only
+                    </label>
+                    <span className="text-muted-foreground/60">Updated {lastUpdated}</span>
                 </div>
             </div>
         </header>

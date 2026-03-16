@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { fetchUserSubmissions } from '@/lib/api'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { normalizeProvider } from '@/lib/transforms'
 import { formatDistanceToNow } from 'date-fns'
 
 interface UserPageProps {
@@ -118,16 +119,21 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
                         <code className="font-mono font-semibold text-foreground truncate">
                           {sub.model}
                         </code>
-                        <Badge
-                          variant="outline"
-                          className="text-xs shrink-0"
-                          style={{
-                            borderColor: PROVIDER_COLORS[sub.provider.toLowerCase()] || '#666',
-                            color: PROVIDER_COLORS[sub.provider.toLowerCase()] || '#666',
-                          }}
-                        >
-                          {sub.provider}
-                        </Badge>
+                        {(() => {
+                          const provider = normalizeProvider(sub.provider, sub.model)
+                          return (
+                            <Badge
+                              variant="outline"
+                              className="text-xs shrink-0"
+                              style={{
+                                borderColor: PROVIDER_COLORS[provider] || '#666',
+                                color: PROVIDER_COLORS[provider] || '#666',
+                              }}
+                            >
+                              {provider}
+                            </Badge>
+                          )
+                        })()}
                       </div>
                       <div className="flex items-center gap-4 text-sm shrink-0">
                         <span className={`font-bold ${getScoreColor(sub.score_percentage)}`}>
