@@ -77,8 +77,8 @@ const getValueScoreColor = (valueScore: number) => {
   return 'hsl(0, 84%, 60%)'
 }
 
-const BEST_SCORE_COLOR = '#EC4899'
-const AVG_SCORE_COLOR = '#06B6D4'
+const BEST_SCORE_COLOR = '#F35528'
+const AVG_SCORE_COLOR = '#FF9151'
 
 export function SimpleLeaderboard({
   entries,
