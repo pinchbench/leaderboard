@@ -71,17 +71,14 @@ const getCrabEmoji = (rank: number) => {
   return ''
 }
 
-const getPercentageColor = (percentage: number) => {
-  if (percentage >= 85) return 'hsl(142, 71%, 45%)'
-  if (percentage >= 70) return 'hsl(38, 92%, 50%)'
-  return 'hsl(0, 84%, 60%)'
-}
-
 const getValueScoreColor = (valueScore: number) => {
   if (valueScore >= 200) return 'hsl(142, 71%, 45%)'
   if (valueScore >= 50) return 'hsl(38, 92%, 50%)'
   return 'hsl(0, 84%, 60%)'
 }
+
+const BEST_SCORE_COLOR = '#F35528'
+const AVG_SCORE_COLOR = '#FF9151'
 
 export function SimpleLeaderboard({
   entries,
@@ -101,7 +98,7 @@ export function SimpleLeaderboard({
   const submissionHref = (submissionId: string) => (
     officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
   )
-  const getScorePercentage = (entry: LeaderboardEntry) => {
+  const getSortScorePercentage = (entry: LeaderboardEntry) => {
     if (scoreMode === 'average') {
       return entry.average_score_percentage != null
         ? entry.average_score_percentage * 100
@@ -114,7 +111,7 @@ export function SimpleLeaderboard({
     if (view === 'speed') return entry.best_execution_time_seconds ?? null
     if (view === 'cost') return entry.best_cost_usd ?? null
     if (view === 'value') return entry.value_score ?? null
-    return getScorePercentage(entry)
+    return getSortScorePercentage(entry)
   }
 
   const maxCost = useMemo(() => {
@@ -163,8 +160,8 @@ export function SimpleLeaderboard({
         if (Math.abs(bV - aV) > 1e-9) return bV - aV
       }
 
-      const aScore = getScorePercentage(a) ?? -1
-      const bScore = getScorePercentage(b) ?? -1
+      const aScore = getSortScorePercentage(a) ?? -1
+      const bScore = getSortScorePercentage(b) ?? -1
       return bScore - aScore
     })
   }, [budgetFilteredEntries, entries, view, sortMode, scoreMode, maxCost])
@@ -200,11 +197,11 @@ export function SimpleLeaderboard({
     }
 
     const visible = rankedEntries.filter((entry) => {
-      const scorePercentage = getScorePercentage(entry)
+      const scorePercentage = getSortScorePercentage(entry)
       return scorePercentage != null && scorePercentage >= lowScoreCutoff
     })
     const hidden = rankedEntries.filter((entry) => {
-      const scorePercentage = getScorePercentage(entry)
+      const scorePercentage = getSortScorePercentage(entry)
       return scorePercentage != null && scorePercentage < lowScoreCutoff
     })
 
@@ -430,7 +427,7 @@ export function SimpleLeaderboard({
                 💎 Best Value
               </button>
             </div>
-            {/* Score mode toggle */}
+            {/* Score sort toggle */}
             <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
               <button
                 onClick={() => onScoreModeChange?.('best')}
@@ -439,7 +436,7 @@ export function SimpleLeaderboard({
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
-                Best score
+                Sort: Best
               </button>
               <button
                 onClick={() => onScoreModeChange?.('average')}
@@ -448,7 +445,7 @@ export function SimpleLeaderboard({
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
-                Average score
+                Sort: Avg
               </button>
             </div>
           </div>
@@ -515,14 +512,22 @@ export function SimpleLeaderboard({
         {/* Bar Chart - hidden on mobile */}
         <ShareableWrapper
           title="Success Rate by Model"
-          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score • ${displayedEntries.length} models${sortMode === 'value' ? ' • sorted by value' : ''}`}
+          subtitle={`${displayedEntries.length} models${sortMode === 'value' ? ' • sorted by value' : ` • sorted by ${scoreMode} score`}`}
           alwaysShowButton
         >
           <div className="hidden md:block bg-card border border-border rounded-lg p-6 mb-6">
+            <div className="mb-4 flex items-center gap-5 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: BEST_SCORE_COLOR }} />
+                Best Score
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: AVG_SCORE_COLOR }} />
+                Average Score
+              </span>
+            </div>
             <div className="space-y-3">
               {displayedEntries.concat(nullEntries).map((entry) => {
-                const scorePercentage = getScorePercentage(entry)
-                const displayPercentage = scorePercentage ?? 0
                 const bestPct = entry.percentage
                 const avgPct = entry.average_score_percentage != null
                   ? entry.average_score_percentage * 100
@@ -530,10 +535,10 @@ export function SimpleLeaderboard({
                 return (
                   <Tooltip key={entry.submission_id}>
                     <TooltipTrigger asChild>
-                        <Link
-                          href={submissionHref(entry.submission_id)}
-                          className="block group"
-                        >
+                      <Link
+                        href={submissionHref(entry.submission_id)}
+                        className="block group"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="w-72 flex items-center gap-2 flex-shrink-0">
                             <span className="text-xl" title={`Rank ${entry.rank}`}>
@@ -549,28 +554,55 @@ export function SimpleLeaderboard({
                             )}
                           </div>
                           <div className="flex-1 flex items-center gap-3">
-                            <div className="flex-1 bg-muted rounded-full h-7 relative overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
-                                style={{
-                                  width: `${displayPercentage}%`,
-                                  backgroundColor: getPercentageColor(displayPercentage),
-                                }}
-                              />
-                              <span
-                                className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground"
-                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                              >
-                                {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                              </span>
+                            <div className="flex-1 space-y-2">
+                              <div className="bg-muted rounded-full h-7 relative overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                                  style={{
+                                    width: `${bestPct}%`,
+                                    backgroundColor: BEST_SCORE_COLOR,
+                                  }}
+                                />
+                                <span
+                                  className="absolute inset-y-0 right-3 flex items-center text-xs font-bold text-foreground"
+                                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                >
+                                  {bestPct.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="bg-muted rounded-full h-7 relative overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                                  style={{
+                                    width: `${avgPct ?? 0}%`,
+                                    backgroundColor: AVG_SCORE_COLOR,
+                                  }}
+                                />
+                                <span
+                                  className="absolute inset-y-0 right-3 flex items-center text-xs font-bold text-foreground"
+                                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                >
+                                  {avgPct == null ? 'N/A' : `${avgPct.toFixed(1)}%`}
+                                </span>
+                              </div>
                             </div>
-                            <div className="w-16 text-right">
-                              <span
-                                className="text-sm font-bold"
-                                style={{ color: getPercentageColor(displayPercentage) }}
-                              >
-                                {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
-                              </span>
+                            <div className="w-24 text-right space-y-1.5">
+                              <div>
+                                <span
+                                  className="text-sm font-bold"
+                                  style={{ color: BEST_SCORE_COLOR }}
+                                >
+                                  {bestPct.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div>
+                                <span
+                                  className="text-sm font-bold"
+                                  style={{ color: AVG_SCORE_COLOR }}
+                                >
+                                  {avgPct == null ? 'N/A' : `${avgPct.toFixed(1)}%`}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -644,7 +676,7 @@ export function SimpleLeaderboard({
         {/* Simple Table */}
         <ShareableWrapper
           title="Success Rate Rankings"
-          subtitle={`${scoreMode === 'best' ? 'Best' : 'Average'} score • ${displayedEntries.length} models`}
+          subtitle={`${displayedEntries.length} models • sorted by ${scoreMode} score`}
         >
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <table className="w-full">
@@ -657,18 +689,13 @@ export function SimpleLeaderboard({
                     Provider
                   </th>
                   <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
-                    <ColumnTooltip
-                      label="Success %"
-                      description={scoreMode === 'best'
-                        ? 'Highest success rate across all runs for this model. Tasks are graded via automated checks, LLM judge evaluation, or a hybrid of both.'
-                        : 'Average success rate across all runs for this model. Tasks are graded via automated checks, LLM judge evaluation, or a hybrid of both.'}
-                      benchmarkVersion={benchmarkVersion}
-                    />
+                    <span className="md:hidden">{scoreMode === 'best' ? 'Best %' : 'Avg %'}</span>
+                    <span className="hidden md:inline">Best %</span>
                   </th>
                   <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                     <ColumnTooltip
-                      label="Score"
-                      description="Raw success percentage. Click any row to see the per-task scoring breakdown with individual pass/fail details."
+                      label="Avg %"
+                      description="Average success rate across all runs for this model. Click any row to see the per-task scoring breakdown with individual pass/fail details."
                       benchmarkVersion={benchmarkVersion}
                     />
                   </th>
@@ -685,8 +712,12 @@ export function SimpleLeaderboard({
               </thead>
               <tbody className="divide-y divide-border">
                 {displayedEntries.concat(nullEntries).map((entry) => {
-                  const scorePercentage = getScorePercentage(entry)
-                  const displayPercentage = scorePercentage ?? 0
+                  const bestPct = entry.percentage
+                  const avgPct = entry.average_score_percentage != null
+                    ? entry.average_score_percentage * 100
+                    : null
+                  const mobileScore = scoreMode === 'best' ? bestPct : avgPct
+                  const mobileScoreColor = scoreMode === 'best' ? BEST_SCORE_COLOR : AVG_SCORE_COLOR
                   return (
                     <tr
                       key={entry.submission_id}
@@ -724,15 +755,21 @@ export function SimpleLeaderboard({
                       </td>
                       <td className="px-2 md:px-4 py-3 text-right">
                         <span
-                          className="text-sm font-bold"
-                          style={{ color: getPercentageColor(displayPercentage) }}
+                          className="text-sm font-bold md:hidden"
+                          style={{ color: mobileScoreColor }}
                         >
-                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                          {mobileScore == null ? 'N/A' : `${mobileScore.toFixed(1)}%`}
+                        </span>
+                        <span
+                          className="hidden md:inline text-sm font-bold"
+                          style={{ color: BEST_SCORE_COLOR }}
+                        >
+                          {bestPct.toFixed(1)}%
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-4 py-3 text-right">
-                        <span className="text-sm font-medium text-foreground">
-                          {scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`}
+                        <span className="text-sm font-medium" style={{ color: AVG_SCORE_COLOR }}>
+                          {avgPct == null ? 'N/A' : `${avgPct.toFixed(1)}%`}
                         </span>
                       </td>
                       {sortMode === 'value' && (
@@ -794,7 +831,7 @@ export function SimpleLeaderboard({
     if (view === 'cost') {
       return entry.best_cost_usd == null ? 'N/A' : `$${entry.best_cost_usd.toFixed(2)}`
     }
-    const scorePercentage = getScorePercentage(entry)
+    const scorePercentage = getSortScorePercentage(entry)
     return scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`
   }
 
