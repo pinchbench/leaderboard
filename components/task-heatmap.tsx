@@ -6,6 +6,7 @@ import { PROVIDER_COLORS, CATEGORY_ICONS } from '@/lib/types'
 import { fetchSubmissionClient } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface TaskHeatmapProps {
   entries: LeaderboardEntry[]
@@ -241,11 +242,12 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
         </div>
       </div>
 
-      <ShareableWrapper
-        title="Task-Level Performance Heatmap"
-        subtitle={`${sortedModels.length} models x ${allTasks.length} tasks`}
-      >
-        <div className="rounded-lg border border-border bg-background overflow-x-auto">
+      <TooltipProvider delayDuration={100}>
+        <ShareableWrapper
+          title="Task-Level Performance Heatmap"
+          subtitle={`${sortedModels.length} models x ${allTasks.length} tasks`}
+        >
+          <div className="rounded-lg border border-border bg-background overflow-x-auto">
           <table className="text-xs border-collapse w-full" style={{ minWidth: allTasks.length * 36 + 180 }}>
             {/* Category header row */}
             <thead>
@@ -274,24 +276,31 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
                     className="border-b border-border p-0 font-normal text-muted-foreground/70"
                     style={{ width: 36, minWidth: 36, maxWidth: 36 }}
                   >
-                    <div
-                      className="flex items-end justify-center overflow-hidden"
-                      style={{ height: 80 }}
-                      title={task.taskName}
-                    >
-                      <span
-                        className="block whitespace-nowrap text-[9px] origin-bottom-left"
-                        style={{
-                          transform: 'rotate(-55deg)',
-                          transformOrigin: 'center center',
-                          maxWidth: 75,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {task.taskName}
-                      </span>
-                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="flex items-end justify-center overflow-hidden cursor-help"
+                          style={{ height: 80 }}
+                        >
+                          <span
+                            className="block whitespace-nowrap text-[9px] origin-bottom-left"
+                            style={{
+                              transform: 'rotate(-55deg)',
+                              transformOrigin: 'center center',
+                              maxWidth: 75,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {task.taskName}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="font-medium">{task.taskName}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{task.category}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </th>
                 ))}
               </tr>
@@ -366,8 +375,9 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
               })}
             </tbody>
           </table>
-        </div>
-      </ShareableWrapper>
+          </div>
+        </ShareableWrapper>
+      </TooltipProvider>
     </div>
   )
 }
