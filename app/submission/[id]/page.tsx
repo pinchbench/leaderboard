@@ -13,16 +13,18 @@ import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
+import { isExcludedLeaderboardTask } from '@/lib/task-metadata'
 
 interface SubmissionPageProps {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ official?: string }>
+  searchParams: Promise<{ official?: string; excludeImageGen?: string }>
 }
 
 export default async function SubmissionPage({ params, searchParams }: SubmissionPageProps) {
   const { id } = await params
-  const { official } = await searchParams
+  const { official, excludeImageGen } = await searchParams
   const officialOnly = official !== 'false'
+  const excludeImageGenBool = excludeImageGen === 'true'
   let submission
 
   try {
@@ -68,7 +70,23 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
     notFound()
   }
 
-  const categoryStats = submission.task_results.reduce(
+  // Apply image generation exclusion if requested
+  let displayTasks = submission.task_results
+  let displayTotalScore = submission.total_score
+  let displayMaxScore = submission.max_score
+
+  if (excludeImageGenBool) {
+    const excludedTasks = submission.task_results.filter(task => isExcludedLeaderboardTask(task.task_id))
+    if (excludedTasks.length > 0) {
+      const excludedScore = excludedTasks.reduce((sum, task) => sum + task.score, 0)
+      const excludedMax = excludedTasks.reduce((sum, task) => sum + task.max_score, 0)
+      displayTotalScore = submission.total_score - excludedScore
+      displayMaxScore = submission.max_score - excludedMax
+      displayTasks = submission.task_results.filter(task => !isExcludedLeaderboardTask(task.task_id))
+    }
+  }
+
+  const categoryStats = displayTasks.reduce(
     (acc, task) => {
       if (!acc[task.category]) {
         acc[task.category] = { total: 0, max: 0, count: 0 }
@@ -191,8 +209,8 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-1">
             <ScoreGauge
-              score={submission.total_score}
-              maxScore={submission.max_score}
+              score={displayTotalScore}
+              maxScore={displayMaxScore}
             />
           </div>
 
@@ -237,10 +255,10 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
               Task Breakdown
             </h2>
             <p className="text-sm text-muted-foreground">
-              {submission.task_results.length} tasks completed
+              {displayTasks.length} tasks completed
             </p>
           </div>
-          <TaskBreakdown tasks={submission.task_results} />
+          <TaskBreakdown tasks={displayTasks} />
           
           {/* Hardware Info */}
           {submission.metadata.system && (
@@ -276,8 +294,6 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
           </div>
         </Card>
       </div>
-
-
     </div>
   )
 }

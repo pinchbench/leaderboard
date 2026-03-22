@@ -19,10 +19,12 @@ interface LeaderboardHeaderProps {
     scoreMode: ScoreMode
     officialOnly: boolean
     openWeightsOnly: boolean
+    excludeImageGen?: boolean
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
     onOfficialOnlyChange: (officialOnly: boolean) => void
     onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
+    onExcludeImageGenChange?: (value: boolean) => void
     onClearProviderFilter: () => void
 }
 
@@ -38,10 +40,12 @@ export function LeaderboardHeader({
     scoreMode,
     officialOnly,
     openWeightsOnly,
+    excludeImageGen,
     onViewChange,
     onScoreModeChange,
     onOfficialOnlyChange,
     onOpenWeightsOnlyChange,
+    onExcludeImageGenChange,
     onClearProviderFilter,
 }: LeaderboardHeaderProps) {
     return (
@@ -110,6 +114,15 @@ export function LeaderboardHeader({
                                     className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                                 Open-weight only
+                            </label>
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground/90 cursor-pointer hover:text-foreground transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={excludeImageGen}
+                                    onChange={(e) => onExcludeImageGenChange?.(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                                />
+                                Exclude image generation tasks
                             </label>
                             <span className="text-xs text-muted-foreground/60">Updated {lastUpdated}</span>
                         </div>
@@ -226,6 +239,15 @@ export function LeaderboardHeader({
                             className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                         />
                         Open-weight only
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={excludeImageGen}
+                            onChange={(e) => onExcludeImageGenChange?.(e.target.checked)}
+                            className="h-3.5 w-3.5 rounded border border-border/70 bg-muted/30 text-muted-foreground checked:border-muted-foreground checked:bg-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                        />
+                        Exclude image generation tasks
                     </label>
                     <span className="text-muted-foreground/60">Updated {lastUpdated}</span>
                 </div>

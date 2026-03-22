@@ -8,7 +8,7 @@ import type {
 } from "@/lib/types";
 import { TASK_FALLBACK } from "@/lib/task-metadata";
 
-const EPSILON = 1e-6;
+export const EPSILON = 1e-6;
 
 /**
  * Normalize provider name. When the provider is "openrouter", the real
@@ -28,11 +28,11 @@ export const normalizeProvider = (provider: string, model?: string): string => {
 
 /**
  * Estimate the number of successful tasks from a score percentage.
- * Uses best_score_percentage * max_score (from API) — but since max_score
- * is not in ApiLeaderboardEntry, we approximate using a standard task count of 40
- * (the current PinchBench task count). Falls back to null if score is unavailable.
+ * Since max_score is not present on ApiLeaderboardEntry, this uses an approximate
+ * task count. Callers with submission-level data should pass an exact remaining
+ * task count instead of relying on the default.
  */
-function estimateSuccessfulTasks(
+export function estimateSuccessfulTasks(
   scorePercentage: number | null | undefined,
   taskCount = 40,
 ): number | null {
