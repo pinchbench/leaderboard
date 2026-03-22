@@ -258,7 +258,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
               {displayTasks.length} tasks completed
             </p>
           </div>
-          <TaskBreakdown tasks={displayTasks} excludeImageGen={excludeImageGenBool} />
+          <TaskBreakdown tasks={displayTasks} />
           
           {/* Hardware Info */}
           {submission.metadata.system && (
