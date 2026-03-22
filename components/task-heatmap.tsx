@@ -71,10 +71,6 @@ export function TaskHeatmap({ entries, scoreMode, excludeImageGen = false }: Tas
                 const taskMap = new Map<string, { score: number; maxScore: number; taskName: string; category: string }>()
 
                 for (const task of submission.task_results) {
-                  if (excludeImageGen && isExcludedLeaderboardTask(task.task_id)) {
-                    continue
-                  }
-
                   taskMap.set(task.task_id, {
                     score: task.score,
                     maxScore: task.max_score,
@@ -112,7 +108,7 @@ export function TaskHeatmap({ entries, scoreMode, excludeImageGen = false }: Tas
 
     loadData()
     return () => { cancelled = true }
-  }, [entries, excludeImageGen])
+  }, [entries])
 
   // Collect all unique tasks and sort by category
   const allTasks = useMemo(() => {
@@ -127,12 +123,13 @@ export function TaskHeatmap({ entries, scoreMode, excludeImageGen = false }: Tas
 
     return Array.from(taskMap.entries())
       .map(([taskId, info]) => ({ taskId, ...info }))
+      .filter(task => !(excludeImageGen && isExcludedLeaderboardTask(task.taskId)))
       .sort((a, b) => {
         const catCmp = a.category.localeCompare(b.category)
         if (catCmp !== 0) return catCmp
         return a.taskName.localeCompare(b.taskName)
       })
-  }, [modelData])
+  }, [modelData, excludeImageGen])
 
   // Sort models
   const sortedModels = useMemo(() => {
