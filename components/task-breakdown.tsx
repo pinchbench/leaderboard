@@ -8,6 +8,7 @@ import { ColoredProgress } from '@/components/ui/colored-progress'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { TaskResult } from '@/lib/types'
 import { CATEGORY_ICONS } from '@/lib/types'
+import { isExcludedLeaderboardTask } from '@/lib/task-metadata'
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,6 +17,7 @@ import {
 
 interface TaskBreakdownProps {
   tasks: TaskResult[]
+  excludeImageGen?: boolean
 }
 
 const getScoreColor = (score: number, maxScore: number) => {
@@ -46,7 +48,7 @@ const getGradingBadgeVariant = (
   }
 }
 
-export function TaskBreakdown({ tasks }: TaskBreakdownProps) {
+export function TaskBreakdown({ tasks, excludeImageGen = false }: TaskBreakdownProps) {
   const [openTasks, setOpenTasks] = useState<Set<string>>(new Set())
 
   const toggleTask = (taskId: string) => {
@@ -61,7 +63,7 @@ export function TaskBreakdown({ tasks }: TaskBreakdownProps) {
 
   return (
     <div className="space-y-2">
-      {tasks.map((task) => {
+      {tasks.filter(task => !(excludeImageGen && isExcludedLeaderboardTask(task.task_id))).map((task) => {
         const percentage = (task.score / task.max_score) * 100
         const isOpen = openTasks.has(task.task_id)
 

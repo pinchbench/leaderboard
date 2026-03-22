@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
@@ -25,9 +25,10 @@ interface LeaderboardViewProps {
     versions: BenchmarkVersion[]
     currentVersion: string | null
     officialOnly: boolean
+    excludeImageGen?: boolean
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, excludeImageGen = false }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -51,6 +52,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
+    const [excludeImageGenLocal, setExcludeImageGenState] = useState<boolean>(excludeImageGen)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -94,6 +96,16 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const setExcludeImageGen = useCallback((v: boolean) => {
+        setExcludeImageGenState(v)
+        updateUrl({ excludeImageGen: v ? 'true' : null })
+    }, [updateUrl])
+
+    // Sync prop to local state when URL changes (e.g., browser back/forward)
+    useEffect(() => {
+        setExcludeImageGenState(excludeImageGen)
+    }, [excludeImageGen])
+
     const setOfficialOnly = useCallback((v: boolean) => {
         setOfficialOnlyState(v)
         updateUrl({ official: v ? null : 'false' })
@@ -134,10 +146,12 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 scoreMode={scoreMode}
                 officialOnly={officialOnlyState}
                 openWeightsOnly={openWeightsOnly}
+                excludeImageGen={excludeImageGenLocal}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
+                onExcludeImageGenChange={setExcludeImageGen}
                 onClearProviderFilter={() => setProviderFilter(null)}
             />
 
@@ -169,7 +183,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
                         )}
                         {graphSubTab === 'heatmap' && (
-                            <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} />
+                            <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} excludeImageGen={excludeImageGenLocal} />
                         )}
                         {graphSubTab === 'distribution' && (
                             <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />

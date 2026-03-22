@@ -1,3 +1,10 @@
+export const IMAGE_GEN_TASK_ID = "task_13_image_gen";
+export const EXCLUDED_LEADERBOARD_TASK_IDS = new Set<string>([IMAGE_GEN_TASK_ID]);
+
+export function isExcludedLeaderboardTask(taskId: string): boolean {
+  return EXCLUDED_LEADERBOARD_TASK_IDS.has(taskId);
+}
+
 export const TASK_FALLBACK: Record<string, { name: string; category: string }> =
   {
     task_00_sanity: { name: "Sanity Check", category: "validation" },
