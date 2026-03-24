@@ -1,7 +1,19 @@
+'use client'
+
+import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 export function KiloClawAdCard() {
+    const posthog = usePostHog()
+
+    const handleClick = () => {
+        posthog?.capture('kiloclaw_cta_click', {
+            location: 'ad_card',
+            destination: 'https://app.kilo.ai/claw',
+        })
+    }
+
     return (
         <Card className="my-6 border-[#F8F675]/30 bg-gradient-to-r from-[#F8F675]/10 via-card to-[#F8F675]/5 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -29,7 +41,7 @@ export function KiloClawAdCard() {
                     size="sm"
                     className="w-full border border-[#F8F675] bg-[#F8F675] text-black hover:bg-[#e6e45f] md:w-auto"
                 >
-                    <a href="https://app.kilo.ai/claw" target="_blank" rel="noopener noreferrer">
+                    <a href="https://app.kilo.ai/claw" target="_blank" rel="noopener noreferrer" onClick={handleClick}>
                         Try KiloClaw
                     </a>
                 </Button>
