@@ -136,7 +136,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                     variant="outline"
                     className="text-sm border-green-500 text-green-500"
                   >
-                   🎖️ Official
+                    🎖️ Official
                   </Badge>
                 )}
               </div>
@@ -154,7 +154,18 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                 />
               </div>
             </div>
-            <ShareButton />
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                size="sm"
+                className="border border-[#F8F675] bg-[#F8F675] text-black hover:bg-[#e6e45f]"
+              >
+                <a href="https://app.kilo.ai/claw" target="_blank" rel="noopener noreferrer">
+                  Try in KiloClaw
+                </a>
+              </Button>
+              <ShareButton />
+            </div>
           </div>
           {!officialOnly && (
             <div className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
@@ -241,7 +252,6 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
             </p>
           </div>
           <TaskBreakdown tasks={submission.task_results} />
-          
           {/* Hardware Info */}
           {submission.metadata.system && (
             <div className="mt-6">
