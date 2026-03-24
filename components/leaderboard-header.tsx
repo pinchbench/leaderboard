@@ -55,9 +55,7 @@ export function LeaderboardHeader({
                                 <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                                     <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
                                 </Link>
-                                <Link href="https://kilo.ai" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                                    <h2 className="hidden md:block text-sm text-muted-foreground"> Made with 🦀 by the humans at kilo.ai</h2>
-                                </Link>
+                                <p className="hidden md:block text-sm text-muted-foreground">Find the best model for your OpenClaw</p>
                             </div>
                         </div>
                         <div className="flex justify-end mb-4 md:inline-block hidden">

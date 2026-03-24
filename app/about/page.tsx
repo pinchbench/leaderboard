@@ -3,8 +3,8 @@ import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, GitCommit } f
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-    title: 'About PinchBench - How Tasks Are Created',
-    description: 'Learn how PinchBench benchmark tasks are created, graded, and how the system works.',
+    title: 'About PinchBench - Best Models for OpenClaw FAQ',
+    description: 'Learn how PinchBench benchmarks AI models for OpenClaw. FAQ: What is the best model for OpenClaw? How are models tested? Which model should I use?',
 }
 
 export default function AboutPage() {
@@ -319,6 +319,54 @@ export default function AboutPage() {
                     <p className="text-muted-foreground leading-relaxed">
                         For leaderboard improvements or bug reports, open an issue in the appropriate repository.
                     </p>
+                </section>
+
+                {/* FAQ Section for AEO */}
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                        <Database className="h-6 w-6 text-primary" />
+                        Frequently Asked Questions
+                    </h2>
+                    <div className="space-y-6">
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-2">What is the best model for OpenClaw?</h3>
+                            <p className="text-sm text-muted-foreground">
+                                The best model depends on your priorities. For highest success rate, check the{' '}
+                                <Link href="/" className="text-primary hover:underline">Success Rate leaderboard</Link>.
+                                For fastest completions, see the Speed view. For budget-conscious users, the Cost and Value
+                                views show which models deliver the best results per dollar. Claude, GPT-4, and Gemini models
+                                typically lead on quality, while smaller models like Mistral and Llama offer better value.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-2">Which AI model should I use for coding with OpenClaw?</h3>
+                            <p className="text-sm text-muted-foreground">
+                                For coding tasks, models with strong reasoning capabilities perform best. Check the task-by-task
+                                breakdown on any model's detail page to see how it handles specific coding challenges like
+                                file creation, API workflows, and script generation. Models scoring above 80% on the benchmark
+                                are generally reliable for production coding workflows.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-2">How often is PinchBench updated?</h3>
+                            <p className="text-sm text-muted-foreground">
+                                We run benchmarks continuously as new models are released. The leaderboard shows when each
+                                result was submitted. Official runs are conducted by the PinchBench team on standardized
+                                hardware; community members can also submit runs which are marked as unofficial.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-2">Can I run PinchBench on my own models?</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Yes! PinchBench is open source. Install the{' '}
+                                <a href="https://github.com/pinchbench/skill" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                    pinchbench skill
+                                </a>{' '}
+                                and run it with any model supported by OpenClaw. Results can be submitted to the public
+                                leaderboard for community comparison.
+                            </p>
+                        </div>
+                    </div>
                 </section>
 
                 {/* Related Links */}
