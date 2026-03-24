@@ -10,6 +10,7 @@ import { TaskHeatmap } from '@/components/task-heatmap'
 import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
+import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -177,6 +178,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         {graphSubTab === 'radar' && (
                             <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
                         )}
+
+                        <KiloClawAdCard />
                     </div>
                 ) : (
                     <SimpleLeaderboard

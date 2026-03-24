@@ -6,9 +6,11 @@ import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { DEFAULT_TABLE_ROW_LIMIT } from '@/lib/constants'
 import type { LeaderboardEntry, SortMode } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
+import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
 
 interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
@@ -89,11 +91,10 @@ export function SimpleLeaderboard({
   onScoreModeChange,
   onProviderClick,
 }: SimpleLeaderboardProps) {
-  const [showLowScores, setShowLowScores] = useState(false)
+  const [showAllEntries, setShowAllEntries] = useState(false)
   const [showZeroCostResults, setShowZeroCostResults] = useState(false)
   const [sortMode, setSortMode] = useState<SortMode>('quality')
   const [maxCostFilter, setMaxCostFilter] = useState<string>('')
-  const lowScoreCutoff = 40
 
   const submissionHref = (submissionId: string) => (
     officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
@@ -173,46 +174,47 @@ export function SimpleLeaderboard({
     if (view === 'cost') {
       const nonZero = rankedEntries.filter((entry) => entry.best_cost_usd !== 0)
       const zero = rankedEntries.filter((entry) => entry.best_cost_usd === 0)
+      const baseEntries = showZeroCostResults ? rankedEntries : nonZero
       return {
-        displayedEntries: showZeroCostResults ? rankedEntries : nonZero,
-        hiddenEntries: [] as LeaderboardEntry[],
+        displayedEntries: showAllEntries
+          ? baseEntries
+          : baseEntries.slice(0, DEFAULT_TABLE_ROW_LIMIT),
+        hiddenEntries: baseEntries.slice(DEFAULT_TABLE_ROW_LIMIT),
         zeroCostEntries: zero,
       }
     }
 
     if (view === 'value') {
       return {
-        displayedEntries: rankedEntries,
-        hiddenEntries: [] as LeaderboardEntry[],
+        displayedEntries: showAllEntries
+          ? rankedEntries
+          : rankedEntries.slice(0, DEFAULT_TABLE_ROW_LIMIT),
+        hiddenEntries: rankedEntries.slice(DEFAULT_TABLE_ROW_LIMIT),
         zeroCostEntries: [] as LeaderboardEntry[],
       }
     }
 
-    if (view !== 'success') {
+    if (view === 'success') {
       return {
-        displayedEntries: rankedEntries,
-        hiddenEntries: [] as LeaderboardEntry[],
+        displayedEntries: showAllEntries
+          ? rankedEntries
+          : rankedEntries.slice(0, DEFAULT_TABLE_ROW_LIMIT),
+        hiddenEntries: rankedEntries.slice(DEFAULT_TABLE_ROW_LIMIT),
         zeroCostEntries: [] as LeaderboardEntry[],
       }
     }
-
-    const visible = rankedEntries.filter((entry) => {
-      const scorePercentage = getSortScorePercentage(entry)
-      return scorePercentage != null && scorePercentage >= lowScoreCutoff
-    })
-    const hidden = rankedEntries.filter((entry) => {
-      const scorePercentage = getSortScorePercentage(entry)
-      return scorePercentage != null && scorePercentage < lowScoreCutoff
-    })
 
     return {
-      displayedEntries: showLowScores ? visible.concat(hidden) : visible,
-      hiddenEntries: hidden,
+      displayedEntries: showAllEntries
+        ? rankedEntries
+        : rankedEntries.slice(0, DEFAULT_TABLE_ROW_LIMIT),
+      hiddenEntries: rankedEntries.slice(DEFAULT_TABLE_ROW_LIMIT),
       zeroCostEntries: [] as LeaderboardEntry[],
     }
-  }, [rankedEntries, showLowScores, showZeroCostResults, view, scoreMode])
+  }, [rankedEntries, showAllEntries, showZeroCostResults, view])
 
-  const showToggle = view === 'success' && hiddenEntries.length > 0
+  const hiddenRowCount = hiddenEntries.length + nullEntries.length
+  const showToggle = hiddenRowCount > 0
 
   // ----------------------------------------------------------------
   // VALUE view
@@ -360,7 +362,7 @@ export function SimpleLeaderboard({
                     </tr>
                   )
                 })}
-                {nullEntries.map((entry) => (
+                {showAllEntries && nullEntries.map((entry) => (
                   <tr key={entry.submission_id} className="text-muted-foreground opacity-60">
                     <td className="px-2 md:px-4 py-3">--</td>
                     <td className="px-2 md:px-4 py-3">
@@ -379,6 +381,19 @@ export function SimpleLeaderboard({
                 ))}
               </tbody>
             </table>
+            {showToggle && (
+              <div className="border-t border-border bg-card px-4 py-3 text-center" data-share-exclude="true">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllEntries((prev) => !prev)}
+                >
+                  {showAllEntries
+                    ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                    : `Show all (${hiddenRowCount} more)`}
+                </Button>
+              </div>
+            )}
             <div className="border-t border-border bg-muted/20 px-4 py-2 text-center text-xs text-muted-foreground">
               All tasks and grading criteria are{' '}
               <a href="https://github.com/pinchbench/skill" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
@@ -388,6 +403,7 @@ export function SimpleLeaderboard({
             </div>
           </div>
         </ShareableWrapper>
+        <KiloClawAdCard />
       </div>
     )
   }
@@ -527,7 +543,7 @@ export function SimpleLeaderboard({
               </span>
             </div>
             <div className="space-y-3">
-              {displayedEntries.concat(nullEntries).map((entry) => {
+              {(showAllEntries ? displayedEntries.concat(nullEntries) : displayedEntries).map((entry) => {
                 const bestPct = entry.percentage
                 const avgPct = entry.average_score_percentage != null
                   ? entry.average_score_percentage * 100
@@ -662,16 +678,18 @@ export function SimpleLeaderboard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowLowScores((prev) => !prev)}
+                  onClick={() => setShowAllEntries((prev) => !prev)}
                 >
-                  {showLowScores
-                    ? 'Show less'
-                    : `Show more (${hiddenEntries.length})`}
+                  {showAllEntries
+                    ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                    : `Show all (${hiddenRowCount} more)`}
                 </Button>
               </div>
             )}
           </div>
         </ShareableWrapper>
+
+        <KiloClawAdCard />
 
         {/* Simple Table */}
         <ShareableWrapper
@@ -711,7 +729,7 @@ export function SimpleLeaderboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {displayedEntries.concat(nullEntries).map((entry) => {
+                {(showAllEntries ? displayedEntries.concat(nullEntries) : displayedEntries).map((entry) => {
                   const bestPct = entry.percentage
                   const avgPct = entry.average_score_percentage != null
                     ? entry.average_score_percentage * 100
@@ -793,11 +811,11 @@ export function SimpleLeaderboard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowLowScores((prev) => !prev)}
+                  onClick={() => setShowAllEntries((prev) => !prev)}
                 >
-                  {showLowScores
-                    ? 'Show less'
-                    : `Show more (${hiddenEntries.length})`}
+                  {showAllEntries
+                    ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                    : `Show all (${hiddenRowCount} more)`}
                 </Button>
               </div>
             )}
@@ -835,7 +853,7 @@ export function SimpleLeaderboard({
     return scorePercentage == null ? 'N/A' : `${scorePercentage.toFixed(1)}%`
   }
 
-  const entriesToRank = view === 'cost' ? displayedEntries : rankedEntries
+  const entriesToRank = displayedEntries
   const ranked = entriesToRank.map((entry, index) => ({ entry, rank: index + 1 }))
 
   return (
@@ -947,7 +965,7 @@ export function SimpleLeaderboard({
                   </td>
                 </tr>
               ))}
-              {nullEntries.map((entry) => (
+              {showAllEntries && nullEntries.map((entry) => (
                 <tr key={entry.submission_id} className="text-muted-foreground">
                   <td className="px-2 md:px-4 py-3">--</td>
                   <td className="px-2 md:px-4 py-3">
@@ -985,11 +1003,11 @@ export function SimpleLeaderboard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowLowScores((prev) => !prev)}
+                onClick={() => setShowAllEntries((prev) => !prev)}
               >
-                {showLowScores
-                  ? 'Show less'
-                  : `Show more (${hiddenEntries.length})`}
+                {showAllEntries
+                  ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                  : `Show all (${hiddenRowCount} more)`}
               </Button>
             </div>
           )}
@@ -1007,6 +1025,7 @@ export function SimpleLeaderboard({
           </div>
         </div>
       </ShareableWrapper>
+      <KiloClawAdCard />
     </div>
   )
 }

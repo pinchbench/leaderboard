@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { ColoredProgress } from '@/components/ui/colored-progress'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { DEFAULT_TABLE_ROW_LIMIT } from '@/lib/constants'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
@@ -30,8 +31,7 @@ const getScoreColor = (percentage: number) => {
 export function LeaderboardTable({ entries }: LeaderboardTableProps) {
   const [sortBy, setSortBy] = useState<'score' | 'date'>('score')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [showLowScores, setShowLowScores] = useState(false)
-  const lowScoreCutoff = 40
+  const [showAllEntries, setShowAllEntries] = useState(false)
 
   const sortedEntries = [...entries].sort((a, b) => {
     if (sortBy === 'score') {
@@ -44,15 +44,10 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
       : new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   })
 
-  const visibleEntries = sortedEntries.filter(
-    (entry) => entry.percentage >= lowScoreCutoff
-  )
-  const hiddenEntries = sortedEntries.filter(
-    (entry) => entry.percentage < lowScoreCutoff
-  )
-  const displayedEntries = showLowScores
-    ? visibleEntries.concat(hiddenEntries)
-    : visibleEntries
+  const displayedEntries = showAllEntries
+    ? sortedEntries
+    : sortedEntries.slice(0, DEFAULT_TABLE_ROW_LIMIT)
+  const hiddenEntries = sortedEntries.slice(DEFAULT_TABLE_ROW_LIMIT)
   const showToggle = hiddenEntries.length > 0
 
   const toggleSort = (column: 'score' | 'date') => {
@@ -190,11 +185,11 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowLowScores((prev) => !prev)}
+              onClick={() => setShowAllEntries((prev) => !prev)}
             >
-              {showLowScores
-                ? 'Show less'
-                : `Show more (${hiddenEntries.length})`}
+              {showAllEntries
+                ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                : `Show all (${hiddenEntries.length} more)`}
             </Button>
           </div>
         )}
@@ -259,11 +254,11 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowLowScores((prev) => !prev)}
+              onClick={() => setShowAllEntries((prev) => !prev)}
             >
-              {showLowScores
-                ? 'Show less'
-                : `Show more (${hiddenEntries.length})`}
+              {showAllEntries
+                ? `Show top ${DEFAULT_TABLE_ROW_LIMIT}`
+                : `Show all (${hiddenEntries.length} more)`}
             </Button>
           </div>
         )}
