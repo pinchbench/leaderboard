@@ -9,6 +9,7 @@ import { RunSelector } from '@/components/run-selector'
 import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
 import { HardwareInfo } from '@/components/hardware-info'
+import { TryKiloClawButton } from '@/components/try-kiloclaw-button'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
@@ -155,15 +156,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                asChild
-                size="sm"
-                className="border border-[#F8F675] bg-[#F8F675] text-black hover:bg-[#e6e45f]"
-              >
-                <a href="https://app.kilo.ai/claw" target="_blank" rel="noopener noreferrer">
-                  Try in KiloClaw
-                </a>
-              </Button>
+              <TryKiloClawButton model={submission.model} />
               <ShareButton />
             </div>
           </div>
