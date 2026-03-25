@@ -98,61 +98,74 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
 
   const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
-  return (
-    <div className={`relative ${alwaysShowButton ? '' : 'group'} ${className ?? ''}`}>
-      {/* Always-visible share button above content */}
-      {alwaysShowButton && (
-        <div data-share-exclude="true" className="flex justify-end mb-2">
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu((v) => !v)}
-              disabled={isCapturing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
-              title="Share as image"
-            >
-              {isCapturing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Camera className="w-3.5 h-3.5" />
-              )}
-              Share
-            </button>
+  // Render helper for share button (not a component to avoid remounting)
+  const renderShareButton = (btnClassName?: string) => (
+    <div data-share-exclude="true" className={`flex justify-end ${btnClassName ?? ''}`}>
+      <div className="relative">
+        <button
+          onClick={() => setShowMenu((v) => !v)}
+          disabled={isCapturing}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
+          title="Share as image"
+        >
+          {isCapturing ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Camera className="w-3.5 h-3.5" />
+          )}
+          Share
+        </button>
 
-            {/* Dropdown menu */}
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
-                  <button
-                    onClick={() => captureImage('copy')}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Copy to clipboard
-                  </button>
-                  <button
-                    onClick={() => captureImage('download')}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download PNG
-                  </button>
-                  {canShare && (
-                    <button
-                      onClick={() => captureImage('share')}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      Share...
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+        {/* Dropdown menu */}
+        {showMenu && (
+          <>
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setShowMenu(false)}
+            />
+            <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
+              <button
+                onClick={() => captureImage('copy')}
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+              >
+                <Copy className="w-4 h-4" />
+                Copy to clipboard
+              </button>
+              <button
+                onClick={() => captureImage('download')}
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Download PNG
+              </button>
+              {canShare && (
+                <button
+                  onClick={() => captureImage('share')}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share...
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+
+  return (
+    <div className={`relative ${alwaysShowButton ? '' : 'group md:pt-10'} ${className ?? ''}`}>
+      {/* Always-visible share button above content */}
+      {alwaysShowButton && renderShareButton('mb-2')}
+
+      {/* Hover-mode share button - positioned in the padding area above content */}
+      {!alwaysShowButton && (
+        <div 
+          data-share-exclude="true"
+          className="hidden md:block absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        >
+          {renderShareButton()}
         </div>
       )}
 
@@ -256,65 +269,7 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
         </div>
       </div>
 
-      {/* Share button - floats on top, excluded from capture (hover mode only, hidden on mobile) */}
-      {!alwaysShowButton && (
-        <div
-          data-share-exclude="true"
-          className="hidden md:block absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        >
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu((v) => !v)}
-              disabled={isCapturing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
-              title="Share as image"
-            >
-              {isCapturing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Camera className="w-3.5 h-3.5" />
-              )}
-              Share
-            </button>
 
-            {/* Dropdown menu */}
-            {showMenu && (
-              <>
-                {/* Backdrop to close menu */}
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-popover border border-border rounded-lg shadow-lg py-1 min-w-[180px]">
-                  <button
-                    onClick={() => captureImage('copy')}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Copy to clipboard
-                  </button>
-                  <button
-                    onClick={() => captureImage('download')}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download PNG
-                  </button>
-                  {canShare && (
-                    <button
-                      onClick={() => captureImage('share')}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-popover-foreground hover:bg-accent transition-colors"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      Share...
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Feedback toast */}
       {feedback && (
