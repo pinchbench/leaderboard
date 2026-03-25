@@ -23,7 +23,7 @@ export function PoweredByBanner() {
     const handleClick = () => {
         posthog?.capture('kiloclaw_cta_click', {
             location: 'powered_by_banner',
-            destination: 'https://kilo.ai/kiloclaw',
+            destination: 'https://kilo.ai/kiloclaw?utm_source=pinchbench&utm_medium=referral',
         })
     }
 
