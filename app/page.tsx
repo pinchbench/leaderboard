@@ -16,26 +16,28 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
   const ogUrl = `/api/og${ogParams.toString() ? `?${ogParams.toString()}` : ''}`
 
   const viewTitles: Record<string, string> = {
-    success: 'Success Rate Leaderboard',
-    speed: 'Speed Leaderboard',
-    cost: 'Cost Leaderboard',
-    graphs: 'Benchmark Graphs',
+    success: 'Best Models by Success Rate',
+    speed: 'Fastest Models',
+    cost: 'Most Cost-Effective Models',
+    value: 'Best Value Models',
+    graphs: 'Model Comparison Graphs',
   }
-  const title = viewTitles[view ?? 'success'] ?? 'AI Agent Benchmark Leaderboard'
+  const title = viewTitles[view ?? 'success'] ?? 'Best AI Models for OpenClaw'
+  const description = 'Find the best AI model for your OpenClaw agent. Compare success rates, speed, and cost across 100+ LLMs on real coding tasks.'
 
   return {
-    title: `PinchBench - ${title}`,
-    description: 'Benchmarking LLM models as AI agents across standardized coding tasks',
+    title: `${title} | PinchBench - OpenClaw Benchmark`,
+    description,
     openGraph: {
-      title: `PinchBench - ${title}`,
-      description: 'Benchmarking LLM models as AI agents across standardized coding tasks',
+      title: `${title} | PinchBench`,
+      description,
       images: [{ url: ogUrl, width: 1200, height: 630, alt: title }],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `PinchBench - ${title}`,
-      description: 'Benchmarking LLM models as AI agents across standardized coding tasks',
+      title: `${title} | PinchBench`,
+      description,
       images: [ogUrl],
     },
   }

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { X } from 'lucide-react'
 
 const BANNER_DISMISSED_KEY = 'pinchbench-banner-dismissed'
 
 export function PoweredByBanner() {
     const [isDismissed, setIsDismissed] = useState(true) // Start hidden to avoid flash
+    const posthog = usePostHog()
 
     useEffect(() => {
         const dismissed = localStorage.getItem(BANNER_DISMISSED_KEY)
@@ -16,6 +18,13 @@ export function PoweredByBanner() {
     const handleDismiss = () => {
         localStorage.setItem(BANNER_DISMISSED_KEY, 'true')
         setIsDismissed(true)
+    }
+
+    const handleClick = () => {
+        posthog?.capture('kiloclaw_cta_click', {
+            location: 'powered_by_banner',
+            destination: 'https://kilo.ai/kiloclaw',
+        })
     }
 
     if (isDismissed) {
@@ -31,6 +40,7 @@ export function PoweredByBanner() {
                         href="https://kilo.ai/kiloclaw?utm_source=pinchbench&utm_medium=referral"
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={handleClick}
                         className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
                     >
                         KiloClaw
