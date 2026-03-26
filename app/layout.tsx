@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Footer } from '@/components/footer'
 import { PostHogProvider } from '@/components/posthog-provider'
 import { PoweredByBanner } from '@/components/powered-by-banner'
+import { ProductHuntBanner } from '@/components/product-hunt-banner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import './globals.css'
@@ -70,6 +71,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <PostHogProvider>
           <TooltipProvider delayDuration={300} disableHoverableContent>
+            <ProductHuntBanner />
             <PoweredByBanner />
             {children}
             <Footer />
