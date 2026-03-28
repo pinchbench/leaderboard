@@ -16,6 +16,12 @@ type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 type GraphSubTab = 'scatter' | 'heatmap' | 'distribution' | 'radar'
 
+function parseCategoriesParam(raw: string | null): string[] {
+    if (!raw?.trim()) return []
+    const parts = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    return [...new Set(parts)]
+}
+
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
@@ -100,6 +106,16 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ official: v ? null : 'false' })
     }, [updateUrl])
 
+    const selectedCategories = useMemo(
+        () => parseCategoriesParam(searchParams.get('categories')),
+        [searchParams]
+    )
+
+    const setSelectedCategories = useCallback((cats: string[]) => {
+        const normalized = [...new Set(cats.map((c) => c.trim().toLowerCase()).filter(Boolean))]
+        updateUrl({ categories: normalized.length ? normalized.join(',') : null })
+    }, [updateUrl])
+
     const filteredEntries = useMemo(() => {
         let result = entries
         if (providerFilter) {
@@ -170,7 +186,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
                         )}
                         {graphSubTab === 'heatmap' && (
-                            <TaskHeatmap entries={filteredEntries} scoreMode={scoreMode} />
+                            <TaskHeatmap
+                                entries={filteredEntries}
+                                selectedCategories={selectedCategories}
+                                onCategoriesChange={setSelectedCategories}
+                            />
                         )}
                         {graphSubTab === 'distribution' && (
                             <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />

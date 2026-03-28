@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { LeaderboardEntry, TaskResult } from '@/lib/types'
+import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS, CATEGORY_ICONS } from '@/lib/types'
 import { fetchSubmissionClient } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
@@ -10,7 +10,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface TaskHeatmapProps {
   entries: LeaderboardEntry[]
-  scoreMode: 'best' | 'average'
+  selectedCategories: string[]
+  onCategoriesChange: (categories: string[]) => void
 }
 
 interface ModelTaskData {
@@ -37,7 +38,7 @@ function getScoreTextColor(ratio: number): string {
   return 'hsl(0, 70%, 75%)'
 }
 
-export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
+export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }: TaskHeatmapProps) {
   const [modelData, setModelData] = useState<ModelTaskData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -128,23 +129,68 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
       })
   }, [modelData])
 
+  const categoryFilterActive = selectedCategories.length > 0
+
+  const filteredTasks = useMemo(() => {
+    if (!categoryFilterActive) return allTasks
+    const set = new Set(selectedCategories.map((c) => c.toLowerCase()))
+    return allTasks.filter((t) => set.has(t.category.toLowerCase()))
+  }, [allTasks, selectedCategories, categoryFilterActive])
+
+  const availableCategories = useMemo(() => {
+    const seen = new Set<string>()
+    const order: string[] = []
+    for (const t of allTasks) {
+      if (!seen.has(t.category)) {
+        seen.add(t.category)
+        order.push(t.category)
+      }
+    }
+    return order
+  }, [allTasks])
+
+  const modelFilteredPercentage = useMemo(() => {
+    const map = new Map<string, number>()
+    if (!categoryFilterActive || filteredTasks.length === 0) return map
+    for (const m of modelData) {
+      let sumScore = 0
+      let sumMax = 0
+      for (const task of filteredTasks) {
+        const td = m.tasks.get(task.taskId)
+        if (td) {
+          sumScore += td.score
+          sumMax += td.maxScore
+        }
+      }
+      map.set(m.model, sumMax > 0 ? (sumScore / sumMax) * 100 : 0)
+    }
+    return map
+  }, [modelData, filteredTasks, categoryFilterActive])
+
   // Sort models
   const sortedModels = useMemo(() => {
     const sorted = [...modelData]
     if (sortBy === 'score') {
-      sorted.sort((a, b) => b.percentage - a.percentage)
+      if (categoryFilterActive && filteredTasks.length > 0) {
+        sorted.sort(
+          (a, b) =>
+            (modelFilteredPercentage.get(b.model) ?? 0) - (modelFilteredPercentage.get(a.model) ?? 0)
+        )
+      } else {
+        sorted.sort((a, b) => b.percentage - a.percentage)
+      }
     } else {
       sorted.sort((a, b) => a.model.localeCompare(b.model))
     }
     return sorted
-  }, [modelData, sortBy])
+  }, [modelData, sortBy, categoryFilterActive, filteredTasks.length, modelFilteredPercentage])
 
   // Group tasks by category for header display
   const categoryGroups = useMemo(() => {
     const groups: Array<{ category: string; count: number }> = []
     let current = ''
     let count = 0
-    for (const task of allTasks) {
+    for (const task of filteredTasks) {
       if (task.category !== current) {
         if (current) groups.push({ category: current, count })
         current = task.category
@@ -155,7 +201,15 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
     }
     if (current) groups.push({ category: current, count })
     return groups
-  }, [allTasks])
+  }, [filteredTasks])
+
+  function toggleCategory(category: string) {
+    const key = category.toLowerCase()
+    const next = selectedCategories.includes(key)
+      ? selectedCategories.filter((c) => c !== key)
+      : [...selectedCategories, key]
+    onCategoriesChange(next)
+  }
 
   if (loading) {
     return (
@@ -189,6 +243,23 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
     )
   }
 
+  if (categoryFilterActive && filteredTasks.length === 0) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 px-4 py-8 text-center">
+        <p className="text-sm text-muted-foreground mb-3">
+          No tasks match the selected categories for this benchmark version.
+        </p>
+        <button
+          type="button"
+          onClick={() => onCategoriesChange([])}
+          className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:opacity-90"
+        >
+          Show all categories
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground mb-1">
@@ -197,36 +268,93 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
       <p className="text-sm text-muted-foreground mb-4">
         Each cell shows the score percentage for a model on a specific task.
         Tasks are grouped by category.
+        {categoryFilterActive && filteredTasks.length > 0 ? (
+          <span className="block mt-1 text-muted-foreground/90">
+            Filtered view: percentages in the model column reflect only the tasks shown in the heatmap.
+          </span>
+        ) : null}
       </p>
 
+      {categoryFilterActive && filteredTasks.length > 0 ? (
+        <div
+          className="mb-3 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground"
+          role="status"
+        >
+          Showing {filteredTasks.length} of {allTasks.length} tasks · scores recalculated from selected
+          categories
+        </div>
+      ) : null}
+
+      {/* Category chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-xs text-muted-foreground shrink-0">Categories:</span>
+        <button
+          type="button"
+          onClick={() => onCategoriesChange([])}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors border ${
+            !categoryFilterActive
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
+          }`}
+        >
+          All
+        </button>
+        {availableCategories.map((cat) => {
+          const active =
+            categoryFilterActive && selectedCategories.includes(cat.toLowerCase())
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => toggleCategory(cat)}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border capitalize ${
+                active
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
+              }`}
+            >
+              <span>{CATEGORY_ICONS[cat] ?? CATEGORY_ICONS.other}</span>
+              {cat}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Controls */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-muted-foreground">Sort models by:</span>
-          <button
-            onClick={() => setSortBy('score')}
-            className={`px-2 py-1 rounded text-xs transition-colors ${
-              sortBy === 'score'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
-          >
-            Score
-          </button>
-          <button
-            onClick={() => setSortBy('name')}
-            className={`px-2 py-1 rounded text-xs transition-colors ${
-              sortBy === 'name'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
-          >
-            Name
-          </button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 mb-4">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Sort models by:</span>
+            <button
+              onClick={() => setSortBy('score')}
+              className={`px-2 py-1 rounded text-xs transition-colors ${
+                sortBy === 'score'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              Score
+            </button>
+            <button
+              onClick={() => setSortBy('name')}
+              className={`px-2 py-1 rounded text-xs transition-colors ${
+                sortBy === 'name'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              Name
+            </button>
+          </div>
+          {sortBy === 'score' && categoryFilterActive ? (
+            <p className="text-[11px] text-muted-foreground max-w-xl pl-0 sm:pl-[5.5rem] sm:text-xs">
+              Rank and model % use aggregate points only over visible tasks.
+            </p>
+          ) : null}
         </div>
 
         {/* Color legend */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 sm:ml-auto">
           <span className="text-xs text-muted-foreground">Score:</span>
           <div className="flex items-center gap-0.5">
             {[0, 0.3, 0.5, 0.7, 0.85, 1.0].map((v) => (
@@ -245,14 +373,17 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
       <TooltipProvider delayDuration={100}>
         <ShareableWrapper
           title="Task-Level Performance Heatmap"
-          subtitle={`${sortedModels.length} models x ${allTasks.length} tasks`}
+          subtitle={`${sortedModels.length} models × ${filteredTasks.length} tasks${categoryFilterActive ? ` (filtered from ${allTasks.length})` : ''}`}
         >
-          <div className="rounded-lg border border-border bg-background overflow-x-auto">
-          <table className="text-xs border-collapse w-full" style={{ minWidth: allTasks.length * 36 + 180 }}>
+          <div className="rounded-lg border border-border bg-background overflow-x-auto min-w-0">
+          <table
+            className="text-xs border-collapse w-max mx-auto"
+            style={{ minWidth: filteredTasks.length * 36 + 180 }}
+          >
             {/* Category header row */}
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 bg-background border-b border-r border-border p-1" />
+                <th className="sticky left-0 z-20 bg-background border-b border-r border-border p-1 min-w-[180px] w-[180px] box-border" />
                 {categoryGroups.map((group) => (
                   <th
                     key={group.category}
@@ -267,10 +398,10 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
               </tr>
               {/* Task name header row */}
               <tr>
-                <th className="sticky left-0 z-20 bg-background border-b border-r border-border p-1 text-left font-medium text-muted-foreground min-w-[180px]">
+                <th className="sticky left-0 z-20 bg-background border-b border-r border-border p-1 text-left font-medium text-muted-foreground min-w-[180px] w-[180px] box-border">
                   Model
                 </th>
-                {allTasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <th
                     key={task.taskId}
                     className="border-b border-border p-0 font-normal text-muted-foreground/70"
@@ -311,18 +442,26 @@ export function TaskHeatmap({ entries, scoreMode }: TaskHeatmapProps) {
                 const providerColor = PROVIDER_COLORS[model.provider.toLowerCase()] || '#888'
                 return (
                   <tr key={model.model} className="hover:bg-muted/20">
-                    <td className="sticky left-0 z-10 bg-background border-b border-r border-border px-2 py-1.5 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
+                    <td className="sticky left-0 z-10 bg-background border-b border-r border-border px-2 py-1.5 align-top min-w-[180px] w-[180px] max-w-[180px] box-border">
+                      <div className="flex items-start gap-1.5 min-w-0">
                         <span
-                          className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                          className="inline-block w-2 h-2 rounded-full flex-shrink-0 mt-1"
                           style={{ backgroundColor: providerColor }}
                         />
-                        <span className="font-medium text-foreground truncate max-w-[160px]" title={model.model}>
-                          {model.model}
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-medium text-foreground truncate block max-w-[160px]" title={model.model}>
+                            {model.model}
+                          </span>
+                          {categoryFilterActive && filteredTasks.length > 0 ? (
+                            <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                              {Math.round(modelFilteredPercentage.get(model.model) ?? 0)}%
+                              <span className="text-muted-foreground/70"> · visible tasks</span>
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </td>
-                    {allTasks.map((task) => {
+                    {filteredTasks.map((task) => {
                       const taskData = model.tasks.get(task.taskId)
                       const ratio = taskData ? taskData.score / taskData.maxScore : 0
                       const hasData = !!taskData
