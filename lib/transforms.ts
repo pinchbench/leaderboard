@@ -126,6 +126,9 @@ export function transformTaskResult(apiTask: ApiTaskResult): TaskResult {
 
 export function transformSubmission(
   apiSubmission: ApiSubmissionDetail,
+  rank?: number,
+  percentile?: number,
+  totalSubmissions?: number,
 ): Submission {
   const systemRaw = apiSubmission.metadata?.system;
   const system = systemRaw
@@ -159,5 +162,7 @@ export function transformSubmission(
     },
     usage_summary: apiSubmission.usage_summary,
     official: apiSubmission.official,
+    rank: rank ?? apiSubmission.rank ?? undefined,
+    percentile: percentile ?? apiSubmission.percentile ?? undefined,
   };
 }
