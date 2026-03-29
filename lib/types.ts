@@ -202,6 +202,8 @@ export interface ApiModelSubmissionItem {
   max_score: number;
   timestamp: string;
   is_best: boolean;
+  total_cost_usd?: number | null;
+  total_execution_time_seconds?: number | null;
   official?: boolean;
 }
 

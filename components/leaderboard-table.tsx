@@ -126,9 +126,11 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
                   </div>
                 </td>
                 <td className="px-4 py-4">
-                  <code className="text-sm font-mono text-foreground">
-                    {entry.model}
-                  </code>
+                  <Link href={`/model/${entry.provider.toLowerCase()}/${entry.model}${entry.official === false ? '?official=false' : ''}`}>
+                    <code className="text-sm font-mono text-foreground hover:text-primary transition-colors cursor-pointer">
+                      {entry.model}
+                    </code>
+                  </Link>
                 </td>
                 <td className="px-4 py-4">
                   <Badge
@@ -200,7 +202,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
         {displayedEntries.map((entry) => (
           <Link
             key={entry.submission_id}
-            href={`/submission/${entry.submission_id}`}
+            href={`/model/${entry.provider.toLowerCase()}/${entry.model}${entry.official === false ? '?official=false' : ''}`}
             className="block p-4 hover:bg-muted/30 transition-colors"
           >
             <div className="flex items-start justify-between mb-3">
