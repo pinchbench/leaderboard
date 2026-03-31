@@ -45,6 +45,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
+    const initialModelSearch = searchParams.get('model') || ''
 
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
@@ -52,6 +53,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
+    const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -95,35 +97,35 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const handleModelSearchChange = useCallback((s: string) => {
+        setModelSearchState(s)
+        updateUrl({ model: s || null })
+    }, [updateUrl])
+
     const setOfficialOnly = useCallback((v: boolean) => {
         setOfficialOnlyState(v)
         updateUrl({ official: v ? null : 'false' })
     }, [updateUrl])
 
     const filteredEntries = useMemo(() => {
-        let result = entries
-        if (providerFilter) {
-            result = result.filter(
-                (entry) => entry.provider.toLowerCase() === providerFilter.toLowerCase()
-            )
-        }
-        if (openWeightsOnly) {
-            result = result.filter((entry) => entry.weights === 'Open')
-        }
-        return result
-    }, [entries, providerFilter, openWeightsOnly])
+        return entries.filter(entry => {
+            if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
+            if (openWeightsOnly && entry.weights !== 'Open') return false
+            if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
+            return true
+        })
+    }, [entries, providerFilter, openWeightsOnly, modelSearch])
 
     const providerColor = providerFilter
         ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
         : undefined
 
-    const totalRuns = useMemo(() => {
-        return filteredEntries.reduce((sum, entry) => sum + (entry.submission_count ?? 0), 0)
-    }, [filteredEntries])
+    const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
 
     return (
         <div className="min-h-screen bg-background">
             <LeaderboardHeader
+                entries={entries}
                 filteredEntryCount={filteredEntries.length}
                 totalRuns={totalRuns}
                 versions={versions}
@@ -140,6 +142,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
+                onModelSearchChange={handleModelSearchChange}
+                modelSearchValue={modelSearch}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">

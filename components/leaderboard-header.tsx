@@ -1,13 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import type { BenchmarkVersion } from '@/lib/types'
+import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
+import { ModelSearch } from '@/components/model-search'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 
 interface LeaderboardHeaderProps {
+    entries: LeaderboardEntry[]
     filteredEntryCount: number
     totalRuns: number
     versions: BenchmarkVersion[]
@@ -19,14 +21,17 @@ interface LeaderboardHeaderProps {
     scoreMode: ScoreMode
     officialOnly: boolean
     openWeightsOnly: boolean
+    modelSearchValue: string
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
     onOfficialOnlyChange: (officialOnly: boolean) => void
     onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
     onClearProviderFilter: () => void
+    onModelSearchChange: (value: string) => void
 }
 
 export function LeaderboardHeader({
+    entries,
     filteredEntryCount,
     totalRuns,
     versions,
@@ -38,17 +43,19 @@ export function LeaderboardHeader({
     scoreMode,
     officialOnly,
     openWeightsOnly,
+    modelSearchValue,
     onViewChange,
     onScoreModeChange,
     onOfficialOnlyChange,
     onOpenWeightsOnlyChange,
     onClearProviderFilter,
+    onModelSearchChange,
 }: LeaderboardHeaderProps) {
     return (
         <header className="border-b border-border">
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col items-start gap-2">
                         <div className="flex items-center gap-3">
                             <img src="/apple-touch-icon.png" alt="PinchBench - OpenClaw Benchmark" className="w-8 h-8 md:w-10 md:h-10" />
                             <div>
@@ -58,17 +65,17 @@ export function LeaderboardHeader({
                                 <p className="hidden md:block text-sm text-muted-foreground">Find the best model for your OpenClaw</p>
                             </div>
                         </div>
-                        <div className="flex justify-end mb-4 md:inline-block hidden">
-                            <a
-                                href="https://github.com/pinchbench/skill"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                <span>Run the benchmark yourself →</span>
-                            </a>
-                        </div>
                     </div>
+
+                    <div className="flex-1 flex justify-center max-w-sm w-full">
+                        <ModelSearch
+                            entries={entries}
+                            officialOnly={officialOnly}
+                            searchValue={modelSearchValue}
+                            onSearchChange={onModelSearchChange}
+                        />
+                    </div>
+
                     <div className="flex flex-col items-end gap-3">
                         <div className="flex items-center gap-3">
                             <Link

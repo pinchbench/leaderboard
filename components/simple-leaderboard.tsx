@@ -216,6 +216,9 @@ export function SimpleLeaderboard({
   const hiddenRowCount = hiddenEntries.length + nullEntries.length
   const showToggle = hiddenRowCount > 0
 
+  const modelHref = (provider: string, model: string) =>
+    `/model/${provider.toLowerCase()}/${model}${officialOnly ? '' : '?official=false'}`
+
   // ----------------------------------------------------------------
   // VALUE view
   // ----------------------------------------------------------------
@@ -321,8 +324,8 @@ export function SimpleLeaderboard({
                         <span className="text-sm font-medium text-muted-foreground">{index + 1}</span>
                       </td>
                       <td className="px-2 md:px-4 py-3">
-                        <Link href={`/submission/${entry.submission_id}`} className="flex items-center gap-2 transition-colors">
-                          <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                        <Link href={modelHref(entry.provider, entry.model)} className="flex items-center gap-2 transition-colors">
+                          <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none hover:text-primary transition-colors cursor-pointer">{entry.model}</code>
                         </Link>
                       </td>
                       <td className="hidden md:table-cell px-4 py-3">
@@ -366,8 +369,8 @@ export function SimpleLeaderboard({
                   <tr key={entry.submission_id} className="text-muted-foreground opacity-60">
                     <td className="px-2 md:px-4 py-3">--</td>
                     <td className="px-2 md:px-4 py-3">
-                      <Link href={`/submission/${entry.submission_id}`}>
-                        <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                      <Link href={modelHref(entry.provider, entry.model)}>
+                        <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none hover:text-primary transition-colors cursor-pointer">{entry.model}</code>
                       </Link>
                     </td>
                     <td className="hidden md:table-cell px-4 py-3">
@@ -552,7 +555,7 @@ export function SimpleLeaderboard({
                   <Tooltip key={entry.submission_id}>
                     <TooltipTrigger asChild>
                       <Link
-                        href={submissionHref(entry.submission_id)}
+                        href={modelHref(entry.provider, entry.model)}
                         className="block group"
                       >
                         <div className="flex items-center gap-3">
@@ -743,7 +746,7 @@ export function SimpleLeaderboard({
                     >
                       <td className="px-2 md:px-4 py-3">
                         <Link
-                          href={submissionHref(entry.submission_id)}
+                          href={modelHref(entry.provider, entry.model)}
                           className="flex items-center gap-2 transition-colors"
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
@@ -935,7 +938,7 @@ export function SimpleLeaderboard({
                   </td>
                   <td className="px-2 md:px-4 py-3">
                     <Link
-                      href={submissionHref(entry.submission_id)}
+                      href={modelHref(entry.provider, entry.model)}
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
@@ -952,7 +955,8 @@ export function SimpleLeaderboard({
                       onClick={() => onProviderClick?.(entry.provider)}
                       className="text-xs font-medium hover:underline cursor-pointer"
                       style={{
-                        color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                        color:
+                          PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
                       }}
                     >
                       {entry.provider}
@@ -966,11 +970,11 @@ export function SimpleLeaderboard({
                 </tr>
               ))}
               {showAllEntries && nullEntries.map((entry) => (
-                <tr key={entry.submission_id} className="text-muted-foreground">
+                <tr key={entry.submission_id} className="text-muted-foreground opacity-60">
                   <td className="px-2 md:px-4 py-3">--</td>
                   <td className="px-2 md:px-4 py-3">
                     <Link
-                      href={submissionHref(entry.submission_id)}
+                      href={modelHref(entry.provider, entry.model)}
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
@@ -987,7 +991,8 @@ export function SimpleLeaderboard({
                       onClick={() => onProviderClick?.(entry.provider)}
                       className="text-xs font-medium hover:underline cursor-pointer"
                       style={{
-                        color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
+                        color:
+                          PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666',
                       }}
                     >
                       {entry.provider}
