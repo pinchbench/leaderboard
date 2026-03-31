@@ -4,6 +4,7 @@ import {
   getModelBadgeStatus,
   isBadgeMetric,
   isBadgePeriod,
+  normalizePeriod,
 } from "@/lib/badges";
 
 function escapeXml(value: string): string {
@@ -56,22 +57,24 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ metric: string; period: string }> },
 ) {
-  const { metric, period } = await params;
+  const { metric, period: rawPeriod } = await params;
   const { searchParams } = new URL(request.url);
   const model = searchParams.get("model")?.trim();
 
-  if (!isBadgeMetric(metric) || !isBadgePeriod(period)) {
+  if (!isBadgeMetric(metric) || !isBadgePeriod(rawPeriod)) {
     return badgeResponse(
       renderBadgeSvg({
         title: "Invalid PinchBench badge",
         model: "Unsupported metric or period",
         detail: "Invalid",
-        footer: "Supported periods: 1d, 7d, 30d • metrics: success, speed, cost, value",
+        footer: "Supported periods: 1d, 7d, 30d (or daily, weekly, monthly) • metrics: success, speed, cost, value",
         accent: "#ef4444",
       }),
       400,
     );
   }
+
+  const period = normalizePeriod(rawPeriod);
 
   if (!model) {
     return badgeResponse(
@@ -109,7 +112,7 @@ export async function GET(
         footer,
         accent: BADGE_METRICS[metric].accent,
       }),
-      status.awarded ? 200 : 404,
+      200,
     );
   } catch {
     return badgeResponse(
@@ -120,7 +123,7 @@ export async function GET(
         footer: "PinchBench could not compute this badge right now",
         accent: "#f59e0b",
       }),
-      503,
+      200,
     );
   }
 }

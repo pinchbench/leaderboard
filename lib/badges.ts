@@ -3,14 +3,20 @@ import { fetchSubmissions } from "@/lib/api";
 import { normalizeProvider } from "@/lib/transforms";
 
 const EPSILON = 1e-6;
-const PAGE_SIZE = 200;
-const MAX_PAGES = 25;
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 5;
 
 export const BADGE_PERIODS = {
-  "1d": { label: "Daily", shortLabel: "1D", durationMs: 24 * 60 * 60 * 1000 },
-  "7d": { label: "Weekly", shortLabel: "7D", durationMs: 7 * 24 * 60 * 60 * 1000 },
-  "30d": { label: "Monthly", shortLabel: "30D", durationMs: 30 * 24 * 60 * 60 * 1000 },
+  "1d": { label: "Daily", shortLabel: "1D" },
+  "7d": { label: "Weekly", shortLabel: "7D" },
+  "30d": { label: "Monthly", shortLabel: "30D" },
 } as const;
+
+export const PERIOD_ALIASES: Record<string, BadgePeriod> = {
+  daily: "1d",
+  weekly: "7d",
+  monthly: "30d",
+};
 
 export const BADGE_METRICS = {
   success: { label: "Success", accent: "#22c55e" },
@@ -21,6 +27,26 @@ export const BADGE_METRICS = {
 
 export type BadgeMetric = keyof typeof BADGE_METRICS;
 export type BadgePeriod = keyof typeof BADGE_PERIODS;
+
+export function getPeriodStartMs(period: BadgePeriod, now: number): number {
+  const date = new Date(now);
+  if (period === "1d") {
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  }
+  if (period === "7d") {
+    const day = date.getUTCDay(); // 0 is Sunday
+    const diff = day === 0 ? 6 : day - 1; // Monday as start of week
+    return Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate() - diff,
+    );
+  }
+  if (period === "30d") {
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+  }
+  return now;
+}
 
 export interface BadgeLookupOptions {
   officialOnly?: boolean;
@@ -166,7 +192,12 @@ export function isBadgeMetric(value: string): value is BadgeMetric {
 }
 
 export function isBadgePeriod(value: string): value is BadgePeriod {
-  return value in BADGE_PERIODS;
+  return value in BADGE_PERIODS || value in PERIOD_ALIASES;
+}
+
+export function normalizePeriod(period: string): BadgePeriod {
+  if (period in BADGE_PERIODS) return period as BadgePeriod;
+  return PERIOD_ALIASES[period.toLowerCase()] || "30d";
 }
 
 export function buildBadgeUrl(
@@ -185,7 +216,7 @@ export async function fetchRecentBadgeSubmissions(
 ): Promise<ApiSubmissionListItem[]> {
   const maxPeriod = options.maxPeriod ?? "30d";
   const now = options.now ?? Date.now();
-  const cutoffMs = now - BADGE_PERIODS[maxPeriod].durationMs;
+  const cutoffMs = getPeriodStartMs(maxPeriod, now);
   const results: ApiSubmissionListItem[] = [];
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -217,15 +248,15 @@ export async function fetchRecentBadgeSubmissions(
 export function computeModelBadgeStatuses(
   submissions: ApiSubmissionListItem[],
   model: string,
-  options: BadgeLookupOptions = {},
+  options: BadgeLookupOptions & { periods?: BadgePeriod[] } = {},
 ): ModelBadgeStatus[] {
   const now = options.now ?? Date.now();
   const officialOnly = options.officialOnly ?? true;
-  const periods = Object.keys(BADGE_PERIODS) as BadgePeriod[];
+  const periods = options.periods ?? (Object.keys(BADGE_PERIODS) as BadgePeriod[]);
   const metrics = Object.keys(BADGE_METRICS) as BadgeMetric[];
 
   return periods.flatMap((period) => {
-    const windowStart = now - BADGE_PERIODS[period].durationMs;
+    const windowStart = getPeriodStartMs(period, now);
     const periodSubmissions = submissions.filter((submission) => {
       const timestampMs = getTimestampMs(submission.timestamp);
       return Number.isFinite(timestampMs) && timestampMs >= windowStart;
@@ -279,7 +310,10 @@ export async function getModelBadgeStatus(
     ...options,
     maxPeriod: period,
   });
-  const statuses = computeModelBadgeStatuses(submissions, model, options);
+  const statuses = computeModelBadgeStatuses(submissions, model, {
+    ...options,
+    periods: [period],
+  });
   return statuses.find((status) => status.metric === metric && status.period === period) ?? {
     metric,
     period,

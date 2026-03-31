@@ -84,4 +84,18 @@ describe('badge helpers', () => {
     expect(dailySuccess?.rank).toBe(1)
     expect(dailySuccess?.url).toContain('/api/badges/success/1d?model=winner')
   })
+
+  test('period aliases and normalization', () => {
+    const { isBadgePeriod, normalizePeriod } = require('./badges')
+    expect(isBadgePeriod('1d')).toBe(true)
+    expect(isBadgePeriod('daily')).toBe(true)
+    expect(isBadgePeriod('weekly')).toBe(true)
+    expect(isBadgePeriod('monthly')).toBe(true)
+    expect(isBadgePeriod('yearly')).toBe(false)
+
+    expect(normalizePeriod('daily')).toBe('1d')
+    expect(normalizePeriod('weekly')).toBe('7d')
+    expect(normalizePeriod('monthly')).toBe('30d')
+    expect(normalizePeriod('1d')).toBe('1d')
+  })
 })
