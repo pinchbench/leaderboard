@@ -60,6 +60,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
     const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
+    // Hidden providers — managed here so Header counts stay in sync with graph legend toggles
+    const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -128,15 +130,20 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
             if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
             if (openWeightsOnly && entry.weights !== 'Open') return false
             if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
+            if (hiddenProviders.has(entry.provider.toLowerCase())) return false
             return true
         })
-    }, [entries, providerFilter, openWeightsOnly, modelSearch])
+    }, [entries, providerFilter, openWeightsOnly, modelSearch, hiddenProviders])
 
     const providerColor = providerFilter
         ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
         : undefined
 
-    const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
+    // totalRuns reflects only the entries currently visible (after all filters including hidden providers).
+    // Previously this was computed from the unfiltered `entries` list, causing the header to show
+    // stale run counts when Open-weight Only was toggled or models were hidden in the scatter graph.
+    // totalRuns: only count runs that pass all active filters (including hidden providers)
+    const totalRuns = filteredEntries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
 
     return (
         <div className="min-h-screen bg-background">
@@ -187,7 +194,12 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         </div>
 
                         {graphSubTab === 'scatter' && (
-                            <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
+                            <ScatterGraphs
+                                entries={filteredEntries}
+                                scoreMode={scoreMode}
+                                hiddenProviders={hiddenProviders}
+                                onHiddenProvidersChange={setHiddenProviders}
+                            />
                         )}
                         {graphSubTab === 'heatmap' && (
                             <TaskHeatmap

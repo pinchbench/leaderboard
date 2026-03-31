@@ -23,6 +23,9 @@ type GraphTab = 'perf-vs-cost' | 'perf-vs-speed'
 interface ScatterGraphsProps {
   entries: LeaderboardEntry[]
   scoreMode: 'best' | 'average'
+  // Controlled from LeaderboardView so hidden state syncs with Header
+  hiddenProviders: Set<string>
+  onHiddenProvidersChange: (next: Set<string> | ((prev: Set<string>) => Set<string>)) => void
 }
 
 interface DataPoint {
@@ -285,16 +288,15 @@ function ProviderLegend({ providers, hiddenProviders, onToggle }: {
 
 // --- Main component ---
 
-export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
+export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenProvidersChange }: ScatterGraphsProps) {
   const [graphTab, setGraphTab] = useState<GraphTab>('perf-vs-cost')
-  const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
 
   const toggleProvider = (provider: string) => {
     if (provider === '__reset__') {
-      setHiddenProviders(new Set())
+      onHiddenProvidersChange(new Set())
       return
     }
-    setHiddenProviders(prev => {
+    onHiddenProvidersChange(prev => {
       const next = new Set(prev)
       if (next.has(provider)) {
         next.delete(provider)
