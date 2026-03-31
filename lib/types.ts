@@ -50,6 +50,8 @@ export interface Submission {
   };
   usage_summary?: UsageSummary;
   official?: boolean;
+  rank?: number;
+  percentile?: number;
 }
 
 export interface UsageSummary {
@@ -146,6 +148,9 @@ export interface UserSubmissionsResponse {
 
 export interface SubmissionDetailResponse {
   submission: ApiSubmissionDetail;
+  rank?: number;
+  percentile?: number;
+  total_submissions?: number;
 }
 
 export interface ApiTaskResult {

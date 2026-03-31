@@ -28,7 +28,12 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
 
   try {
     const response = await fetchSubmission(id)
-    submission = transformSubmission(response.submission)
+    submission = transformSubmission(
+      response.submission,
+      response.rank,
+      response.percentile,
+      response.total_submissions,
+    )
   } catch (error) {
     return (
       <div className="min-h-screen bg-background">
@@ -138,6 +143,28 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                     className="text-sm border-green-500 text-green-500"
                   >
                     🎖️ Official
+                  </Badge>
+                )}
+                {submission.rank && (
+                  <Badge
+                    variant="outline"
+                    className={`text-sm ${
+                      submission.rank <= 3
+                        ? "border-yellow-500 text-yellow-500"
+                        : submission.rank <= 10
+                        ? "border-blue-500 text-blue-500"
+                        : "border-muted-foreground text-muted-foreground"
+                    }`}
+                    aria-label={`Rank ${submission.rank} out of all submissions`}
+                  >
+                    {submission.rank <= 3
+                      ? submission.rank === 1
+                        ? "🥇"
+                        : submission.rank === 2
+                        ? "🥈"
+                        : "🥉"
+                      : "🏅"}{" "}
+                    #{submission.rank}
                   </Badge>
                 )}
               </div>
