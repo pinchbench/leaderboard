@@ -14,19 +14,59 @@ interface TaskHeatmapProps {
   onCategoriesChange: (categories: string[]) => void
 }
 
+interface TaskInfo {
+  score: number
+  maxScore: number
+  taskName: string
+  category: string
+}
+
 interface ModelTaskData {
   model: string
   provider: string
   percentage: number
-  tasks: Map<string, { score: number; maxScore: number; taskName: string; category: string }>
+  /** Use plain object instead of Map so it can be serialized to sessionStorage */
+  tasks: Record<string, TaskInfo>
 }
 
 /**
  * In-memory cache of submission details keyed by submission_id.
- * Persists across category filter changes to avoid redundant API calls.
- * Cache is scoped to the module instance (browser session).
+ * Serialized to sessionStorage so it survives page refreshes.
  */
-const submissionCache = new Map<string, ModelTaskData>()
+interface SerializedCache {
+  [submissionId: string]: ModelTaskData
+}
+
+const SESSION_STORAGE_KEY = 'pinchbench_heatmap_cache'
+
+/** Load cache from sessionStorage (returns empty object if none) */
+function loadCacheFromSession(): SerializedCache {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    if (raw) {
+      return JSON.parse(raw) as SerializedCache
+    }
+  } catch {
+    // sessionStorage unavailable or corrupted — start fresh
+  }
+  return {}
+}
+
+/** Persist cache to sessionStorage */
+function saveCacheToSession(cache: SerializedCache): void {
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(cache))
+  } catch {
+    // sessionStorage write failed — ignore (quota exceeded, private mode, etc.)
+  }
+}
+
+/**
+ * Module-level cache (in-memory Map for fast access during a session).
+ * Backed by sessionStorage for persistence across page refreshes.
+ * Structure: { [submission_id]: ModelTaskData }
+ */
+const submissionCache: SerializedCache = loadCacheFromSession()
 
 /** Maximum number of concurrent API requests when fetching submission details */
 const CONCURRENCY_LIMIT = 10
@@ -89,6 +129,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
         return
       }
 
+      // Update ref BEFORE any early returns or cache lookups so it's always in sync
       prevSubmissionIdsRef.current = currentIds
 
       // Separate entries into cached and uncached
@@ -96,7 +137,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
       const initialData: ModelTaskData[] = []
 
       for (const entry of entries) {
-        const cached = currentCache.get(entry.submission_id)
+        const cached = currentCache[entry.submission_id]
         if (cached) {
           initialData.push(cached)
         } else {
@@ -128,6 +169,9 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
       let totalLoaded = initialData.length
       setLoadedCount(totalLoaded)
 
+      // Accumulate new results to persist in bulk after each batch
+      const newCacheEntries: SerializedCache = {}
+
       try {
         // Fetch uncached entries in controlled concurrency batches
         const results: ModelTaskData[] = [...initialData]
@@ -143,25 +187,26 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                 if (cancelledRef.current) return null
                 const submission = transformSubmission(response.submission)
 
-                const taskMap = new Map<string, { score: number; maxScore: number; taskName: string; category: string }>()
+                const taskRecord: Record<string, TaskInfo> = {}
                 for (const task of submission.task_results) {
-                  taskMap.set(task.task_id, {
+                  taskRecord[task.task_id] = {
                     score: task.score,
                     maxScore: task.max_score,
                     taskName: task.task_name,
                     category: task.category,
-                  })
+                  }
                 }
 
                 const result: ModelTaskData = {
                   model: entry.model,
                   provider: entry.provider,
                   percentage: entry.percentage,
-                  tasks: taskMap,
+                  tasks: taskRecord,
                 }
 
-                // Store in module-level cache
-                currentCache.set(entry.submission_id, result)
+                // Store in module-level cache and accumulate for sessionStorage persist
+                currentCache[entry.submission_id] = result
+                newCacheEntries[entry.submission_id] = result
                 return result
               } catch {
                 return null
@@ -173,6 +218,10 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
 
           const validBatchResults = batchResults.filter((r): r is ModelTaskData => r !== null)
           totalLoaded += validBatchResults.length
+
+          // Persist batch to sessionStorage
+          Object.assign(currentCache, newCacheEntries)
+          saveCacheToSession(currentCache)
 
           // Functional update to avoid stale closure
           setModelData(prev => {
@@ -203,7 +252,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
   const allTasks = useMemo(() => {
     const taskMap = new Map<string, { taskName: string; category: string }>()
     for (const model of modelData) {
-      for (const [taskId, task] of model.tasks) {
+      for (const [taskId, task] of Object.entries(model.tasks)) {
         if (!taskMap.has(taskId)) {
           taskMap.set(taskId, { taskName: task.taskName, category: task.category })
         }
@@ -246,7 +295,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
       let sumScore = 0
       let sumMax = 0
       for (const task of filteredTasks) {
-        const td = m.tasks.get(task.taskId)
+        const td = m.tasks[task.taskId]
         if (td) {
           sumScore += td.score
           sumMax += td.maxScore
@@ -565,7 +614,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                       </div>
                     </td>
                     {filteredTasks.map((task) => {
-                      const taskData = model.tasks.get(task.taskId)
+                      const taskData = model.tasks[task.taskId]
                       const ratio = taskData ? taskData.score / taskData.maxScore : 0
                       const hasData = !!taskData
                       const isHovered = hoveredCell?.model === model.model && hoveredCell?.taskId === task.taskId
