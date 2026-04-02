@@ -169,9 +169,6 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
       let totalLoaded = initialData.length
       setLoadedCount(totalLoaded)
 
-      // Accumulate new results to persist in bulk after each batch
-      const newCacheEntries: SerializedCache = {}
-
       try {
         // Fetch uncached entries in controlled concurrency batches
         const results: ModelTaskData[] = [...initialData]
@@ -204,9 +201,8 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                   tasks: taskRecord,
                 }
 
-                // Store in module-level cache and accumulate for sessionStorage persist
+                // Store in module-level cache
                 currentCache[entry.submission_id] = result
-                newCacheEntries[entry.submission_id] = result
                 return result
               } catch {
                 return null
@@ -219,9 +215,10 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
           const validBatchResults = batchResults.filter((r): r is ModelTaskData => r !== null)
           totalLoaded += validBatchResults.length
 
-          // Persist batch to sessionStorage
-          Object.assign(currentCache, newCacheEntries)
-          saveCacheToSession(currentCache)
+          // Only persist to sessionStorage if this batch yielded new entries
+          if (validBatchResults.length > 0) {
+            saveCacheToSession(currentCache)
+          }
 
           // Functional update to avoid stale closure
           setModelData(prev => {
