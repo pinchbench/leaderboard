@@ -81,6 +81,16 @@ export async function fetchStats(): Promise<StatsResponse> {
   return fetchJson<StatsResponse>("/stats");
 }
 
+export async function fetchModelSubmissions(
+  model: string,
+  options?: OfficialFilterOptions,
+): Promise<ModelSubmissionsResponse> {
+  const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
+  params.set("model", model);
+  return fetchJson<ModelSubmissionsResponse>(`/model-submissions?${params.toString()}`);
+}
+
 /**
  * Fetch a single submission detail (client-side, no ISR caching).
  * Used by chart components that need task-level data.

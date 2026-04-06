@@ -92,14 +92,19 @@ export function calculateRanks(
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
+  let lastRank = 0;
+  let lastPercentage = NaN;
+
   return sorted.map((entry, index) => {
     if (
-      index > 0 &&
-      Math.abs(entry.percentage - sorted[index - 1].percentage) <= EPSILON
+      lastRank > 0 &&
+      Math.abs(entry.percentage - lastPercentage) <= EPSILON
     ) {
-      return { ...entry, rank: sorted[index - 1].rank };
+      return { ...entry, rank: lastRank };
     }
-    return { ...entry, rank: index + 1 };
+    lastRank = index + 1;
+    lastPercentage = entry.percentage;
+    return { ...entry, rank: lastRank };
   });
 }
 
@@ -126,6 +131,9 @@ export function transformTaskResult(apiTask: ApiTaskResult): TaskResult {
 
 export function transformSubmission(
   apiSubmission: ApiSubmissionDetail,
+  rank?: number,
+  percentile?: number,
+  totalSubmissions?: number,
 ): Submission {
   const systemRaw = apiSubmission.metadata?.system;
   const system = systemRaw
@@ -159,5 +167,7 @@ export function transformSubmission(
     },
     usage_summary: apiSubmission.usage_summary,
     official: apiSubmission.official,
+    rank: rank ?? apiSubmission.rank ?? undefined,
+    percentile: percentile ?? apiSubmission.percentile ?? undefined,
   };
 }

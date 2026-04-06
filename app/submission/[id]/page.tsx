@@ -10,6 +10,8 @@ import { ScoreGauge } from '@/components/score-gauge'
 import { TaskBreakdown } from '@/components/task-breakdown'
 import { HardwareInfo } from '@/components/hardware-info'
 import { TryKiloClawButton } from '@/components/try-kiloclaw-button'
+import { BadgeEmbedCard } from '@/components/badge-embed-card'
+import { getModelBadgeStatuses } from '@/lib/badges'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
@@ -28,7 +30,12 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
 
   try {
     const response = await fetchSubmission(id)
-    submission = transformSubmission(response.submission)
+    submission = transformSubmission(
+      response.submission,
+      response.rank,
+      response.percentile,
+      response.total_submissions,
+    )
   } catch (error) {
     return (
       <div className="min-h-screen bg-background">
@@ -81,6 +88,12 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
     },
     {} as Record<string, { total: number; max: number; count: number }>
   )
+
+  const badgeStatuses = await getModelBadgeStatuses(submission.model, {
+    officialOnly,
+    version: submission.benchmark_version !== 'unknown' ? submission.benchmark_version : undefined,
+  })
+  const earnedBadges = badgeStatuses.filter((badge) => badge.awarded)
 
   return (
     <div className="min-h-screen bg-background">
@@ -140,6 +153,28 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                     🎖️ Official
                   </Badge>
                 )}
+                {submission.rank && (
+                  <Badge
+                    variant="outline"
+                    className={`text-sm ${
+                      submission.rank <= 3
+                        ? "border-yellow-500 text-yellow-500"
+                        : submission.rank <= 10
+                        ? "border-blue-500 text-blue-500"
+                        : "border-muted-foreground text-muted-foreground"
+                    }`}
+                    aria-label={`Rank ${submission.rank} out of all submissions`}
+                  >
+                    {submission.rank <= 3
+                      ? submission.rank === 1
+                        ? "🥇"
+                        : submission.rank === 2
+                        ? "🥈"
+                        : "🥉"
+                      : "🏅"}{" "}
+                    #{submission.rank}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-4 flex-wrap">
                 <p className="text-sm text-muted-foreground">
@@ -154,6 +189,22 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                   officialOnly={officialOnly}
                 />
               </div>
+              {earnedBadges.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {earnedBadges.map((badge) => (
+                    <a
+                      key={`${badge.metric}-${badge.period}`}
+                      href={badge.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Badge variant="outline" className="text-xs border-primary/40 text-primary">
+                        🏅 {badge.shortLabel}
+                      </Badge>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <TryKiloClawButton model={submission.model} />
@@ -186,6 +237,10 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                 {submission.submission_id}
               </code>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <BadgeEmbedCard model={submission.model} badges={badgeStatuses} />
           </div>
 
 

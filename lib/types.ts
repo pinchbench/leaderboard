@@ -50,6 +50,8 @@ export interface Submission {
   };
   usage_summary?: UsageSummary;
   official?: boolean;
+  rank?: number;
+  percentile?: number;
 }
 
 export interface UsageSummary {
@@ -146,6 +148,9 @@ export interface UserSubmissionsResponse {
 
 export interface SubmissionDetailResponse {
   submission: ApiSubmissionDetail;
+  rank?: number;
+  percentile?: number;
+  total_submissions?: number;
 }
 
 export interface ApiTaskResult {
@@ -202,6 +207,8 @@ export interface ApiModelSubmissionItem {
   max_score: number;
   timestamp: string;
   is_best: boolean;
+  total_cost_usd?: number | null;
+  total_execution_time_seconds?: number | null;
   official?: boolean;
 }
 

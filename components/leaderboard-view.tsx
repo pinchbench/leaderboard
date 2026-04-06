@@ -16,6 +16,12 @@ type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 type GraphSubTab = 'scatter' | 'heatmap' | 'distribution' | 'radar'
 
+function parseCategoriesParam(raw: string | null): string[] {
+    if (!raw?.trim()) return []
+    const parts = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    return [...new Set(parts)]
+}
+
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
@@ -45,6 +51,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
+    const initialModelSearch = searchParams.get('model') || ''
 
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
@@ -54,6 +61,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
     // Hidden providers — managed here so Header counts stay in sync with graph legend toggles
     const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
+    const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -97,6 +105,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ graph: t === 'scatter' ? null : t })
     }, [updateUrl])
 
+    const handleModelSearchChange = useCallback((s: string) => {
+        setModelSearchState(s)
+        updateUrl({ model: s || null })
+    }, [updateUrl])
+
     const setOfficialOnly = useCallback((v: boolean) => {
         setOfficialOnlyState(v)
         updateUrl({ official: v ? null : 'false' })
@@ -111,6 +124,24 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
             return true
         })
     }, [entries, providerFilter, openWeightsOnly])
+    const selectedCategories = useMemo(
+        () => parseCategoriesParam(searchParams.get('categories')),
+        [searchParams]
+    )
+
+    const setSelectedCategories = useCallback((cats: string[]) => {
+        const normalized = [...new Set(cats.map((c) => c.trim().toLowerCase()).filter(Boolean))]
+        updateUrl({ categories: normalized.length ? normalized.join(',') : null })
+    }, [updateUrl])
+
+    const filteredEntries = useMemo(() => {
+        return entries.filter(entry => {
+            if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
+            if (openWeightsOnly && entry.weights !== 'Open') return false
+            if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
+            return true
+        })
+    }, [entries, providerFilter, openWeightsOnly, modelSearch])
 
     // Scatter-visible entries: business filters + legend-hidden providers.
     // Used only for scatter graph: chart dots and header totalRuns.
@@ -148,11 +179,14 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const totalRuns = useMemo(() => {
         return headerEntries.reduce((sum, entry) => sum + (entry.submission_count ?? 0), 0)
     }, [headerEntries])
+    const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
 
     return (
         <div className="min-h-screen bg-background">
             <LeaderboardHeader
                 filteredEntryCount={headerEntries.length}
+                entries={entries}
+                filteredEntryCount={filteredEntries.length}
                 totalRuns={totalRuns}
                 versions={versions}
                 currentVersion={currentVersion}
@@ -168,6 +202,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
+                onModelSearchChange={handleModelSearchChange}
+                modelSearchValue={modelSearch}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
@@ -204,6 +240,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         )}
                         {graphSubTab === 'heatmap' && (
                             <TaskHeatmap entries={businessFilteredEntries} scoreMode={scoreMode} />
+                            <TaskHeatmap
+                                entries={filteredEntries}
+                                selectedCategories={selectedCategories}
+                                onCategoriesChange={setSelectedCategories}
+                            />
                         )}
                         {graphSubTab === 'distribution' && (
                             <ScoreDistribution entries={businessFilteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
