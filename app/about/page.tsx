@@ -234,54 +234,80 @@ export default function AboutPage() {
                         Benchmark Versioning
                     </h2>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Each benchmark version is identified by the git commit hash of the{' '}
-                        <a
-                            href="https://github.com/pinchbench/skill"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                        >
-                            pinchbench/skill
-                        </a>{' '}
-                        repository at the time the run was executed. This means any change to the repo &mdash; no matter
-                        how small &mdash; produces a new version hash, giving every result a precise, auditable link back
-                        to the exact task definitions and grading logic that were used.
+                        Benchmark versions use semantic versioning (SemVer) to make it easy to understand when
+                        changes affect results. Versions are determined in the following order:
                     </p>
+                    <div className="space-y-4 mb-6">
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">1. GitHub Releases</h3>
+                            <p className="text-sm text-muted-foreground">
+                                When running the benchmark after cloning the repository, the version comes from the
+                                most recent{' '}
+                                <a
+                                    href="https://github.com/pinchbench/skill/releases"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    GitHub release tag
+                                </a>{' '}
+                                (e.g., v1.0.0, v1.1.0). Each release marks a meaningful change to the benchmark.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">2. BENCHMARK_VERSION File</h3>
+                            <p className="text-sm text-muted-foreground">
+                                For development or CI environments, the version can be specified in a{' '}
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded">BENCHMARK_VERSION</code> file
+                                in the project root. This allows pinning to specific versions without git tags.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">3. setuptools-scm (pip install)</h3>
+                            <p className="text-sm text-muted-foreground">
+                                When installed via pip, the version is automatically determined by{' '}
+                                <a
+                                    href="https://setuptools-scm.readthedocs.io/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    setuptools-scm
+                                </a>{' '}
+                                from the git tag associated with the installed commit.
+                            </p>
+                        </div>
+                    </div>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Not every new commit changes the substance of the benchmark, though. Commits that only
-                        touch documentation, CI configuration, tooling, or other files unrelated to task prompts
-                        and scoring logic do not affect results. We mark all versions that share the same underlying
-                        task definitions and grading criteria as{' '}
-                        <span className="text-green-500 font-medium">current</span>, so scores across those versions
-                        are directly comparable. When a commit does alter a task prompt, grading rubric, or scoring
-                        function, older versions lose their &ldquo;current&rdquo; status and results from different
-                        generations of the benchmark are kept separate.
+                        The{' '}
+                        <span className="text-green-500 font-medium">Current</span> badge marks the most recent
+                        version that has official benchmark results. Scores across versions with the{' '}
+                        <span className="text-green-500 font-medium">Current</span> badge are directly comparable,
+                        as they use the same task definitions and grading criteria.
                     </p>
                     <div className="p-4 rounded-lg bg-card border border-border">
-                        <h3 className="font-semibold text-foreground mb-2">In practice</h3>
+                        <h3 className="font-semibold text-foreground mb-2">Versioning scheme</h3>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Same business logic</strong> &mdash; If only a
-                                    README, helper script, or config file changed, the new version is still marked
-                                    current and its scores sit alongside previous current versions on the leaderboard.
+                                    <strong className="text-foreground">Major version</strong> &mdash; Breaking
+                                    changes to task structure, grading logic, or scoring rubrics.
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Changed scoring or tasks</strong> &mdash; If a
-                                    task prompt, grading function, or rubric was modified, a new generation begins and
-                                    only versions with the updated logic are considered current.
+                                    <strong className="text-foreground">Minor version</strong> &mdash; New tasks
+                                    added or significant improvements to existing ones.
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Historical results</strong> &mdash; Older,
-                                    non-current versions and their results are never deleted. You can always select a
-                                    specific version from the version picker to view historical leaderboards.
+                                    <strong className="text-foreground">Historical results</strong> &mdash; Older
+                                    versions and their results are never deleted. Select a specific version from
+                                    the version picker to view historical leaderboards.
                                 </span>
                             </li>
                         </ul>
