@@ -280,10 +280,10 @@ export default function AboutPage() {
                     </div>
                     <p className="text-muted-foreground leading-relaxed mb-4">
                         The{' '}
-                        <span className="text-green-500 font-medium">Current</span> badge marks the most recent
-                        version that has official benchmark results. Scores across versions with the{' '}
-                        <span className="text-green-500 font-medium">Current</span> badge are directly comparable,
-                        as they use the same task definitions and grading criteria.
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-500/20 text-green-500 text-xs font-medium">Current</span>{' '}
+                        badge marks the most recent version that has official benchmark results. Scores across versions
+                        with the Current badge are directly comparable, as they use the same task definitions and grading
+                        criteria. Legacy versions created before semantic versioning are displayed as 1.0.0-beta.N.
                     </p>
                     <div className="p-4 rounded-lg bg-card border border-border">
                         <h3 className="font-semibold text-foreground mb-2">Versioning scheme</h3>
