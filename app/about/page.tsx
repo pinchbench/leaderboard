@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, GitCommit } from 'lucide-react'
+import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, Tag } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -230,11 +230,20 @@ export default function AboutPage() {
                 {/* Benchmark Versioning */}
                 <section>
                     <h2 className="text-2xl font-semibold text-foreground mb-4 flex items-center gap-2">
-                        <GitCommit className="h-6 w-6 text-primary" />
+                        <Tag className="h-6 w-6 text-primary" />
                         Benchmark Versioning
                     </h2>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Each benchmark version is identified by the git commit hash of the{' '}
+                        Each benchmark version is identified by a semantic version number (e.g., v1.0.0) that corresponds to a{' '}
+                        <a
+                            href="https://github.com/pinchbench/skill/releases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                        >
+                            GitHub release
+                        </a>{' '}
+                        of the{' '}
                         <a
                             href="https://github.com/pinchbench/skill"
                             target="_blank"
@@ -243,17 +252,38 @@ export default function AboutPage() {
                         >
                             pinchbench/skill
                         </a>{' '}
-                        repository at the time the run was executed. This means any change to the repo &mdash; no matter
-                        how small &mdash; produces a new version hash, giving every result a precise, auditable link back
-                        to the exact task definitions and grading logic that were used.
+                        repository. Semantic versioning allows users to easily understand the scope of changes between versions.
                     </p>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Not every new commit changes the substance of the benchmark, though. Commits that only
+                        Versions are determined through the following fallback chain:
+                    </p>
+                    <div className="space-y-4 mb-4">
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">1. GitHub Releases</h3>
+                            <p className="text-sm text-muted-foreground">
+                                When running as a GitHub Action, the version comes from the release tag (e.g., v1.2.3).
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">2. BENCHMARK_VERSION File</h3>
+                            <p className="text-sm text-muted-foreground">
+                                When running locally or in CI without a release, the version is read from a BENCHMARK_VERSION file in the repository root. This file is generated during the release process.
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-card border border-border">
+                            <h3 className="font-semibold text-foreground mb-1">3. setuptools-scm (pip installs)</h3>
+                            <p className="text-sm text-muted-foreground">
+                                When installed via pip, the version is determined by setuptools-scm based on the git tag of the installed package.
+                            </p>
+                        </div>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                        Not every new release changes the substance of the benchmark, though. Releases that only
                         touch documentation, CI configuration, tooling, or other files unrelated to task prompts
                         and scoring logic do not affect results. We mark all versions that share the same underlying
                         task definitions and grading criteria as{' '}
                         <span className="text-green-500 font-medium">current</span>, so scores across those versions
-                        are directly comparable. When a commit does alter a task prompt, grading rubric, or scoring
+                        are directly comparable. When a release does alter a task prompt, grading rubric, or scoring
                         function, older versions lose their &ldquo;current&rdquo; status and results from different
                         generations of the benchmark are kept separate.
                     </p>
