@@ -227,6 +227,7 @@ export interface StatsResponse {
 
 export interface BenchmarkVersion {
   id: string;
+  label: string | null;
   created_at: string;
   is_current: boolean;
   submission_count: number;
