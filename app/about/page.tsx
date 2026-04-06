@@ -234,7 +234,17 @@ export default function AboutPage() {
                         Benchmark Versioning
                     </h2>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Each benchmark version is identified by the git commit hash of the{' '}
+                        Each benchmark version follows a semantic versioning scheme (e.g., 1.0.0, 1.1.0, 2.0.0) based on
+                        the{' '}
+                        <a
+                            href="https://github.com/pinchbench/skill/releases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                        >
+                            GitHub releases
+                        </a>{' '}
+                        of the{' '}
                         <a
                             href="https://github.com/pinchbench/skill"
                             target="_blank"
@@ -243,45 +253,45 @@ export default function AboutPage() {
                         >
                             pinchbench/skill
                         </a>{' '}
-                        repository at the time the run was executed. This means any change to the repo &mdash; no matter
-                        how small &mdash; produces a new version hash, giving every result a precise, auditable link back
-                        to the exact task definitions and grading logic that were used.
+                        repository. When a release is published, the benchmark tasks and scoring logic are automatically
+                        recorded, ensuring every result is linked to a specific, meaningful version.
                     </p>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                        Not every new commit changes the substance of the benchmark, though. Commits that only
-                        touch documentation, CI configuration, tooling, or other files unrelated to task prompts
-                        and scoring logic do not affect results. We mark all versions that share the same underlying
-                        task definitions and grading criteria as{' '}
-                        <span className="text-green-500 font-medium">current</span>, so scores across those versions
-                        are directly comparable. When a commit does alter a task prompt, grading rubric, or scoring
-                        function, older versions lose their &ldquo;current&rdquo; status and results from different
-                        generations of the benchmark are kept separate.
+                        Versions with semantic tags represent stable releases where task definitions and grading criteria
+                        are finalized. Results from different versions are kept separate since changes to the benchmark
+                        may affect scores. The latest version is marked with a{' '}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-500/20 text-green-500 text-xs font-medium">
+                            Current
+                        </span>{' '}
+                        badge, indicating it contains the most recent benchmark definitions.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                        Legacy versions from before semantic versioning was introduced are displayed with a beta suffix
+                        (e.g., 1.0.0-beta.42) using the git commit hash for identification. These older versions are
+                        preserved for historical reference.
                     </p>
                     <div className="p-4 rounded-lg bg-card border border-border">
-                        <h3 className="font-semibold text-foreground mb-2">In practice</h3>
+                        <h3 className="font-semibold text-foreground mb-2">Version types</h3>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Same business logic</strong> &mdash; If only a
-                                    README, helper script, or config file changed, the new version is still marked
-                                    current and its scores sit alongside previous current versions on the leaderboard.
+                                    <strong className="text-foreground">Semantic versions</strong> &mdash; e.g., 1.0.0,
+                                    1.1.0, 2.0.0. Stable releases from GitHub with clear versioning semantics.
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Changed scoring or tasks</strong> &mdash; If a
-                                    task prompt, grading function, or rubric was modified, a new generation begins and
-                                    only versions with the updated logic are considered current.
+                                    <strong className="text-foreground">Legacy versions</strong> &mdash; e.g.,
+                                    1.0.0-beta.42. Pre-semver versions identified by git commit hashes.
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-primary mt-0.5">•</span>
                                 <span>
-                                    <strong className="text-foreground">Historical results</strong> &mdash; Older,
-                                    non-current versions and their results are never deleted. You can always select a
-                                    specific version from the version picker to view historical leaderboards.
+                                    <strong className="text-foreground">Current badge</strong> &mdash; The latest
+                                    version is marked current. Historical versions remain accessible for comparison.
                                 </span>
                             </li>
                         </ul>
