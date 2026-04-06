@@ -41,7 +41,7 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
 
     const currentVersions = versions.filter((v) => v.is_current)
     const selectedLabel = selectedVersion
-        ? selectedVersion.id.slice(0, 8)
+        ? selectedVersion.label
         : 'Latest'
 
     return (
@@ -105,9 +105,9 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
                                 )}
                             </div>
 
-                            {/* Version hash */}
+                            {/* Version label */}
                             <span className="text-sm font-mono font-medium w-[4.5rem] shrink-0">
-                                {v.id.slice(0, 8)}
+                                {v.label}
                             </span>
 
                             {/* Submission count */}
