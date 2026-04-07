@@ -34,6 +34,7 @@ export async function fetchLeaderboard(
 ): Promise<LeaderboardResponse> {
   const params = new URLSearchParams();
   params.set("official", String(options?.officialOnly ?? true));
+  params.set("limit", "200"); // Fetch all models (API max is 200)
   if (version) params.set("version", version);
   const queryString = params.toString();
   return fetchJson<LeaderboardResponse>(`/leaderboard?${queryString}`);
