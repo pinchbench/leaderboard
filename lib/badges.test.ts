@@ -85,6 +85,76 @@ describe('badge helpers', () => {
     expect(dailySuccess?.url).toContain('/api/badges/success/1d?model=winner')
   })
 
+  test('rankModelsForMetric excludes $0 models from cost ranking', () => {
+    const ranked = rankModelsForMetric(
+      [
+        submission({ model: 'free-model', total_cost_usd: 0 }),
+        submission({ model: 'cheap-model', total_cost_usd: 0.01 }),
+        submission({ model: 'expensive-model', total_cost_usd: 1.5 }),
+      ],
+      'cost',
+    )
+
+    expect(ranked).toHaveLength(2)
+    expect(ranked[0]?.model).toBe('cheap-model')
+    expect(ranked[1]?.model).toBe('expensive-model')
+    // Free model should not appear in cost rankings
+    expect(ranked.find((c) => c.model === 'free-model')).toBeUndefined()
+  })
+
+  test('rankModelsForMetric still includes $0 models in success ranking', () => {
+    const ranked = rankModelsForMetric(
+      [
+        submission({ model: 'free-model', total_cost_usd: 0, score_percentage: 0.95 }),
+        submission({ model: 'paid-model', total_cost_usd: 1.0, score_percentage: 0.9 }),
+      ],
+      'success',
+    )
+
+    expect(ranked).toHaveLength(2)
+    expect(ranked[0]?.model).toBe('free-model')
+  })
+
+  test('rankModelsForMetric excludes $0 models from value ranking', () => {
+    const ranked = rankModelsForMetric(
+      [
+        submission({ model: 'free-model', total_cost_usd: 0, score_percentage: 0.95 }),
+        submission({ model: 'paid-model', total_cost_usd: 0.5, score_percentage: 0.9 }),
+      ],
+      'value',
+    )
+
+    expect(ranked).toHaveLength(1)
+    expect(ranked[0]?.model).toBe('paid-model')
+  })
+
+  test('computeModelBadgeStatuses does not award cost badge to $0 model', () => {
+    const statuses = computeModelBadgeStatuses(
+      [
+        submission({
+          model: 'free-model',
+          total_cost_usd: 0,
+          score_percentage: 0.95,
+          timestamp: new Date(baseTime - 2 * 60 * 60 * 1000).toISOString(),
+        }),
+        submission({
+          model: 'cheap-model',
+          total_cost_usd: 0.01,
+          score_percentage: 0.9,
+          timestamp: new Date(baseTime - 2 * 60 * 60 * 1000).toISOString(),
+        }),
+      ],
+      'free-model',
+      { now: baseTime },
+    )
+
+    const dailyCost = statuses.find((s) => s.period === '1d' && s.metric === 'cost')
+    expect(dailyCost?.awarded).toBe(false)
+    expect(dailyCost?.rank).toBeNull()
+    // The winner should be the cheap paid model
+    expect(dailyCost?.winnerModel).toBe('cheap-model')
+  })
+
   test('period aliases and normalization', () => {
     const { isBadgePeriod, normalizePeriod } = require('./badges')
     expect(isBadgePeriod('1d')).toBe(true)

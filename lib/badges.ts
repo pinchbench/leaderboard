@@ -157,6 +157,7 @@ export function compareBadgeCandidates(
 
 function hasMetricValue(metric: BadgeMetric, candidate: BadgeCandidate): boolean {
   if (!Number.isFinite(candidate.timestampMs)) return false;
+  if (metric === "cost") return candidate.costUsd > EPSILON;
   if (metric === "value") return candidate.valueScore != null;
   return true;
 }
