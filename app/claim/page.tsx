@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { TopBanner } from '@/components/top-banner'
 
 export const metadata: Metadata = {
   title: 'Claim Your PinchBench Submissions',
@@ -20,6 +21,7 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <TopBanner />
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { XCircle } from 'lucide-react'
+import { TopBanner } from '@/components/top-banner'
 
 export const metadata: Metadata = {
   title: 'Verification Failed — PinchBench',
@@ -42,6 +43,7 @@ export default async function ClaimErrorPage({ searchParams }: ClaimErrorPagePro
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <TopBanner />
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">

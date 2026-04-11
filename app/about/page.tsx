@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, GitCommit } from 'lucide-react'
 import Link from 'next/link'
+import { TopBanner } from '@/components/top-banner'
 
 export const metadata: Metadata = {
     title: 'About PinchBench - Best Models for OpenClaw FAQ',
@@ -48,12 +49,12 @@ const faqJsonLd = {
 
 export default function AboutPage() {
     return (
-        <>
+        <div className="min-h-screen bg-background flex flex-col">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
             />
-            <main className="min-h-screen bg-background">
+            <TopBanner />
             {/* Header */}
             <header className="border-b border-border bg-card/50">
                 <div className="max-w-4xl mx-auto px-6 py-8">

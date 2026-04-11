@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface TaskHeatmapProps {
   entries: LeaderboardEntry[]
+  scoreMode: 'best' | 'average'
   selectedCategories: string[]
   onCategoriesChange: (categories: string[]) => void
 }
@@ -38,7 +39,7 @@ function getScoreTextColor(ratio: number): string {
   return 'hsl(0, 70%, 75%)'
 }
 
-export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }: TaskHeatmapProps) {
+export function TaskHeatmap({ entries, scoreMode, selectedCategories, onCategoriesChange }: TaskHeatmapProps) {
   const [modelData, setModelData] = useState<ModelTaskData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

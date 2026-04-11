@@ -50,6 +50,7 @@ export const mockSubmissions: Record<string, Submission> = {
     provider: "anthropic",
     timestamp: "2026-02-10T15:30:00Z",
     openclaw_version: "2.1.0",
+    benchmark_version: "v1.0.0",
     total_score: 9.2,
     max_score: 10.0,
     metadata: {
