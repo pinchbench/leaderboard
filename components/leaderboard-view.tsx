@@ -3,14 +3,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
-import { PROVIDER_COLORS } from '@/lib/types'
+
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
 import { TaskHeatmap } from '@/components/task-heatmap'
 import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
+import { FilterSidebar } from '@/components/filter-sidebar'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -132,91 +135,102 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         })
     }, [entries, providerFilter, openWeightsOnly, modelSearch])
 
-    const providerColor = providerFilter
-        ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
-        : undefined
-
-    const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
+    const totalRuns = useMemo(() => {
+        return filteredEntries.reduce((sum, entry) => sum + (entry.submission_count || 1), 0)
+    }, [filteredEntries])
 
     return (
-        <div className="min-h-screen bg-background">
-            <LeaderboardHeader
+        <SidebarProvider defaultOpen={true}>
+            <FilterSidebar
                 entries={entries}
-                filteredEntryCount={filteredEntries.length}
-                totalRuns={totalRuns}
                 versions={versions}
                 currentVersion={currentVersion}
-                lastUpdated={lastUpdated}
-                providerFilter={providerFilter}
-                providerColor={providerColor}
-                view={view}
-                scoreMode={scoreMode}
                 officialOnly={officialOnlyState}
                 openWeightsOnly={openWeightsOnly}
-                onViewChange={setView}
-                onScoreModeChange={setScoreMode}
+                providerFilter={providerFilter}
+                lastUpdated={lastUpdated}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
-                onClearProviderFilter={() => setProviderFilter(null)}
-                onModelSearchChange={handleModelSearchChange}
-                modelSearchValue={modelSearch}
+                onProviderFilterChange={setProviderFilter}
             />
+            <SidebarInset>
+                <LeaderboardHeader
+                    entries={entries}
+                    filteredEntryCount={filteredEntries.length}
+                    totalRuns={totalRuns}
+                    currentVersion={currentVersion}
+                    officialOnly={officialOnlyState}
+                    view={view}
+                    scoreMode={scoreMode}
+                    modelSearchValue={modelSearch}
+                    onViewChange={setView}
+                    onScoreModeChange={setScoreMode}
+                    onModelSearchChange={handleModelSearchChange}
+                />
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
-                {view === 'graphs' ? (
-                    <div>
-                        {/* Graph sub-tabs */}
-                        <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
-                            {([
-                                ['scatter', 'Scatter Plots'],
-                                ['heatmap', 'Task Heatmap'],
-                                ['distribution', 'Score Distribution'],
-                                ['radar', 'Model Comparison'],
-                            ] as const).map(([tab, label]) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setGraphSubTab(tab)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
+                <section className="px-4 py-6 md:px-6 md:py-8">
+                    {!officialOnlyState && (
+                        <div className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                            Showing official + unofficial results
                         </div>
+                    )}
 
-                        {graphSubTab === 'scatter' && (
-                            <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
-                        )}
-                        {graphSubTab === 'heatmap' && (
-                            <TaskHeatmap
-                                entries={filteredEntries}
-                                selectedCategories={selectedCategories}
-                                onCategoriesChange={setSelectedCategories}
-                            />
-                        )}
-                        {graphSubTab === 'distribution' && (
-                            <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
-                        )}
-                        {graphSubTab === 'radar' && (
-                            <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
-                        )}
+                    {view === 'graphs' ? (
+                        <div>
+                            {/* Graph sub-tabs */}
+                            <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
+                                {([
+                                    ['scatter', 'Scatter Plots'],
+                                    ['heatmap', 'Task Heatmap'],
+                                    ['distribution', 'Score Distribution'],
+                                    ['radar', 'Model Comparison'],
+                                ] as const).map(([tab, label]) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setGraphSubTab(tab)}
+                                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
 
-                        <KiloClawAdCard />
-                    </div>
-                ) : (
-                    <SimpleLeaderboard
-                        entries={filteredEntries}
-                        view={view as 'success' | 'speed' | 'cost' | 'value'}
-                        scoreMode={scoreMode}
-                        benchmarkVersion={currentVersion}
-                        officialOnly={officialOnlyState}
-                        onScoreModeChange={setScoreMode}
-                        onProviderClick={setProviderFilter}
-                    />
-                )}
-            </main>
-        </div>
+                            {graphSubTab === 'scatter' && (
+                                <ScatterGraphs entries={filteredEntries} scoreMode={scoreMode} />
+                            )}
+                            {graphSubTab === 'heatmap' && (
+                                <TaskHeatmap
+                                    entries={filteredEntries}
+                                    scoreMode={scoreMode}
+                                    selectedCategories={selectedCategories}
+                                    onCategoriesChange={setSelectedCategories}
+                                />
+                            )}
+                            {graphSubTab === 'distribution' && (
+                                <ScoreDistribution entries={filteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
+                            )}
+                            {graphSubTab === 'radar' && (
+                                <ModelRadar entries={filteredEntries} scoreMode={scoreMode} />
+                            )}
+
+                            <KiloClawAdCard />
+                        </div>
+                    ) : (
+                        <SimpleLeaderboard
+                            entries={filteredEntries}
+                            view={view as 'success' | 'speed' | 'cost' | 'value'}
+                            scoreMode={scoreMode}
+                            benchmarkVersion={currentVersion}
+                            officialOnly={officialOnlyState}
+                            onScoreModeChange={setScoreMode}
+                            onProviderClick={setProviderFilter}
+                        />
+                    )}
+                </section>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }
