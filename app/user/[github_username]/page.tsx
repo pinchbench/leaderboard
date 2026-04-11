@@ -8,6 +8,7 @@ import { fetchUserSubmissions } from '@/lib/api'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { normalizeProvider } from '@/lib/transforms'
 import { formatDistanceToNow } from 'date-fns'
+import { TopBanner } from '@/components/top-banner'
 
 interface UserPageProps {
   params: Promise<{ github_username: string }>
@@ -51,6 +52,7 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
 
   return (
     <div className="min-h-screen bg-background">
+      <TopBanner />
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">

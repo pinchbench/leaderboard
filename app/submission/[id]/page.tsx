@@ -16,6 +16,7 @@ import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
+import { TopBanner } from '@/components/top-banner'
 
 interface SubmissionPageProps {
   params: Promise<{ id: string }>
@@ -39,6 +40,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
   } catch (error) {
     return (
       <div className="min-h-screen bg-background">
+        <TopBanner />
         <header className="border-b border-border">
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex items-center justify-between">
@@ -97,6 +99,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
 
   return (
     <div className="min-h-screen bg-background">
+      <TopBanner />
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-6">

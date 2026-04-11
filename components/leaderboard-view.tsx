@@ -13,6 +13,7 @@ import { LeaderboardHeader } from '@/components/leaderboard-header'
 import { FilterSidebar } from '@/components/filter-sidebar'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { TopBanner } from '@/components/top-banner'
 
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
@@ -49,7 +50,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialScoreMode = VALID_SCORE_MODES.includes(searchParams.get('score') as ScoreMode)
         ? (searchParams.get('score') as ScoreMode)
         : 'best'
-    const initialProvider = searchParams.get('provider') || null
+    const initialProviders = searchParams.get('provider')?.split(',').filter(Boolean).map(p => p.toLowerCase()) || []
     const initialOpenWeights = searchParams.get('weights') === 'open'
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
@@ -59,7 +60,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
-    const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
+    const [providerFilters, setProviderFiltersState] = useState<string[]>(initialProviders)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
     const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
@@ -91,9 +92,31 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ score: m })
     }, [updateUrl])
 
-    const setProviderFilter = useCallback((p: string | null) => {
-        setProviderFilterState(p)
-        updateUrl({ provider: p })
+    const toggleProviderFilter = useCallback((p: string) => {
+        const normalizedP = p.toLowerCase()
+        const isCurrentlyActive = providerFilters.includes(normalizedP)
+        const next = isCurrentlyActive 
+            ? providerFilters.filter(item => item !== normalizedP)
+            : [...providerFilters, normalizedP]
+        
+        setProviderFiltersState(next)
+        updateUrl({ provider: next.length ? next.join(',') : null })
+    }, [providerFilters, updateUrl])
+
+    const clearProviderFilters = useCallback(() => {
+        setProviderFiltersState([])
+        updateUrl({ provider: null })
+    }, [updateUrl])
+
+    const clearAllFilters = useCallback(() => {
+        setOfficialOnlyState(true)
+        setOpenWeightsOnlyState(false)
+        setProviderFiltersState([])
+        updateUrl({
+            official: null,
+            weights: null,
+            provider: null
+        })
     }, [updateUrl])
 
     const setOpenWeightsOnly = useCallback((v: boolean) => {
@@ -128,12 +151,12 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
     const filteredEntries = useMemo(() => {
         return entries.filter(entry => {
-            if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
+            if (providerFilters.length > 0 && !providerFilters.some(p => p.toLowerCase() === entry.provider.toLowerCase())) return false
             if (openWeightsOnly && entry.weights !== 'Open') return false
             if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
             return true
         })
-    }, [entries, providerFilter, openWeightsOnly, modelSearch])
+    }, [entries, providerFilters, openWeightsOnly, modelSearch])
 
     const totalRuns = useMemo(() => {
         return filteredEntries.reduce((sum, entry) => sum + (entry.submission_count || 1), 0)
@@ -147,13 +170,16 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 currentVersion={currentVersion}
                 officialOnly={officialOnlyState}
                 openWeightsOnly={openWeightsOnly}
-                providerFilter={providerFilter}
+                providerFilters={providerFilters}
                 lastUpdated={lastUpdated}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
-                onProviderFilterChange={setProviderFilter}
+                onProviderToggle={toggleProviderFilter}
+                onClearProviders={clearProviderFilters}
+                onClearAll={clearAllFilters}
             />
             <SidebarInset>
+                <TopBanner />
                 <LeaderboardHeader
                     entries={entries}
                     filteredEntryCount={filteredEntries.length}
@@ -226,7 +252,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             benchmarkVersion={currentVersion}
                             officialOnly={officialOnlyState}
                             onScoreModeChange={setScoreMode}
-                            onProviderClick={setProviderFilter}
+                            onProviderClick={toggleProviderFilter}
                         />
                     )}
                 </section>

@@ -23,11 +23,13 @@ interface FilterSidebarProps {
   currentVersion: string | null
   officialOnly: boolean
   openWeightsOnly: boolean
-  providerFilter: string | null
+  providerFilters: string[]
   lastUpdated: string
   onOfficialOnlyChange: (officialOnly: boolean) => void
   onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
-  onProviderFilterChange: (provider: string | null) => void
+  onProviderToggle: (provider: string) => void
+  onClearProviders: () => void
+  onClearAll: () => void
 }
 
 function CollapsibleGroup({
@@ -65,11 +67,13 @@ export function FilterSidebar({
   currentVersion,
   officialOnly,
   openWeightsOnly,
-  providerFilter,
+  providerFilters,
   lastUpdated,
   onOfficialOnlyChange,
   onOpenWeightsOnlyChange,
-  onProviderFilterChange,
+  onProviderToggle,
+  onClearProviders,
+  onClearAll,
 }: FilterSidebarProps) {
   const [providerSearch, setProviderSearch] = useState('')
 
@@ -95,15 +99,9 @@ export function FilterSidebar({
     let count = 0
     if (!officialOnly) count++
     if (openWeightsOnly) count++
-    if (providerFilter) count++
+    if (providerFilters.length > 0) count += providerFilters.length
     return count
-  }, [officialOnly, openWeightsOnly, providerFilter])
-
-  const clearAllFilters = () => {
-    onOfficialOnlyChange(true)
-    onOpenWeightsOnlyChange(false)
-    onProviderFilterChange(null)
-  }
+  }, [officialOnly, openWeightsOnly, providerFilters])
 
   return (
     <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
@@ -120,7 +118,7 @@ export function FilterSidebar({
           </div>
           {activeFilterCount > 0 && (
             <button
-              onClick={clearAllFilters}
+              onClick={onClearAll}
               className="text-[11px] text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors flex items-center gap-1"
             >
               <X className="h-3 w-3" />
@@ -186,29 +184,37 @@ export function FilterSidebar({
               )}
             </div>
 
-            {/* Active provider filter badge */}
-            {providerFilter && (
-              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-sidebar-accent">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666' }}
-                />
-                <span className="text-xs font-medium text-sidebar-accent-foreground flex-1 truncate">
-                  {providerFilter}
-                </span>
-                <button
-                  onClick={() => onProviderFilterChange(null)}
-                  className="text-sidebar-foreground/50 hover:text-sidebar-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+            {/* Active provider filters badges */}
+            {providerFilters.length > 0 && (
+              <div className="flex flex-wrap gap-1 px-1 py-1">
+                {providerFilters.map((p) => {
+                  const display = providers.find(pr => pr.name === p.toLowerCase())?.displayName || (p.charAt(0).toUpperCase() + p.slice(1))
+                  return (
+                    <div
+                      key={p}
+                      className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-sidebar-accent text-[10px] font-medium text-sidebar-accent-foreground max-w-full"
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: PROVIDER_COLORS[p.toLowerCase()] || '#666' }}
+                      />
+                      <span className="truncate">{display}</span>
+                      <button
+                        onClick={() => onProviderToggle(p)}
+                        className="text-sidebar-foreground/50 hover:text-sidebar-foreground"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
 
             {/* Provider checkbox list */}
-            <div className="space-y-0.5 max-h-64 overflow-y-auto">
+            <div className="space-y-0.5 max-h-[60vh] overflow-y-auto pr-1">
               {filteredProviders.map((provider) => {
-                const isActive = providerFilter?.toLowerCase() === provider.name
+                const isActive = providerFilters.some(p => p.toLowerCase() === provider.name)
                 const color = PROVIDER_COLORS[provider.name] || '#666'
                 return (
                   <label
@@ -221,9 +227,7 @@ export function FilterSidebar({
                   >
                     <Checkbox
                       checked={isActive}
-                      onCheckedChange={(checked) => {
-                        onProviderFilterChange(checked ? provider.displayName : null)
-                      }}
+                      onCheckedChange={() => onProviderToggle(provider.name)}
                       className="h-3.5 w-3.5 rounded border border-sidebar-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                     <span

@@ -70,7 +70,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <PostHogProvider>
           <TooltipProvider delayDuration={300} disableHoverableContent>
-            <TopBanner />
             {children}
             <Footer />
           </TooltipProvider>

@@ -5,6 +5,7 @@ import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissions, fetchBenchmarkVersions } from '@/lib/api'
 import { normalizeProvider } from '@/lib/transforms'
 import { formatDistanceToNow } from 'date-fns'
+import { TopBanner } from '@/components/top-banner'
 
 interface RunsPageProps {
   searchParams: Promise<{ version?: string; official?: string }>
@@ -32,6 +33,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <TopBanner />
       <header className="border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
