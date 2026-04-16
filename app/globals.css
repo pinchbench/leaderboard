@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -14,32 +10,40 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
+    /* PinchBench distinctive palette */
+    --background: 220 16% 7%;
+    --foreground: 210 20% 96%;
+    --card: 220 16% 9%;
+    --card-foreground: 210 20% 96%;
+    --popover: 220 16% 9%;
+    --popover-foreground: 210 20% 96%;
+    /* Coral-inspired primary */
+    --primary: 0 100% 70%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 217 91% 60%;
+    --secondary: 220 14% 14%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 10% 55%;
+    /* Seafoam accent */
+    --accent: 172 55% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 217 91% 60%;
+    --border: 220 14% 16%;
+    --input: 220 14% 16%;
+    --ring: 0 100% 70%;
+    /* Semantic colors */
     --success: 142 71% 45%;
-    --warning: 38 92% 50%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
+    --warning: 48 96% 55%;
+    --chart-1: 0 100% 70%;
+    --chart-2: 172 55% 55%;
+    --chart-3: 48 96% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 0 84% 60%;
+    --chart-5: 142 71% 45%;
+    /* PinchBench specials */
+    --coral: 0 100% 70%;
+    --seafoam: 172 55% 55%;
+    --gold: 48 96% 55%;
     --radius: 0.5rem;
   }
 }
@@ -49,8 +53,104 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background: linear-gradient(135deg, hsl(220 16% 7%) 0%, hsl(220 16% 10%) 100%);
+    background-attachment: fixed;
   }
+}
+
+/* Skeleton shimmer animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.08) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Staggered fade-in for rows */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+/* Gentle pulse for top-3 rank badges */
+@keyframes rank-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.animate-rank-pulse {
+  animation: rank-pulse 2.5s ease-in-out infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Row hover lift effect */
+.row-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.15s ease;
+}
+
+.row-hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Card glow for top-3 */
+.card-glow-gold {
+  box-shadow: 0 0 0 1px hsl(var(--gold) / 0.3), 0 0 20px hsl(var(--gold) / 0.06);
+}
+
+.card-glow-coral {
+  box-shadow: 0 0 0 1px hsl(var(--coral) / 0.2), 0 0 16px hsl(var(--coral) / 0.04);
+}
+
+.card-glow-seafoam {
+  box-shadow: 0 0 0 1px hsl(var(--seafoam) / 0.2), 0 0 16px hsl(var(--seafoam) / 0.04);
+}
+
+/* Filter chip click feedback */
+.chip-press {
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+.chip-press:active {
+  transform: scale(0.96);
 }
 
 /* Shareable image attribution bars - hidden by default */

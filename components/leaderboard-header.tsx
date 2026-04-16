@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
+import type { BenchmarkVersion, BenchmarkStats, LeaderboardEntry } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
 import { ModelSearch } from '@/components/model-search'
+import { StatsBar } from '@/components/stats-bar'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -28,6 +29,8 @@ interface LeaderboardHeaderProps {
     onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
     onClearProviderFilter: () => void
     onModelSearchChange: (value: string) => void
+    benchmarkStats: BenchmarkStats
+    providerBreakdown: { name: string; count: number }[]
 }
 
 export function LeaderboardHeader({
@@ -50,9 +53,11 @@ export function LeaderboardHeader({
     onOpenWeightsOnlyChange,
     onClearProviderFilter,
     onModelSearchChange,
+    benchmarkStats,
+    providerBreakdown,
 }: LeaderboardHeaderProps) {
     return (
-        <header className="border-b border-border">
+        <header className="border-b border-border/80 bg-card/40 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 md:py-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-col items-start gap-2">
@@ -60,7 +65,7 @@ export function LeaderboardHeader({
                             <img src="/apple-touch-icon.png" alt="PinchBench - OpenClaw Benchmark" className="w-8 h-8 md:w-10 md:h-10" />
                             <div>
                                 <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                                    <h1 className="text-xl md:text-2xl font-bold text-foreground">PinchBench</h1>
+                                    <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">PinchBench</h1>
                                 </Link>
                                 <p className="hidden md:block text-sm text-muted-foreground">Find the best model for your OpenClaw</p>
                             </div>
@@ -149,13 +154,24 @@ export function LeaderboardHeader({
                     </div>
                 )}
 
+                {/* Stats Banner */}
+                <StatsBar
+                    taskCount={benchmarkStats.taskCount}
+                    modelCount={filteredEntryCount}
+                    runCount={totalRuns}
+                    categories={benchmarkStats.categories}
+                    providers={providerBreakdown}
+                    currentVersion={currentVersion}
+                    officialOnly={officialOnly}
+                />
+
                 {/* Navigation buttons - 2x3 grid on mobile, inline on desktop */}
                 <div className="grid grid-cols-3 gap-2 mt-4 md:mt-6 md:flex md:flex-wrap md:items-center">
                     <button
                         onClick={() => onViewChange('success')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'success'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all chip-press ${view === 'success'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm'
                             }`}
                     >
                         <span className="mr-2">🦀</span>
@@ -163,9 +179,9 @@ export function LeaderboardHeader({
                     </button>
                     <button
                         onClick={() => onViewChange('speed')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'speed'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all chip-press ${view === 'speed'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm'
                             }`}
                     >
                         <span className="mr-2">⚡</span>
@@ -173,9 +189,9 @@ export function LeaderboardHeader({
                     </button>
                     <button
                         onClick={() => onViewChange('cost')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'cost'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all chip-press ${view === 'cost'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm'
                             }`}
                     >
                         <span className="mr-2">💰</span>
@@ -183,9 +199,9 @@ export function LeaderboardHeader({
                     </button>
                     <button
                         onClick={() => onViewChange('value')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'value'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all chip-press ${view === 'value'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm'
                             }`}
                     >
                         <span className="mr-2">💎</span>
@@ -193,25 +209,15 @@ export function LeaderboardHeader({
                     </button>
                     <button
                         onClick={() => onViewChange('graphs')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'graphs'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all chip-press ${view === 'graphs'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm'
                             }`}
                     >
                         <span className="mr-2">📊</span>
                         Graphs
                     </button>
-                    <div className="hidden md:flex md:ml-auto items-center gap-4 text-sm text-muted-foreground">
-                        <span>{filteredEntryCount} models</span>
-                        <Link
-                            href={currentVersion
-                                ? `/runs?version=${currentVersion}${officialOnly ? '' : '&official=false'}`
-                                : (officialOnly ? '/runs' : '/runs?official=false')}
-                            className="hover:underline hover:text-foreground transition-colors"
-                        >
-                            {totalRuns} runs
-                        </Link>
-                    </div>
+
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground md:hidden">
                     <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">

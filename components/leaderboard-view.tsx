@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
+import type { LeaderboardEntry, BenchmarkVersion, BenchmarkStats } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
@@ -32,9 +32,10 @@ interface LeaderboardViewProps {
     versions: BenchmarkVersion[]
     currentVersion: string | null
     officialOnly: boolean
+    benchmarkStats: BenchmarkStats
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, benchmarkStats }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -138,6 +139,17 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
     const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
 
+    const providerBreakdown = useMemo(() => {
+        const map = new Map<string, number>()
+        for (const entry of entries) {
+            const p = entry.provider.toLowerCase()
+            map.set(p, (map.get(p) ?? 0) + 1)
+        }
+        return Array.from(map.entries())
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+    }, [entries])
+
     return (
         <div className="min-h-screen bg-background">
             <LeaderboardHeader
@@ -160,6 +172,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onClearProviderFilter={() => setProviderFilter(null)}
                 onModelSearchChange={handleModelSearchChange}
                 modelSearchValue={modelSearch}
+                benchmarkStats={benchmarkStats}
+                providerBreakdown={providerBreakdown}
             />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
@@ -176,7 +190,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                                 <button
                                     key={tab}
                                     onClick={() => setGraphSubTab(tab)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
+                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all chip-press ${graphSubTab === tab
                                         ? 'bg-primary text-primary-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                         }`}
