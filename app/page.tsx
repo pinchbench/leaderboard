@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { fetchLeaderboard, fetchBenchmarkVersions } from '@/lib/api'
+import { fetchLeaderboard, fetchBenchmarkVersions, fetchBenchmarkStats } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { LeaderboardView } from '@/components/leaderboard-view'
 
@@ -46,9 +46,10 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
 export default async function Home({ searchParams }: HomeProps) {
   const { version, official } = await searchParams
   const officialOnly = official !== 'false'
-  const [response, versionsResponse] = await Promise.all([
+  const [response, versionsResponse, benchmarkStats] = await Promise.all([
     fetchLeaderboard(version, { officialOnly }),
     fetchBenchmarkVersions(),
+    fetchBenchmarkStats(version, { officialOnly }),
   ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
   const latestTimestamp = entries.reduce((latest, entry) => {
@@ -73,6 +74,7 @@ export default async function Home({ searchParams }: HomeProps) {
       versions={versionsResponse.versions}
       currentVersion={version ?? null}
       officialOnly={officialOnly}
+      benchmarkStats={benchmarkStats}
     />
   )
 }

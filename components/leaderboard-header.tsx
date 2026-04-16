@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
+import type { BenchmarkVersion, BenchmarkStats, LeaderboardEntry } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
 import { ModelSearch } from '@/components/model-search'
+import { StatsBar } from '@/components/stats-bar'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -28,6 +29,8 @@ interface LeaderboardHeaderProps {
     onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
     onClearProviderFilter: () => void
     onModelSearchChange: (value: string) => void
+    benchmarkStats: BenchmarkStats
+    providerBreakdown: { name: string; count: number }[]
 }
 
 export function LeaderboardHeader({
@@ -50,6 +53,8 @@ export function LeaderboardHeader({
     onOpenWeightsOnlyChange,
     onClearProviderFilter,
     onModelSearchChange,
+    benchmarkStats,
+    providerBreakdown,
 }: LeaderboardHeaderProps) {
     return (
         <header className="border-b border-border">
@@ -148,6 +153,17 @@ export function LeaderboardHeader({
                         </span>
                     </div>
                 )}
+
+                {/* Stats Banner */}
+                <StatsBar
+                    taskCount={benchmarkStats.taskCount}
+                    modelCount={filteredEntryCount}
+                    runCount={totalRuns}
+                    categories={benchmarkStats.categories}
+                    providers={providerBreakdown}
+                    currentVersion={currentVersion}
+                    officialOnly={officialOnly}
+                />
 
                 {/* Navigation buttons - 2x3 grid on mobile, inline on desktop */}
                 <div className="grid grid-cols-3 gap-2 mt-4 md:mt-6 md:flex md:flex-wrap md:items-center">

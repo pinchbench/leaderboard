@@ -6,7 +6,11 @@ import type {
   BenchmarkVersionsResponse,
   ModelSubmissionsResponse,
   UserSubmissionsResponse,
+  BenchmarkStats,
+  TaskCategoryBreakdown,
 } from "@/lib/types";
+
+import { CATEGORY_ICONS } from "@/lib/types";
 
 const API_BASE = "https://api.pinchbench.com/api";
 
@@ -150,4 +154,47 @@ export async function fetchSubmissionsClient(
     );
   }
   return response.json() as Promise<SubmissionsListResponse>;
+}
+
+
+/**
+ * Fetch benchmark stats (task count, categories) by inspecting
+ * a representative submission from the leaderboard.
+ */
+export async function fetchBenchmarkStats(
+  version?: string,
+  options?: OfficialFilterOptions,
+): Promise<BenchmarkStats> {
+  try {
+    const submissions = await fetchSubmissions(version, 1, 0, options);
+    if (submissions.submissions.length === 0) {
+      return { taskCount: 0, categoryCount: 0, categories: [] };
+    }
+
+    const detail = await fetchSubmission(submissions.submissions[0].id);
+    const tasks = detail.submission?.tasks ?? [];
+
+    const categoryMap = new Map<string, number>();
+    for (const task of tasks) {
+      const cat = task.frontmatter?.category ?? "other";
+      const normalized = cat.toLowerCase();
+      categoryMap.set(normalized, (categoryMap.get(normalized) ?? 0) + 1);
+    }
+
+    const categories: TaskCategoryBreakdown[] = Array.from(categoryMap.entries())
+      .map(([category, count]) => ({
+        category,
+        count,
+        icon: CATEGORY_ICONS[category] ?? "📌",
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      taskCount: tasks.length,
+      categoryCount: categories.length,
+      categories,
+    };
+  } catch {
+    return { taskCount: 0, categoryCount: 0, categories: [] };
+  }
 }
