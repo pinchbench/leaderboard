@@ -221,8 +221,26 @@ export interface ModelSubmissionsResponse {
 }
 
 export interface StatsResponse {
-  updated_at?: string;
-  models_count?: number;
+  total_submissions: number;
+  total_models: number;
+  verified_submissions: number;
+  submissions_last_24h: number;
+  top_model?: { model: string; best_score: number };
+  benchmark_version?: string | null;
+  benchmark_versions?: string[];
+  generated_at: string;
+}
+
+export interface TaskCategoryBreakdown {
+  category: string;
+  count: number;
+  icon: string;
+}
+
+export interface BenchmarkStats {
+  taskCount: number;
+  categoryCount: number;
+  categories: TaskCategoryBreakdown[];
 }
 
 export interface BenchmarkVersion {
