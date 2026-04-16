@@ -73,6 +73,11 @@ const getCrabEmoji = (rank: number) => {
   return ''
 }
 
+const getRankClass = (rank: number) => {
+  if (rank <= 3) return 'animate-rank-pulse'
+  return ''
+}
+
 const getValueScoreColor = (valueScore: number) => {
   if (valueScore >= 200) return 'hsl(142, 71%, 45%)'
   if (valueScore >= 50) return 'hsl(38, 92%, 50%)'
@@ -319,7 +324,7 @@ export function SimpleLeaderboard({
                   const vs = entry.value_score
                   const cpst = entry.cpst
                   return (
-                    <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
+                    <tr key={entry.submission_id} className="hover:bg-muted/30 transition-all duration-200">
                       <td className="px-2 md:px-4 py-3">
                         <span className="text-sm font-medium text-muted-foreground">{index + 1}</span>
                       </td>
@@ -429,7 +434,7 @@ export function SimpleLeaderboard({
             <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
               <button
                 onClick={() => setSortMode('quality')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortMode === 'quality'
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all chip-press ${sortMode === 'quality'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
@@ -438,7 +443,7 @@ export function SimpleLeaderboard({
               </button>
               <button
                 onClick={() => setSortMode('value')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortMode === 'value'
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all chip-press ${sortMode === 'value'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
@@ -450,7 +455,7 @@ export function SimpleLeaderboard({
             <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
               <button
                 onClick={() => onScoreModeChange?.('best')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'best'
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all chip-press ${scoreMode === 'best'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
@@ -459,7 +464,7 @@ export function SimpleLeaderboard({
               </button>
               <button
                 onClick={() => onScoreModeChange?.('average')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'average'
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all chip-press ${scoreMode === 'average'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
@@ -546,7 +551,7 @@ export function SimpleLeaderboard({
               </span>
             </div>
             <div className="space-y-3">
-              {(showAllEntries ? displayedEntries.concat(nullEntries) : displayedEntries).map((entry) => {
+              {(showAllEntries ? displayedEntries.concat(nullEntries) : displayedEntries).map((entry, rowIndex) => {
                 const bestPct = entry.percentage
                 const avgPct = entry.average_score_percentage != null
                   ? entry.average_score_percentage * 100
@@ -556,11 +561,11 @@ export function SimpleLeaderboard({
                     <TooltipTrigger asChild>
                       <Link
                         href={modelHref(entry.provider, entry.model)}
-                        className="block group"
+                        className="block group row-hover-lift rounded-lg px-2 py-1 -mx-2"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-72 flex items-center gap-2 flex-shrink-0">
-                            <span className="text-xl" title={`Rank ${entry.rank}`}>
+                            <span className={`text-xl ${getRankClass(entry.rank)}`} title={`Rank ${entry.rank}`}>
                               {getCrabEmoji(entry.rank)}
                             </span>
                             <code className="text-xs font-mono text-foreground transition-colors truncate">
@@ -576,10 +581,11 @@ export function SimpleLeaderboard({
                             <div className="flex-1 space-y-2">
                               <div className="bg-muted rounded-full h-7 relative overflow-hidden">
                                 <div
-                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80 animate-progress-fill"
                                   style={{
                                     width: `${bestPct}%`,
                                     backgroundColor: BEST_SCORE_COLOR,
+                                    animationDelay: `${rowIndex * 40}ms`,
                                   }}
                                 />
                                 <span
@@ -591,10 +597,11 @@ export function SimpleLeaderboard({
                               </div>
                               <div className="bg-muted rounded-full h-7 relative overflow-hidden">
                                 <div
-                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                                  className="h-full rounded-full transition-all duration-300 group-hover:opacity-80 animate-progress-fill"
                                   style={{
                                     width: `${avgPct ?? 0}%`,
                                     backgroundColor: AVG_SCORE_COLOR,
+                                    animationDelay: `${rowIndex * 40 + 100}ms`,
                                   }}
                                 />
                                 <span
@@ -742,14 +749,14 @@ export function SimpleLeaderboard({
                   return (
                     <tr
                       key={entry.submission_id}
-                      className="hover:bg-muted/30 transition-colors"
+                      className="hover:bg-muted/30 transition-all duration-200"
                     >
                       <td className="px-2 md:px-4 py-3">
                         <Link
                           href={modelHref(entry.provider, entry.model)}
                           className="flex items-center gap-2 transition-colors"
                         >
-                          <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
+                          <span className={`text-lg ${getRankClass(entry.rank)}`}>{getCrabEmoji(entry.rank)}</span>
                           <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
                           {entry.official === false && (
                             <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
@@ -930,7 +937,7 @@ export function SimpleLeaderboard({
             </thead>
             <tbody className="divide-y divide-border">
               {ranked.map(({ entry, rank }) => (
-                <tr key={entry.submission_id} className="hover:bg-muted/30 transition-colors">
+                <tr key={entry.submission_id} className="hover:bg-muted/30 transition-all duration-200">
                   <td className="px-2 md:px-4 py-3">
                     <span className="text-sm font-medium text-muted-foreground">
                       {rank}
