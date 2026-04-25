@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, BarChart3, Clock, DollarSign, Activity } from 'lucide-react'
 import { PROVIDER_COLORS } from '@/lib/types'
-import { fetchModelSubmissions } from '@/lib/api'
+import { fetchModelSubmissions, fetchSubmission } from '@/lib/api'
+import { aggregateCategoryScores } from '@/lib/category-scores'
+import { transformSubmission } from '@/lib/transforms'
 import { formatDistanceToNow } from 'date-fns'
 import { ModelScoreTrend } from '@/components/model-score-trend'
+
+type CategoryScore = ReturnType<typeof aggregateCategoryScores>[number]
 
 interface ModelPageProps {
   params: Promise<{ slug: string[] }>
@@ -59,6 +63,18 @@ export default async function ModelPage({ params, searchParams }: ModelPageProps
 
   const avgCost = submissions.reduce((a, b) => a + (b.total_cost_usd || 0), 0) / submissions.length
   const avgSpeed = submissions.reduce((a, b) => a + (b.total_execution_time_seconds || 0), 0) / submissions.length
+  const bestSubmission = submissions.reduce((best, submission) =>
+    submission.score_percentage > best.score_percentage ? submission : best
+  )
+  let categoryScores: CategoryScore[] = []
+  try {
+    const detail = await fetchSubmission(bestSubmission.id)
+    categoryScores = aggregateCategoryScores(
+      transformSubmission(detail.submission).task_results,
+    )
+  } catch {
+    categoryScores = []
+  }
 
   const compareUrl = `/?view=graphs&graph=radar&models=${encodeURIComponent(modelName)}${officialOnly ? '' : '&official=false'}`
 
@@ -141,6 +157,54 @@ export default async function ModelPage({ params, searchParams }: ModelPageProps
             <span className="text-2xl font-bold">{avgSpeed.toFixed(1)}s</span>
           </Card>
         </div>
+
+        {/* Score Trend Chart */}
+        {categoryScores.length > 0 && (
+          <Card className="p-6">
+            <div className="flex flex-col gap-1 mb-4">
+              <h3 className="text-lg font-semibold">Best Run Category Breakdown</h3>
+              <p className="text-sm text-muted-foreground">
+                Category scores from this model&apos;s best submission ({(bestSubmission.score_percentage * 100).toFixed(1)}%).
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              {categoryScores.map((category) => {
+                const color = category.percentage >= 85
+                  ? 'text-green-500'
+                  : category.percentage >= 70
+                    ? 'text-yellow-500'
+                    : 'text-red-500'
+
+                return (
+                  <div key={category.category} className="rounded-lg border border-border bg-muted/20 p-4">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        {category.icon} {category.shortLabel}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {category.count} tasks
+                      </span>
+                    </div>
+                    <div className="flex items-end justify-between gap-2 mb-2">
+                      <span className={`text-2xl font-bold ${color}`}>
+                        {category.percentage.toFixed(0)}%
+                      </span>
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {category.total.toFixed(1)} / {category.max.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.min(100, Math.max(0, category.percentage))}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        )}
 
         {/* Score Trend Chart */}
         <Card className="p-6">

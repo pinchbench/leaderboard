@@ -16,6 +16,7 @@ import { PROVIDER_COLORS } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchSubmission } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
+import { aggregateCategoryScores } from '@/lib/category-scores'
 
 interface SubmissionPageProps {
   params: Promise<{ id: string }>
@@ -76,18 +77,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
     notFound()
   }
 
-  const categoryStats = submission.task_results.reduce(
-    (acc, task) => {
-      if (!acc[task.category]) {
-        acc[task.category] = { total: 0, max: 0, count: 0 }
-      }
-      acc[task.category].total += task.score
-      acc[task.category].max += task.max_score
-      acc[task.category].count += 1
-      return acc
-    },
-    {} as Record<string, { total: number; max: number; count: number }>
-  )
+  const categoryStats = aggregateCategoryScores(submission.task_results)
 
   const badgeStatuses = await getModelBadgeStatuses(submission.model, {
     officialOnly,
@@ -256,8 +246,8 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
           </div>
 
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(categoryStats).map(([category, stats]) => {
-              const percentage = (stats.total / stats.max) * 100
+            {categoryStats.map((stats) => {
+              const percentage = stats.percentage
               const getColor = () => {
                 if (percentage >= 85) return 'text-green-500'
                 if (percentage >= 70) return 'text-yellow-500'
@@ -266,11 +256,11 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
 
               return (
                 <Card
-                  key={category}
+                  key={stats.category}
                   className="p-4 bg-card border-border flex flex-col"
                 >
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                    {category}
+                    {stats.icon} {stats.label}
                   </div>
                   <div className="flex items-baseline gap-2 mb-1">
                     <span className={`text-2xl font-bold ${getColor()}`}>

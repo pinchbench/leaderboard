@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { LeaderboardEntry } from '@/lib/types'
-import { PROVIDER_COLORS, CATEGORY_ICONS } from '@/lib/types'
+import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissionClient } from '@/lib/api'
 import { transformSubmission } from '@/lib/transforms'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
+import { CategoryPills } from '@/components/category-pills'
+import { getCategoryMeta } from '@/lib/category-scores'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface TaskHeatmapProps {
@@ -137,18 +139,6 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
     return allTasks.filter((t) => set.has(t.category.toLowerCase()))
   }, [allTasks, selectedCategories, categoryFilterActive])
 
-  const availableCategories = useMemo(() => {
-    const seen = new Set<string>()
-    const order: string[] = []
-    for (const t of allTasks) {
-      if (!seen.has(t.category)) {
-        seen.add(t.category)
-        order.push(t.category)
-      }
-    }
-    return order
-  }, [allTasks])
-
   const modelFilteredPercentage = useMemo(() => {
     const map = new Map<string, number>()
     if (!categoryFilterActive || filteredTasks.length === 0) return map
@@ -202,14 +192,6 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
     if (current) groups.push({ category: current, count })
     return groups
   }, [filteredTasks])
-
-  function toggleCategory(category: string) {
-    const key = category.toLowerCase()
-    const next = selectedCategories.includes(key)
-      ? selectedCategories.filter((c) => c !== key)
-      : [...selectedCategories, key]
-    onCategoriesChange(next)
-  }
 
   if (loading) {
     return (
@@ -285,40 +267,12 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
         </div>
       ) : null}
 
-      {/* Category chips */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs text-muted-foreground shrink-0">Categories:</span>
-        <button
-          type="button"
-          onClick={() => onCategoriesChange([])}
-          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors border ${
-            !categoryFilterActive
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
-          }`}
-        >
-          All
-        </button>
-        {availableCategories.map((cat) => {
-          const active =
-            categoryFilterActive && selectedCategories.includes(cat.toLowerCase())
-          return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => toggleCategory(cat)}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border capitalize ${
-                active
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
-              }`}
-            >
-              <span>{CATEGORY_ICONS[cat] ?? CATEGORY_ICONS.other}</span>
-              {cat}
-            </button>
-          )
-        })}
-      </div>
+      <CategoryPills
+        selectedCategories={selectedCategories}
+        onCategoriesChange={onCategoriesChange}
+        activeTaskCount={categoryFilterActive ? filteredTasks.length : null}
+        className="mb-4"
+      />
 
       {/* Controls */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 mb-4">
@@ -390,8 +344,8 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                     colSpan={group.count}
                     className="border-b border-border px-1 py-1.5 text-center font-medium text-muted-foreground bg-muted/30"
                   >
-                    <span title={group.category} className="capitalize">
-                      {CATEGORY_ICONS[group.category] || ''} {group.category}
+                      <span title={getCategoryMeta(group.category).label}>
+                        {getCategoryMeta(group.category).icon} {getCategoryMeta(group.category).shortLabel}
                     </span>
                   </th>
                 ))}
@@ -429,7 +383,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
                         <p className="font-medium">{task.taskName}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{task.category}</p>
+                        <p className="text-xs text-muted-foreground">{getCategoryMeta(task.category).label}</p>
                       </TooltipContent>
                     </Tooltip>
                   </th>
