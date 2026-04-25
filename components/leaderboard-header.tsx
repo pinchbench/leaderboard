@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
 import { ModelSearch } from '@/components/model-search'
+import { CategoryPills } from '@/components/category-pills'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -21,11 +22,15 @@ interface LeaderboardHeaderProps {
     scoreMode: ScoreMode
     officialOnly: boolean
     openWeightsOnly: boolean
+    selectedCategories: string[]
+    categoryDataLoading: boolean
+    activeCategoryTaskCount: number | null
     modelSearchValue: string
     onViewChange: (view: ViewMode) => void
     onScoreModeChange: (mode: ScoreMode) => void
     onOfficialOnlyChange: (officialOnly: boolean) => void
     onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
+    onCategoriesChange: (categories: string[]) => void
     onClearProviderFilter: () => void
     onModelSearchChange: (value: string) => void
 }
@@ -43,11 +48,15 @@ export function LeaderboardHeader({
     scoreMode,
     officialOnly,
     openWeightsOnly,
+    selectedCategories,
+    categoryDataLoading,
+    activeCategoryTaskCount,
     modelSearchValue,
     onViewChange,
     onScoreModeChange,
     onOfficialOnlyChange,
     onOpenWeightsOnlyChange,
+    onCategoriesChange,
     onClearProviderFilter,
     onModelSearchChange,
 }: LeaderboardHeaderProps) {
@@ -148,6 +157,14 @@ export function LeaderboardHeader({
                         </span>
                     </div>
                 )}
+
+                <CategoryPills
+                    selectedCategories={selectedCategories}
+                    onCategoriesChange={onCategoriesChange}
+                    disabled={categoryDataLoading}
+                    activeTaskCount={activeCategoryTaskCount}
+                    className="mt-4"
+                />
 
                 {/* Navigation buttons - 2x3 grid on mobile, inline on desktop */}
                 <div className="grid grid-cols-3 gap-2 mt-4 md:mt-6 md:flex md:flex-wrap md:items-center">

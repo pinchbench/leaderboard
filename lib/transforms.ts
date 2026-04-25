@@ -6,7 +6,7 @@ import type {
   Submission,
   TaskResult,
 } from "@/lib/types";
-import { TASK_FALLBACK } from "@/lib/task-metadata";
+import { resolveTaskCategory, TASK_FALLBACK } from "@/lib/task-metadata";
 
 const EPSILON = 1e-6;
 
@@ -112,8 +112,10 @@ export function transformTaskResult(apiTask: ApiTaskResult): TaskResult {
   const fallback = TASK_FALLBACK[apiTask.task_id];
   const taskName =
     apiTask.frontmatter?.name ?? fallback?.name ?? apiTask.task_id;
-  const category =
-    apiTask.frontmatter?.category ?? fallback?.category ?? "other";
+  const category = resolveTaskCategory(
+    apiTask.task_id,
+    apiTask.frontmatter?.category ?? fallback?.category,
+  );
 
   return {
     task_id: apiTask.task_id,

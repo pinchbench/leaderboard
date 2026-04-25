@@ -20,6 +20,14 @@ export interface LeaderboardEntry {
   official?: boolean;
 }
 
+export interface TaskCategory {
+  id: string;
+  label: string;
+  shortLabel: string;
+  icon: string;
+  description: string;
+}
+
 export interface TaskResult {
   task_id: string;
   task_name: string;
@@ -242,7 +250,82 @@ export interface BenchmarkVersionsResponse {
 
 export type SortMode = "quality" | "value";
 
+export const TASK_CATEGORIES: TaskCategory[] = [
+  {
+    id: "code_devops",
+    label: "Code & DevOps",
+    shortLabel: "Code",
+    icon: "🔧",
+    description: "Coding, automation, CI/CD, Kubernetes, Docker, tests, and refactors",
+  },
+  {
+    id: "data_analysis",
+    label: "Data & Analysis",
+    shortLabel: "Data",
+    icon: "📊",
+    description: "CSV, spreadsheet, market, earnings, and financial analysis tasks",
+  },
+  {
+    id: "writing_content",
+    label: "Writing & Content",
+    shortLabel: "Writing",
+    icon: "✍️",
+    description: "Blog posts, summaries, README generation, and content rewriting",
+  },
+  {
+    id: "productivity",
+    label: "Productivity",
+    shortLabel: "Productivity",
+    icon: "📅",
+    description: "Calendar, email, todo, daily summary, and workspace organization tasks",
+  },
+  {
+    id: "research_knowledge",
+    label: "Research & Knowledge",
+    shortLabel: "Research",
+    icon: "🔍",
+    description: "Market research, lookups, briefings, contract analysis, and skill search",
+  },
+  {
+    id: "security_ops",
+    label: "Security & Ops",
+    shortLabel: "Security",
+    icon: "🛡️",
+    description: "Security triage, anomaly detection, GitHub issue triage, and ops tasks",
+  },
+  {
+    id: "core_agent",
+    label: "Core Agent",
+    shortLabel: "Agent",
+    icon: "🤖",
+    description: "Sanity, memory, files, workflow, and OpenClaw comprehension tasks",
+  },
+  {
+    id: "creative",
+    label: "Creative",
+    shortLabel: "Creative",
+    icon: "🎨",
+    description: "Image generation, image identification, and creative tasks",
+  },
+]
+
+export const TASK_CATEGORY_BY_ID = TASK_CATEGORIES.reduce(
+  (acc, category) => {
+    acc[category.id] = category
+    return acc
+  },
+  {} as Record<string, TaskCategory>,
+)
+
 export const CATEGORY_ICONS: Record<string, string> = {
+  code_devops: "🔧",
+  data_analysis: "📊",
+  writing_content: "✍️",
+  productivity: "📅",
+  research_knowledge: "🔍",
+  security_ops: "🛡️",
+  core_agent: "🤖",
+  creative: "🎨",
   api: "🔌",
   validation: "✅",
   calendar: "📅",
