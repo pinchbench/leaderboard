@@ -97,7 +97,7 @@ export function ModelRunHistory({ submissions, benchmarkVersions, officialOnly }
                     <td className="py-3 px-4 whitespace-nowrap">{dateStr}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <span className={`font-semibold ${getScoreColorClass(submission.score_percentage)}`}>
+                        <span className={`font-semibold ${getScoreColorClass(submission.score_percentage * 100)}`}>
                           {(submission.score_percentage * 100).toFixed(1)}%
                         </span>
                         {submission.is_best && (
