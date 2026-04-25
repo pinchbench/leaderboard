@@ -189,7 +189,9 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 }
 
                 if (!cancelled) {
-                    setTaskDataBySubmission((current) => ({ ...current, ...loaded }))
+                    if (Object.keys(loaded).length > 0) {
+                        setTaskDataBySubmission((current) => ({ ...current, ...loaded }))
+                    }
                     setTaskDataLoading(false)
                 }
             } catch {
