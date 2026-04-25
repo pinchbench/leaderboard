@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { DEFAULT_TABLE_ROW_LIMIT } from '@/lib/constants'
-import type { LeaderboardEntry, SortMode } from '@/lib/types'
+import type { BestForBadge, LeaderboardEntry, SortMode } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
@@ -18,6 +18,7 @@ interface SimpleLeaderboardProps {
   scoreMode: 'best' | 'average'
   benchmarkVersion?: string | null
   officialOnly: boolean
+  championBadges?: Record<string, BestForBadge[]>
   onScoreModeChange?: (mode: 'best' | 'average') => void
   onProviderClick?: (provider: string) => void
 }
@@ -88,6 +89,7 @@ export function SimpleLeaderboard({
   scoreMode,
   benchmarkVersion,
   officialOnly,
+  championBadges = {},
   onScoreModeChange,
   onProviderClick,
 }: SimpleLeaderboardProps) {
@@ -218,6 +220,27 @@ export function SimpleLeaderboard({
 
   const modelHref = (provider: string, model: string) =>
     `/model/${provider.toLowerCase()}/${model}${officialOnly ? '' : '?official=false'}`
+
+  const renderBadges = (entry: LeaderboardEntry) => {
+    const badges = championBadges[entry.submission_id] ?? []
+    if (badges.length === 0) return null
+
+    return (
+      <span className="flex flex-wrap items-center gap-1">
+        {badges.slice(0, 3).map((badge) => (
+          <span
+            key={badge.key}
+            className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200"
+            title={`${badge.label} category champion`}
+          >
+            <span aria-hidden="true">👑</span>
+            <span aria-hidden="true">{badge.icon}</span>
+            {badge.label}
+          </span>
+        ))}
+      </span>
+    )
+  }
 
   // ----------------------------------------------------------------
   // VALUE view
@@ -566,6 +589,7 @@ export function SimpleLeaderboard({
                             <code className="text-xs font-mono text-foreground transition-colors truncate">
                               {entry.model}
                             </code>
+                            {renderBadges(entry)}
                             {entry.official === false && (
                               <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                                 Unofficial
@@ -751,6 +775,7 @@ export function SimpleLeaderboard({
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
                           <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
+                          {renderBadges(entry)}
                           {entry.official === false && (
                             <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                               Unofficial

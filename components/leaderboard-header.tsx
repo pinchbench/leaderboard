@@ -84,6 +84,12 @@ export function LeaderboardHeader({
                             >
                                 About
                             </Link>
+                            <Link
+                                href="/best-for/coding"
+                                className="px-3 py-1 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                            >
+                                Best For
+                            </Link>
                             <a
                                 href="https://github.com/pinchbench/skill"
                                 target="_blank"

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
+import type { BestForBadge, LeaderboardEntry, BenchmarkVersion, RecommendationPick } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
@@ -11,6 +11,7 @@ import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
+import { QuickPicks } from '@/components/quick-picks'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -32,9 +33,11 @@ interface LeaderboardViewProps {
     versions: BenchmarkVersion[]
     currentVersion: string | null
     officialOnly: boolean
+    quickPicks?: RecommendationPick[]
+    championBadges?: Record<string, BestForBadge[]>
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, quickPicks = [], championBadges = {} }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -206,15 +209,19 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         <KiloClawAdCard />
                     </div>
                 ) : (
-                    <SimpleLeaderboard
-                        entries={filteredEntries}
-                        view={view as 'success' | 'speed' | 'cost' | 'value'}
-                        scoreMode={scoreMode}
-                        benchmarkVersion={currentVersion}
-                        officialOnly={officialOnlyState}
-                        onScoreModeChange={setScoreMode}
-                        onProviderClick={setProviderFilter}
-                    />
+                    <>
+                        {view === 'success' && <QuickPicks picks={quickPicks} />}
+                        <SimpleLeaderboard
+                            entries={filteredEntries}
+                            view={view as 'success' | 'speed' | 'cost' | 'value'}
+                            scoreMode={scoreMode}
+                            benchmarkVersion={currentVersion}
+                            officialOnly={officialOnlyState}
+                            championBadges={championBadges}
+                            onScoreModeChange={setScoreMode}
+                            onProviderClick={setProviderFilter}
+                        />
+                    </>
                 )}
             </main>
         </div>
