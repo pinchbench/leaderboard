@@ -1,24 +1,25 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Github, ExternalLink } from 'lucide-react'
+import { Github, ExternalLink, Calendar, Layers, Award } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { fetchUserSubmissions } from '@/lib/api'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { normalizeProvider } from '@/lib/transforms'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 
 interface UserPageProps {
   params: Promise<{ github_username: string }>
-  searchParams: Promise<{ version?: string }>
+  searchParams: Promise<{ version?: string; page?: string }>
 }
 
 export async function generateMetadata({ params }: UserPageProps): Promise<Metadata> {
   const { github_username } = await params
   return {
-    title: `${github_username} — PinchBench`,
-    description: `PinchBench submissions by ${github_username}`,
+    title: `${github_username} — PinchBench Contributor`,
+    description: `PinchBench submissions and benchmark contributions by ${github_username}`,
   }
 }
 
@@ -32,22 +33,54 @@ function getScoreColor(pct: number) {
   return 'text-red-500'
 }
 
+const PAGE_SIZE = 20
+
 export default async function UserPage({ params, searchParams }: UserPageProps) {
   const { github_username } = await params
-  const { version } = await searchParams
+  const { version, page } = await searchParams
+  const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1)
+  const offset = (pageNum - 1) * PAGE_SIZE
 
   let data
   try {
-    data = await fetchUserSubmissions(github_username, { version })
+    data = await fetchUserSubmissions(github_username, { version, limit: PAGE_SIZE, offset })
   } catch {
     notFound()
   }
 
-  if (!data || !data.submissions) {
+  if (!data || !data.submissions || data.submissions.length === 0 && data.total === 0) {
     notFound()
   }
 
-  const { submissions, summary } = data
+  const { submissions, summary, total } = data
+
+  // Compute derived stats from all submissions (fetch all for summary)
+  const allSubmissions = total > PAGE_SIZE
+    ? await fetchUserSubmissions(github_username, { version, limit: total }).then(d => d.submissions)
+    : submissions
+
+  const uniqueModels = [...new Set(allSubmissions.map(s => s.model))]
+  const uniqueProviders = [...new Set(allSubmissions.map(s => normalizeProvider(s.provider, s.model)))]
+  const timestamps = allSubmissions.map(s => new Date(s.timestamp).getTime()).filter(t => !isNaN(t))
+  const firstSubmissionAt = timestamps.length > 0 ? new Date(Math.min(...timestamps)) : null
+  const lastSubmissionAt = timestamps.length > 0 ? new Date(Math.max(...timestamps)) : null
+
+  // Best scores per model
+  const bestByModel = new Map<string, { model: string; provider: string; score_percentage: number; submission_id: string }>()
+  for (const sub of allSubmissions) {
+    const existing = bestByModel.get(sub.model)
+    if (!existing || sub.score_percentage > existing.score_percentage) {
+      bestByModel.set(sub.model, {
+        model: sub.model,
+        provider: normalizeProvider(sub.provider, sub.model),
+        score_percentage: sub.score_percentage,
+        submission_id: sub.id,
+      })
+    }
+  }
+  const bestScoresByModel = [...bestByModel.values()].sort((a, b) => b.score_percentage - a.score_percentage)
+
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +94,11 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
             ← Back to Leaderboard
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-4xl">🦞</span>
+            <img
+              src={`https://github.com/${github_username}.png?size=80`}
+              alt={`${github_username} avatar`}
+              className="w-16 h-16 rounded-full border-2 border-border"
+            />
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-foreground">{github_username}</h1>
@@ -76,7 +113,7 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
                 </a>
               </div>
               <p className="text-sm text-muted-foreground">
-                PinchBench submissions
+                PinchBench contributor
               </p>
             </div>
           </div>
@@ -85,10 +122,18 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-8">
         {/* Summary stats */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4 bg-card border-border">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total Submissions</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+              <Layers className="h-3 w-3" /> Submissions
+            </div>
             <div className="text-3xl font-bold text-foreground">{summary.total_submissions}</div>
+          </Card>
+          <Card className="p-4 bg-card border-border">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+              <Award className="h-3 w-3" /> Models Tested
+            </div>
+            <div className="text-3xl font-bold text-foreground">{uniqueModels.length}</div>
           </Card>
           <Card className="p-4 bg-card border-border">
             <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Best Score</div>
@@ -96,11 +141,94 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
               {formatScore(summary.best_score_percentage)}
             </div>
           </Card>
+          <Card className="p-4 bg-card border-border">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+              <Calendar className="h-3 w-3" /> Active Since
+            </div>
+            <div className="text-sm font-bold text-foreground">
+              {firstSubmissionAt ? format(firstSubmissionAt, 'MMM yyyy') : '—'}
+            </div>
+          </Card>
         </div>
 
-        {/* Submissions table */}
+        {/* Date range */}
+        {(firstSubmissionAt || lastSubmissionAt) && (
+          <div className="text-xs text-muted-foreground">
+            {firstSubmissionAt && `First submission: ${formatDistanceToNow(firstSubmissionAt, { addSuffix: true })}`}
+            {firstSubmissionAt && lastSubmissionAt && firstSubmissionAt.getTime() !== lastSubmissionAt.getTime() && (
+              <span className="mx-2">·</span>
+            )}
+            {lastSubmissionAt && `Latest: ${formatDistanceToNow(lastSubmissionAt, { addSuffix: true })}`}
+          </div>
+        )}
+
+        {/* Providers */}
+        {uniqueProviders.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Providers</h3>
+            <div className="flex flex-wrap gap-2">
+              {uniqueProviders.map(provider => (
+                <Badge
+                  key={provider}
+                  variant="outline"
+                  className="text-xs"
+                  style={{
+                    borderColor: PROVIDER_COLORS[provider] || '#666',
+                    color: PROVIDER_COLORS[provider] || '#666',
+                  }}
+                >
+                  {provider}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Best scores per model */}
+        {bestScoresByModel.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Best Scores by Model</h2>
+            <div className="space-y-2">
+              {bestScoresByModel.map((best) => (
+                <Link
+                  key={best.submission_id}
+                  href={`/submission/${best.submission_id}`}
+                  className="block"
+                >
+                  <Card className="p-3 bg-card border-border hover:border-primary transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <code className="font-mono text-sm font-semibold text-foreground truncate">
+                          {best.model}
+                        </code>
+                        <Badge
+                          variant="outline"
+                          className="text-xs shrink-0"
+                          style={{
+                            borderColor: PROVIDER_COLORS[best.provider] || '#666',
+                            color: PROVIDER_COLORS[best.provider] || '#666',
+                          }}
+                        >
+                          {best.provider}
+                        </Badge>
+                      </div>
+                      <span className={`font-bold text-sm shrink-0 ${getScoreColor(best.score_percentage)}`}>
+                        {formatScore(best.score_percentage)}
+                      </span>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All submissions */}
         <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Submissions</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            All Submissions
+            {version && <span className="text-sm font-normal text-muted-foreground ml-2">— version {version.slice(0, 7)}</span>}
+          </h2>
           {submissions.length === 0 ? (
             <Card className="p-6 bg-card border-border text-center text-muted-foreground">
               No submissions found.
@@ -159,10 +287,24 @@ export default async function UserPage({ params, searchParams }: UserPageProps) 
               ))}
             </div>
           )}
-          {data.has_more && (
-            <p className="text-sm text-muted-foreground text-center mt-4">
-              Showing {submissions.length} of {data.total} submissions.
-            </p>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6" data-share-exclude="true">
+              {pageNum > 1 && (
+                <Link href={`/user/${encodeURIComponent(github_username)}?page=${pageNum - 1}${version ? `&version=${version}` : ''}`}>
+                  <Button variant="outline" size="sm">← Prev</Button>
+                </Link>
+              )}
+              <span className="text-sm text-muted-foreground">
+                Page {pageNum} of {totalPages} ({total} total)
+              </span>
+              {pageNum < totalPages && (
+                <Link href={`/user/${encodeURIComponent(github_username)}?page=${pageNum + 1}${version ? `&version=${version}` : ''}`}>
+                  <Button variant="outline" size="sm">Next →</Button>
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </main>
