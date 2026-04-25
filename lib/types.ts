@@ -225,6 +225,36 @@ export interface StatsResponse {
   models_count?: number;
 }
 
+export interface ContributorEntry {
+  github_username: string;
+  total_submissions: number;
+  unique_models: number;
+  best_score_percentage: number;
+  models: string[];
+  first_submission_at: string;
+  last_submission_at: string;
+  providers: string[];
+}
+
+export interface ContributorsResponse {
+  contributors: ContributorEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+}
+
+export interface UserProfileSummary {
+  github_username: string;
+  total_submissions: number;
+  unique_models: number;
+  unique_providers: number;
+  best_score_percentage: number;
+  first_submission_at: string | null;
+  last_submission_at: string | null;
+  bestScoresByModel: { model: string; provider: string; score_percentage: number; submission_id: string }[];
+}
+
 export interface BenchmarkVersion {
   id: string;
   semver: string | null;

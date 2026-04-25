@@ -1,4 +1,4 @@
-import { Github, ExternalLink, Info } from 'lucide-react'
+import { Github, ExternalLink, Info, Users } from 'lucide-react'
 import Link from 'next/link'
 
 export function Footer() {
@@ -19,6 +19,14 @@ export function Footer() {
                         >
                             <Info className="h-4 w-4" />
                             <span>About</span>
+                        </Link>
+                        <span className="text-border hidden md:inline">|</span>
+                        <Link
+                            href="/contributors"
+                            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <Users className="h-4 w-4" />
+                            <span>Contributors</span>
                         </Link>
                         <span className="text-border hidden md:inline">|</span>
                         <a
