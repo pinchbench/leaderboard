@@ -1,4 +1,5 @@
 import type {
+  ApiSubmissionDetail,
   LeaderboardResponse,
   SubmissionDetailResponse,
   SubmissionsListResponse,
@@ -7,6 +8,7 @@ import type {
   ModelSubmissionsResponse,
   UserSubmissionsResponse,
 } from "@/lib/types";
+import { transformSubmission } from "@/lib/transforms";
 
 const API_BASE = "https://api.pinchbench.com/api";
 
@@ -62,6 +64,24 @@ export async function fetchSubmission(
   id: string,
 ): Promise<SubmissionDetailResponse> {
   return fetchJson<SubmissionDetailResponse>(`/submissions/${id}`);
+}
+
+export async function fetchBestSubmissionDetails(
+  submissionIds: string[],
+): Promise<ApiSubmissionDetail[]> {
+  const uniqueIds = [...new Set(submissionIds.filter(Boolean))];
+  const responses = await Promise.allSettled(
+    uniqueIds.map((id) => fetchSubmission(id)),
+  );
+
+  return responses.flatMap((response) =>
+    response.status === "fulfilled" ? [response.value.submission] : [],
+  );
+}
+
+export async function fetchTransformedBestSubmissions(submissionIds: string[]) {
+  const submissions = await fetchBestSubmissionDetails(submissionIds);
+  return submissions.map((submission) => transformSubmission(submission));
 }
 
 export async function fetchSubmissions(

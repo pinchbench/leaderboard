@@ -21,7 +21,7 @@ interface ModelRadarProps {
   scoreMode: 'best' | 'average'
 }
 
-const MAX_SELECTED = 4
+const MAX_SELECTED = 3
 
 // Distinct colors for the overlay lines (not provider-based since overlays need contrast)
 const RADAR_COLORS = [
@@ -169,6 +169,11 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
     return { metrics: metricsMap, radarData: data }
   }, [entries, scoreMode, selectedModels])
 
+  const selectedEntries = useMemo(
+    () => selectedModels.map((model) => entries.find((entry) => entry.model === model)).filter(Boolean) as LeaderboardEntry[],
+    [entries, selectedModels]
+  )
+
   const toggleModel = (model: string) => {
     setSelectedModels(prev => {
       let next: string[]
@@ -206,12 +211,10 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground mb-1">
-        Multi-Dimensional Model Comparison
+        Model Comparison Tool
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Select up to {MAX_SELECTED} models to compare across score, cost efficiency (cheaper = better),
-        speed (faster = better), and consistency (avg/best score ratio).
-        All axes are normalized to 0-100.
+        Select 2-{MAX_SELECTED} models to compare overall score, speed, cost, and normalized efficiency metrics side by side.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -358,22 +361,46 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Metric</th>
-                        {selectedModels.map((model, i) => (
-                          <th key={model} className="text-right py-1.5 px-2 font-medium" style={{ color: RADAR_COLORS[i] }}>
-                            {model}
+                        {selectedEntries.map((entry, i) => (
+                          <th key={entry.model} className="text-right py-1.5 px-2 font-medium" style={{ color: RADAR_COLORS[i] }}>
+                            {entry.model}
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {['Score', 'Cost Efficiency', 'Speed', 'Consistency'].map((axis) => (
+                      <tr className="border-b border-border/50">
+                        <td className="py-1.5 px-2 text-muted-foreground">Overall</td>
+                        {selectedEntries.map((entry) => (
+                          <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
+                            {entry.percentage.toFixed(1)}%
+                          </td>
+                        ))}
+                      </tr>
+                      <tr className="border-b border-border/50">
+                        <td className="py-1.5 px-2 text-muted-foreground">Cost per run</td>
+                        {selectedEntries.map((entry) => (
+                          <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
+                            {entry.best_cost_usd == null ? '-' : `$${entry.best_cost_usd.toFixed(3)}`}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr className="border-b border-border/50">
+                        <td className="py-1.5 px-2 text-muted-foreground">Avg time</td>
+                        {selectedEntries.map((entry) => (
+                          <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
+                            {entry.average_execution_time_seconds == null ? '-' : `${(entry.average_execution_time_seconds / 60).toFixed(1)}m`}
+                          </td>
+                        ))}
+                      </tr>
+                      {['Cost Efficiency', 'Speed', 'Consistency'].map((axis) => (
                         <tr key={axis} className="border-b border-border/50">
                           <td className="py-1.5 px-2 text-muted-foreground">{axis}</td>
-                          {selectedModels.map((model) => {
+                          {selectedEntries.map((entry) => {
                             const dataPoint = radarData.find(d => d.axis === axis)
-                            const value = dataPoint?.[model] as number | undefined
+                            const value = dataPoint?.[entry.model] as number | undefined
                             return (
-                              <td key={model} className="text-right py-1.5 px-2 font-medium text-foreground">
+                              <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
                                 {value != null ? value : '-'}
                               </td>
                             )

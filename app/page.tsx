@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { fetchLeaderboard, fetchBenchmarkVersions } from '@/lib/api'
+import { fetchLeaderboard, fetchBenchmarkVersions, fetchTransformedBestSubmissions } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
+import { enrichEntriesWithSubmissions, getCategoryChampionBadges, getQuickRecommendations } from '@/lib/recommendations'
 import { LeaderboardView } from '@/components/leaderboard-view'
 
 interface HomeProps {
@@ -51,6 +52,11 @@ export default async function Home({ searchParams }: HomeProps) {
     fetchBenchmarkVersions(),
   ])
   const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
+  const topCandidateIds = entries.slice(0, 40).map((entry) => entry.submission_id)
+  const topSubmissions = await fetchTransformedBestSubmissions(topCandidateIds)
+  const enrichedEntries = enrichEntriesWithSubmissions(entries, topSubmissions)
+  const quickPicks = getQuickRecommendations(enrichedEntries)
+  const championBadges = Object.fromEntries(getCategoryChampionBadges(enrichedEntries))
   const latestTimestamp = entries.reduce((latest, entry) => {
     const current = new Date(entry.timestamp).getTime()
     return Number.isNaN(current) ? latest : Math.max(latest, current)
@@ -73,6 +79,8 @@ export default async function Home({ searchParams }: HomeProps) {
       versions={versionsResponse.versions}
       currentVersion={version ?? null}
       officialOnly={officialOnly}
+      quickPicks={quickPicks}
+      championBadges={championBadges}
     />
   )
 }
