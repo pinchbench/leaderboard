@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { fetchLeaderboard } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
+import { getScoreColorHex } from '@/lib/scores'
 
 export const runtime = 'edge'
 
@@ -20,12 +21,6 @@ const COLORS = {
   yellow: '#eab308',
   red: '#ef4444',
   primary: '#3b82f6',
-}
-
-function getScoreColor(pct: number): string {
-  if (pct >= 85) return COLORS.green
-  if (pct >= 70) return COLORS.yellow
-  return COLORS.red
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
@@ -237,7 +232,7 @@ export async function GET(request: Request) {
                         style={{
                           width: `${entry.percentage}%`,
                           height: '100%',
-                          backgroundColor: getScoreColor(entry.percentage),
+                          backgroundColor: getScoreColorHex(entry.percentage),
                           borderRadius: '10px',
                         }}
                       />
@@ -250,7 +245,7 @@ export async function GET(request: Request) {
                   style={{
                     fontSize: '15px',
                     fontWeight: 700,
-                    color: view === 'success' ? getScoreColor(entry.percentage) : COLORS.text,
+                    color: view === 'success' ? getScoreColorHex(entry.percentage) : COLORS.text,
                     width: '80px',
                     textAlign: 'right',
                   }}
