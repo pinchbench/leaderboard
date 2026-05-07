@@ -208,6 +208,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         <div className="min-h-screen bg-background">
             <LeaderboardHeader
                 entries={entries}
+                filteredEntryCount={headerEntries.length}
                 totalRuns={totalRuns}
                 versions={versions}
                 currentVersion={currentVersion}
