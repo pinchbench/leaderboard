@@ -11,6 +11,10 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 - **Clean tabbed interface** for Success Rate, Speed, and Cost views
 - **Crab-themed rankings** - Lobster for #1, Crab for #2, Shrimp for #3
 - **Visual bar chart** showing model performance at a glance
+- **Quick Picks** recommendation cards for best overall, fastest, cheapest, best value, coding, and data-oriented models
+- **Best-for landing pages** at `/best-for/coding`, `/best-for/data-analysis`, and `/best-for/budget` with SEO-focused copy and top-5 comparisons
+- **Category champion badges** on leaderboard rows for models that lead task categories
+- **Model comparison tool** in the Graphs tab for comparing 2-3 selected models across score, cost, speed, and efficiency
 - **Simplified table** with essential metrics only
 - **Color-coded scores** (green/yellow/red) for quick assessment
 - **Provider color coding** with brand colors (Anthropic, OpenAI, Google, etc.)
@@ -24,6 +28,13 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 - **Grading type badges** (Automated, LLM Judge, Hybrid)
 - **Status indicators** for success, warnings, and timeouts
 - **Metadata display** including OpenClaw version and submission timestamp
+
+### Recommendations Data Flow
+
+- `/` fetches the leaderboard plus best-submission details for the top candidates, then derives category scores client-safe on the server with `lib/recommendations.ts`.
+- Quick Picks use existing leaderboard fields for overall, speed, cost, and value, and task-level submission scores for coding and data recommendations.
+- `/best-for/[slug]` reuses the same recommendation helpers so SEO landing pages and homepage badges stay consistent.
+- The current API supports this without a new endpoint. A future backend optimization could expose category aggregates directly on `/leaderboard` to avoid fetching submission details separately.
 
 ### Design Features
 
@@ -50,16 +61,19 @@ A streamlined, crab-themed benchmarking leaderboard for comparing LLM models as 
 ```
 ├── app/
 │   ├── page.tsx                    # Main leaderboard page
+│   ├── best-for/[slug]/page.tsx     # Use-case recommendation landing pages
 │   ├── submission/[id]/page.tsx    # Submission detail page
 │   ├── layout.tsx                  # Root layout
 │   └── globals.css                 # Global styles & theme
 ├── components/
-│   ├── leaderboard-table.tsx       # Main table component
+│   ├── simple-leaderboard.tsx      # Main table and bar chart component
+│   ├── quick-picks.tsx             # Recommendation cards
 │   ├── task-breakdown.tsx          # Expandable task list
 │   ├── score-gauge.tsx             # Circular score visualization
 │   └── ui/                         # shadcn/ui components
 ├── lib/
 │   ├── types.ts                    # TypeScript interfaces
+│   ├── recommendations.ts          # Best-for scoring and category badge helpers
 │   ├── mock-data.ts                # Sample benchmark data
 │   └── utils.ts                    # Utility functions
 ```

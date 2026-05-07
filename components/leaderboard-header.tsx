@@ -154,6 +154,12 @@ export function LeaderboardHeader({
               About
             </Link>
             <Link
+              href="/best-for/coding"
+              className="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+            >
+              Best For
+            </Link>
+            <Link
               href="/contributors"
               className="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"
             >

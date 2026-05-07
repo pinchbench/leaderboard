@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { LeaderboardEntry, BenchmarkVersion, SortMode, TaskResult } from '@/lib/types'
+import type { BestForBadge, LeaderboardEntry, BenchmarkVersion, RecommendationPick, SortMode, TaskResult } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissionClient } from '@/lib/api'
 import { calculateCategoryFilteredScore, calculateRanksByPercentage } from '@/lib/category-scores'
@@ -14,6 +14,7 @@ import { ScoreDistribution } from '@/components/score-distribution'
 import { ModelRadar } from '@/components/model-radar'
 import { LeaderboardHeader } from '@/components/leaderboard-header'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
+import { QuickPicks } from '@/components/quick-picks'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -36,9 +37,11 @@ interface LeaderboardViewProps {
     versions: BenchmarkVersion[]
     currentVersion: string | null
     officialOnly: boolean
+    quickPicks?: RecommendationPick[]
+    championBadges?: Record<string, BestForBadge[]>
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, quickPicks = [], championBadges = {} }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -416,33 +419,35 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                     </div>
                 ) : (
                     <>
-                    {categoryFilterActive && taskDataError ? (
-                        <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                            {taskDataError}
-                        </div>
-                    ) : null}
-                    {categoryFilterActive && taskDataLoading ? (
-                        <div className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                            Loading category-specific scores for {filteredEntries.length} models...
-                        </div>
-                    ) : null}
-                    <SimpleLeaderboard
-                        entries={categoryScoredEntries}
-                        view={view as 'success' | 'speed' | 'cost' | 'value'}
-                        scoreMode={scoreMode}
-                        sortMode={sortMode}
-                        maxCostFilter={maxCostFilter}
-                        showZeroCostResults={showZeroCostResults}
-                        benchmarkVersion={currentVersion}
-                        officialOnly={officialOnlyState}
-                        selectedCategories={selectedCategories}
-                        activeCategoryTaskCount={activeCategoryTaskCount}
-                        onScoreModeChange={setScoreMode}
-                        onSortModeChange={setSortMode}
-                        onMaxCostFilterChange={setMaxCostFilter}
-                        onShowZeroCostResultsChange={setShowZeroCostResults}
-                        onProviderClick={setProviderFilter}
-                    />
+                        {view === 'success' && <QuickPicks picks={quickPicks} />}
+                        {categoryFilterActive && taskDataError ? (
+                            <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                                {taskDataError}
+                            </div>
+                        ) : null}
+                        {categoryFilterActive && taskDataLoading ? (
+                            <div className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                                Loading category-specific scores for {filteredEntries.length} models...
+                            </div>
+                        ) : null}
+                        <SimpleLeaderboard
+                            entries={categoryScoredEntries}
+                            view={view as 'success' | 'speed' | 'cost' | 'value'}
+                            scoreMode={scoreMode}
+                            sortMode={sortMode}
+                            maxCostFilter={maxCostFilter}
+                            showZeroCostResults={showZeroCostResults}
+                            benchmarkVersion={currentVersion}
+                            officialOnly={officialOnlyState}
+                            championBadges={championBadges}
+                            selectedCategories={selectedCategories}
+                            activeCategoryTaskCount={activeCategoryTaskCount}
+                            onScoreModeChange={setScoreMode}
+                            onSortModeChange={setSortMode}
+                            onMaxCostFilterChange={setMaxCostFilter}
+                            onShowZeroCostResultsChange={setShowZeroCostResults}
+                            onProviderClick={setProviderFilter}
+                        />
                     </>
                 )}
             </main>

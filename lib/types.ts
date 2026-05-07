@@ -20,6 +20,34 @@ export interface LeaderboardEntry {
   official?: boolean;
 }
 
+export interface CategoryScore {
+  category: string;
+  scorePercentage: number;
+  taskCount: number;
+}
+
+export interface EnrichedLeaderboardEntry extends LeaderboardEntry {
+  categoryScores: CategoryScore[];
+}
+
+export interface BestForBadge {
+  key: string;
+  label: string;
+  icon: string;
+}
+
+export interface RecommendationPick {
+  key: string;
+  label: string;
+  shortLabel: string;
+  icon: string;
+  description: string;
+  href: string;
+  entry: LeaderboardEntry;
+  metricLabel: string;
+  metricValue: string;
+}
+
 export interface TaskResult {
   task_id: string;
   task_name: string;
