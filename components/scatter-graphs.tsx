@@ -23,6 +23,9 @@ type GraphTab = 'perf-vs-cost' | 'perf-vs-speed'
 interface ScatterGraphsProps {
   entries: LeaderboardEntry[]
   scoreMode: 'best' | 'average'
+  // Controlled from LeaderboardView so hidden state syncs with Header
+  hiddenProviders: Set<string>
+  onHiddenProvidersChange: (next: Set<string> | ((prev: Set<string>) => Set<string>)) => void
 }
 
 interface DataPoint {
@@ -285,16 +288,15 @@ function ProviderLegend({ providers, hiddenProviders, onToggle }: {
 
 // --- Main component ---
 
-export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
+export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenProvidersChange }: ScatterGraphsProps) {
   const [graphTab, setGraphTab] = useState<GraphTab>('perf-vs-cost')
-  const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
 
   const toggleProvider = (provider: string) => {
     if (provider === '__reset__') {
-      setHiddenProviders(new Set())
+      onHiddenProvidersChange(new Set())
       return
     }
-    setHiddenProviders(prev => {
+    onHiddenProvidersChange(prev => {
       const next = new Set(prev)
       if (next.has(provider)) {
         next.delete(provider)
@@ -404,28 +406,30 @@ export function ScatterGraphs({ entries, scoreMode }: ScatterGraphsProps) {
   return (
     <div>
       {/* Sub-tabs */}
-      <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
-        <button
-          onClick={() => setGraphTab('perf-vs-cost')}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            graphTab === 'perf-vs-cost'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Performance vs. Cost
-        </button>
-        <button
-          onClick={() => setGraphTab('perf-vs-speed')}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            graphTab === 'perf-vs-speed'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Performance vs. Speed
-        </button>
-      </div>
+      <nav className="flex items-center gap-1 -ml-2 mb-6" aria-label="Scatter graph tabs">
+        {([
+          ['perf-vs-cost', 'Performance vs. Cost'],
+          ['perf-vs-speed', 'Performance vs. Speed'],
+        ] as const).map(([tab, label]) => {
+          const isActive = graphTab === tab
+          return (
+            <button
+              key={tab}
+              onClick={() => setGraphTab(tab)}
+              className={`relative px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                isActive
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+              }`}
+            >
+              {isActive && (
+                <span className="absolute inset-x-1 -bottom-[1px] h-0.5 bg-primary rounded-full" />
+              )}
+              {label}
+            </button>
+          )
+        })}
+      </nav>
 
       {/* Chart title */}
       <h2 className="text-lg font-semibold text-foreground mb-1">
