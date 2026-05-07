@@ -393,6 +393,11 @@ export const CATEGORY_ICONS: Record<string, string> = {
   comprehension: "📖",
   context: "🧠",
   complex: "🔗",
+  meeting: "🤝",
+  navigation: "🧭",
+  file_ops: "📁",
+  log_analysis: "📋",
+  meeting_analysis: "🤝",
   other: "📌",
 };
 

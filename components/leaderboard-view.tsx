@@ -39,9 +39,10 @@ interface LeaderboardViewProps {
     officialOnly: boolean
     quickPicks?: RecommendationPick[]
     championBadges?: Record<string, BestForBadge[]>
+    maxTaskCount?: number
 }
 
-export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, quickPicks = [], championBadges = {} }: LeaderboardViewProps) {
+export function LeaderboardView({ entries, lastUpdated, versions, currentVersion, officialOnly, quickPicks = [], championBadges = {}, maxTaskCount = 0 }: LeaderboardViewProps) {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -340,6 +341,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 maxCostFilter={maxCostFilter}
                 showZeroCostResults={showZeroCostResults}
                 graphSubTab={graphSubTab}
+                maxTaskCount={maxTaskCount}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
                 onSortModeChange={setSortMode}

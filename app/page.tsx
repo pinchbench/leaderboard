@@ -57,6 +57,9 @@ export default async function Home({ searchParams }: HomeProps) {
   const enrichedEntries = enrichEntriesWithSubmissions(entries, topSubmissions)
   const quickPicks = getQuickRecommendations(enrichedEntries)
   const championBadges = Object.fromEntries(getCategoryChampionBadges(enrichedEntries))
+  const maxTaskCount = topSubmissions.length > 0
+    ? Math.max(...topSubmissions.map((s) => s.metadata.task_count))
+    : 0
   const latestTimestamp = entries.reduce((latest, entry) => {
     const current = new Date(entry.timestamp).getTime()
     return Number.isNaN(current) ? latest : Math.max(latest, current)
@@ -81,6 +84,7 @@ export default async function Home({ searchParams }: HomeProps) {
       officialOnly={officialOnly}
       quickPicks={quickPicks}
       championBadges={championBadges}
+      maxTaskCount={maxTaskCount}
     />
   )
 }

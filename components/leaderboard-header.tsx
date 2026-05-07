@@ -34,6 +34,7 @@ interface LeaderboardHeaderProps {
   maxCostFilter: string
   showZeroCostResults: boolean
   graphSubTab: GraphSubTab
+  maxTaskCount: number
   onViewChange: (view: ViewMode) => void
   onScoreModeChange: (mode: ScoreMode) => void
   onSortModeChange: (mode: SortMode) => void
@@ -75,6 +76,7 @@ export function LeaderboardHeader({
   maxCostFilter,
   showZeroCostResults,
   graphSubTab,
+  maxTaskCount,
   onViewChange,
   onScoreModeChange,
   onSortModeChange,
@@ -212,6 +214,12 @@ export function LeaderboardHeader({
                 <span className="font-semibold text-foreground">{filteredEntryCount}</span>
                 {' '}models
               </span>
+              {maxTaskCount > 0 && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 border border-border/50">
+                  <span className="font-semibold text-foreground">{maxTaskCount}</span>
+                  {' '}tasks
+                </span>
+              )}
               <Link
                 href={currentVersion
                   ? `/runs?version=${currentVersion}${officialOnly ? '' : '&official=false'}`

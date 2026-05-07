@@ -244,15 +244,15 @@ export function SimpleLeaderboard({
     if (badges.length === 0) return null
 
     return (
-      <span className="flex flex-wrap items-center gap-1">
+      <span className="flex flex-col items-start gap-1">
         {badges.slice(0, 3).map((badge) => (
           <span
             key={badge.key}
-            className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200"
+            className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200 whitespace-nowrap"
             title={`${badge.label} category champion`}
           >
             <span aria-hidden="true">👑</span>
-            <span aria-hidden="true">{badge.icon}</span>
+            {badge.icon !== '👑' && <span aria-hidden="true">{badge.icon}</span>}
             {badge.label}
           </span>
         ))}
@@ -520,23 +520,25 @@ export function SimpleLeaderboard({
                         className="block group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-72 flex items-center gap-2 flex-shrink-0">
+                          <div className="w-56 flex items-center gap-2 flex-shrink-0">
                             <span className="text-xl" title={`Rank ${entry.rank}`}>
                               {getCrabEmoji(entry.rank)}
                             </span>
                             <code className="text-xs font-mono text-foreground transition-colors truncate">
                               {entry.model}
                             </code>
-                            {renderBadges(entry)}
                             {entry.official === false && (
                               <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                                 Unofficial
                               </span>
                             )}
                           </div>
+                          <div className="w-44 flex-shrink-0">
+                            {renderBadges(entry)}
+                          </div>
                           <div className="flex-1 flex items-center gap-3">
-                            <div className="flex-1 space-y-2">
-                              <div className="bg-muted rounded-full h-7 relative overflow-hidden">
+                            <div className="flex-1 space-y-1.5">
+                              <div className="bg-muted rounded-full h-5 relative overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
                                   style={{
@@ -552,7 +554,7 @@ export function SimpleLeaderboard({
                                 </span>
                               </div>
                               {!categoryFilterActive && (
-                                <div className="bg-muted rounded-full h-7 relative overflow-hidden">
+                                <div className="bg-muted rounded-full h-5 relative overflow-hidden">
                                   <div
                                     className="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
                                     style={{
@@ -569,7 +571,7 @@ export function SimpleLeaderboard({
                                 </div>
                               )}
                             </div>
-                            <div className="w-24 text-right space-y-1.5">
+                            <div className="w-24 text-right space-y-1">
                               <div>
                                 <span
                                   className="text-sm font-bold"
@@ -675,6 +677,9 @@ export function SimpleLeaderboard({
                     Model
                   </th>
                   <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                    Badges
+                  </th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                     Provider
                   </th>
                   <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
@@ -721,13 +726,16 @@ export function SimpleLeaderboard({
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
                           <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
-                          {renderBadges(entry)}
+                          <span className="md:hidden">{renderBadges(entry)}</span>
                           {entry.official === false && (
                             <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                               Unofficial
                             </span>
                           )}
                         </Link>
+                      </td>
+                      <td className="hidden md:table-cell px-4 py-3">
+                        {renderBadges(entry)}
                       </td>
                       <td className="hidden md:table-cell px-4 py-3">
                         <button
