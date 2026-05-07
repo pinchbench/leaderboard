@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { LeaderboardEntry, BenchmarkVersion } from '@/lib/types'
+import type { LeaderboardEntry, BenchmarkVersion, SortMode } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
@@ -25,6 +25,7 @@ function parseCategoriesParam(raw: string | null): string[] {
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
+const VALID_SORT_MODES: SortMode[] = ['quality', 'value']
 
 interface LeaderboardViewProps {
     entries: LeaderboardEntry[]
@@ -52,6 +53,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
     const initialModelSearch = searchParams.get('model') || ''
+    const initialSortMode = VALID_SORT_MODES.includes(searchParams.get('sort') as SortMode)
+        ? (searchParams.get('sort') as SortMode)
+        : 'quality'
+    const initialBudget = searchParams.get('budget') || ''
+    const initialZeroCost = searchParams.get('zerocost') === 'true'
 
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
@@ -59,9 +65,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
-    // Hidden providers — managed here so Header counts stay in sync with graph legend toggles
     const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
     const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
+    const [sortMode, setSortModeState] = useState<SortMode>(initialSortMode)
+    const [maxCostFilter, setMaxCostFilterState] = useState<string>(initialBudget)
+    const [showZeroCostResults, setShowZeroCostResultsState] = useState<boolean>(initialZeroCost)
 
     // Helper to update URL params without full page reload
     const updateUrl = useCallback((updates: Record<string, string | null>) => {
@@ -77,6 +85,10 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         if (params.get('view') === 'success') params.delete('view')
         if (params.get('score') === 'best') params.delete('score')
         if (params.get('weights') !== 'open') params.delete('weights')
+        if (params.get('sort') === 'quality') params.delete('sort')
+        if (!params.get('budget')) params.delete('budget')
+        if (params.get('zerocost') !== 'true') params.delete('zerocost')
+        if (params.get('graph') === 'scatter') params.delete('graph')
         router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }, [searchParams, router, pathname])
 
@@ -115,6 +127,31 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ official: v ? null : 'false' })
     }, [updateUrl])
 
+    const setSortMode = useCallback((m: SortMode) => {
+        setSortModeState(m)
+        updateUrl({ sort: m })
+    }, [updateUrl])
+
+    const setMaxCostFilter = useCallback((v: string) => {
+        setMaxCostFilterState(v)
+        updateUrl({ budget: v || null })
+    }, [updateUrl])
+
+    const setShowZeroCostResults = useCallback((v: boolean) => {
+        setShowZeroCostResultsState(v)
+        updateUrl({ zerocost: v ? 'true' : null })
+    }, [updateUrl])
+
+    const setSelectedCategories = useCallback((cats: string[]) => {
+        const normalized = [...new Set(cats.map((c) => c.trim().toLowerCase()).filter(Boolean))]
+        updateUrl({ categories: normalized.length ? normalized.join(',') : null })
+    }, [updateUrl])
+
+    const selectedCategories = useMemo(
+        () => parseCategoriesParam(searchParams.get('categories')),
+        [searchParams]
+    )
+
     // Business-level filters only (provider filter, open weights).
     // Used for legend provider list and all charts/tables.
     const businessFilteredEntries = useMemo(() => {
@@ -124,15 +161,6 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
             return true
         })
     }, [entries, providerFilter, openWeightsOnly])
-    const selectedCategories = useMemo(
-        () => parseCategoriesParam(searchParams.get('categories')),
-        [searchParams]
-    )
-
-    const setSelectedCategories = useCallback((cats: string[]) => {
-        const normalized = [...new Set(cats.map((c) => c.trim().toLowerCase()).filter(Boolean))]
-        updateUrl({ categories: normalized.length ? normalized.join(',') : null })
-    }, [updateUrl])
 
     const filteredEntries = useMemo(() => {
         return entries.filter(entry => {
@@ -144,15 +172,13 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     }, [entries, providerFilter, openWeightsOnly, modelSearch])
 
     // Scatter-visible entries: business filters + legend-hidden providers.
-    // Used only for scatter graph: chart dots and header totalRuns.
     const scatterVisibleEntries = useMemo(() => {
         return businessFilteredEntries.filter(entry =>
             !hiddenProviders.has(entry.provider.toLowerCase())
         )
     }, [businessFilteredEntries, hiddenProviders])
 
-    // When business filters change, prune hiddenProviders to remove providers
-    // that are no longer present (e.g. after changing provider filter or open-weights).
+    // When business filters change, prune hiddenProviders
     const prevBusinessFiltersRef = useRef({ providerFilter, openWeightsOnly })
     useEffect(() => {
         const prev = prevBusinessFiltersRef.current
@@ -170,21 +196,17 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
         : undefined
 
-    // Which entries to show in the Header stats:
-    // - In scatter graph view: use scatterVisibleEntries (excludes legend-hidden providers)
-    // - Otherwise: use businessFilteredEntries (legend-hidden providers don't affect totals)
+    // Header stats entries
     const headerEntries =
         view === 'graphs' && graphSubTab === 'scatter' ? scatterVisibleEntries : businessFilteredEntries
 
     const totalRuns = useMemo(() => {
         return headerEntries.reduce((sum, entry) => sum + (entry.submission_count ?? 0), 0)
     }, [headerEntries])
-    const totalRuns = entries.reduce((acc, entry) => acc + (entry.submission_count || 1), 0)
 
     return (
         <div className="min-h-screen bg-background">
             <LeaderboardHeader
-                filteredEntryCount={headerEntries.length}
                 entries={entries}
                 filteredEntryCount={filteredEntries.length}
                 totalRuns={totalRuns}
@@ -195,40 +217,64 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 providerColor={providerColor}
                 view={view}
                 scoreMode={scoreMode}
+                sortMode={sortMode}
                 officialOnly={officialOnlyState}
                 openWeightsOnly={openWeightsOnly}
+                modelSearchValue={modelSearch}
+                maxCostFilter={maxCostFilter}
+                showZeroCostResults={showZeroCostResults}
+                graphSubTab={graphSubTab}
                 onViewChange={setView}
                 onScoreModeChange={setScoreMode}
+                onSortModeChange={setSortMode}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
                 onClearProviderFilter={() => setProviderFilter(null)}
                 onModelSearchChange={handleModelSearchChange}
-                modelSearchValue={modelSearch}
+                onMaxCostFilterChange={setMaxCostFilter}
+                onShowZeroCostResultsChange={setShowZeroCostResults}
             />
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            {/* Hero tagline */}
+            <section className="max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-2" data-share-exclude="true">
+                <h2 className="text-2xl md:text-4xl font-serif font-medium text-foreground leading-tight">
+                    The best <span className="text-orange-400">models</span> for your{' '}
+                    <a href="https://openclaw.ai/" target="_blank" rel="noopener noreferrer" className="italic hover:underline hover:text-orange-300 transition-colors">
+                        OpenClaw
+                    </a>{' '}
+                    agent.
+                </h2>
+            </section>
+
+            <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
                 {view === 'graphs' ? (
                     <div>
                         {/* Graph sub-tabs */}
-                        <div className="flex gap-1 rounded-lg border border-border bg-background p-1 w-fit mb-6">
+                        <nav className="flex items-center gap-1 -ml-2 mb-6" aria-label="Graph tabs">
                             {([
                                 ['scatter', 'Scatter Plots'],
                                 ['heatmap', 'Task Heatmap'],
                                 ['distribution', 'Score Distribution'],
                                 ['radar', 'Model Comparison'],
-                            ] as const).map(([tab, label]) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setGraphSubTab(tab)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${graphSubTab === tab
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
+                            ] as const).map(([tab, label]) => {
+                                const isActive = graphSubTab === tab
+                                return (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setGraphSubTab(tab)}
+                                        className={`relative px-3 py-2 rounded-md text-sm font-medium transition-all ${isActive
+                                            ? 'text-foreground'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                                            }`}
+                                    >
+                                        {isActive && (
+                                            <span className="absolute inset-x-1 -bottom-[1px] h-0.5 bg-primary rounded-full" />
+                                        )}
+                                        {label}
+                                    </button>
+                                )
+                            })}
+                        </nav>
 
                         {graphSubTab === 'scatter' && (
                             <ScatterGraphs
@@ -239,7 +285,6 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             />
                         )}
                         {graphSubTab === 'heatmap' && (
-                            <TaskHeatmap entries={businessFilteredEntries} scoreMode={scoreMode} />
                             <TaskHeatmap
                                 entries={filteredEntries}
                                 selectedCategories={selectedCategories}
@@ -260,9 +305,15 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                         entries={businessFilteredEntries}
                         view={view as 'success' | 'speed' | 'cost' | 'value'}
                         scoreMode={scoreMode}
+                        sortMode={sortMode}
+                        maxCostFilter={maxCostFilter}
+                        showZeroCostResults={showZeroCostResults}
                         benchmarkVersion={currentVersion}
                         officialOnly={officialOnlyState}
                         onScoreModeChange={setScoreMode}
+                        onSortModeChange={setSortMode}
+                        onMaxCostFilterChange={setMaxCostFilter}
+                        onShowZeroCostResultsChange={setShowZeroCostResults}
                         onProviderClick={setProviderFilter}
                     />
                 )}

@@ -40,11 +40,11 @@ export function ModelSearch({ entries, officialOnly, searchValue, onSearchChange
   }, [entries])
 
   return (
-    <div className="relative w-full max-w-sm">
+    <div className="relative w-full">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverPrimitive.Anchor asChild>
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70 pointer-events-none" />
             <input
               ref={inputRef}
               type="text"
@@ -57,7 +57,7 @@ export function ModelSearch({ entries, officialOnly, searchValue, onSearchChange
               onFocus={() => {
                 if (uniqueModels.length > 0) setOpen(true)
               }}
-              className="w-full bg-muted/50 border border-border rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full bg-muted/40 border border-border/80 rounded-lg pl-10 pr-4 py-2.5 text-sm placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
             />
           </div>
         </PopoverPrimitive.Anchor>

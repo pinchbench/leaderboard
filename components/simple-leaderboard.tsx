@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { DEFAULT_TABLE_ROW_LIMIT } from '@/lib/constants'
 import type { LeaderboardEntry, SortMode } from '@/lib/types'
@@ -16,9 +15,15 @@ interface SimpleLeaderboardProps {
   entries: LeaderboardEntry[]
   view: 'success' | 'speed' | 'cost' | 'value'
   scoreMode: 'best' | 'average'
+  sortMode: SortMode
+  maxCostFilter: string
+  showZeroCostResults: boolean
   benchmarkVersion?: string | null
   officialOnly: boolean
   onScoreModeChange?: (mode: 'best' | 'average') => void
+  onSortModeChange?: (mode: SortMode) => void
+  onMaxCostFilterChange?: (value: string) => void
+  onShowZeroCostResultsChange?: (value: boolean) => void
   onProviderClick?: (provider: string) => void
 }
 
@@ -86,19 +91,19 @@ export function SimpleLeaderboard({
   entries,
   view,
   scoreMode,
+  sortMode,
+  maxCostFilter,
+  showZeroCostResults,
   benchmarkVersion,
   officialOnly,
-  onScoreModeChange,
   onProviderClick,
 }: SimpleLeaderboardProps) {
   const [showAllEntries, setShowAllEntries] = useState(false)
-  const [showZeroCostResults, setShowZeroCostResults] = useState(false)
-  const [sortMode, setSortMode] = useState<SortMode>('quality')
-  const [maxCostFilter, setMaxCostFilter] = useState<string>('')
 
   const submissionHref = (submissionId: string) => (
     officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
   )
+
   const getSortScorePercentage = (entry: LeaderboardEntry) => {
     if (scoreMode === 'average') {
       return entry.average_score_percentage != null
@@ -237,41 +242,16 @@ export function SimpleLeaderboard({
           Models ranked by <strong>Value Score</strong> (success&nbsp;% ÷ cost per run).
           Higher = more bang for your buck. CPST = Cost Per Successful Task.
         </p>
-        <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
+        <p className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5">
           <Info className="h-3 w-3 flex-shrink-0" />
           Models without cost data are excluded. CPST is estimated from best run score (~40 tasks).
         </p>
 
-        {/* Budget Filter */}
-        <div className="flex items-center gap-3 mb-6 p-3 rounded-lg border border-border bg-muted/20">
-          <span className="text-sm font-medium text-foreground whitespace-nowrap">💰 Budget filter</span>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Max cost per run: $</span>
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              placeholder="e.g. 0.50"
-              value={maxCostFilter}
-              onChange={(e) => setMaxCostFilter(e.target.value)}
-              className="w-28 px-2 py-1 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            {maxCostFilter && (
-              <button
-                type="button"
-                onClick={() => setMaxCostFilter('')}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                ✕ Clear
-              </button>
-            )}
+        {maxCost != null && (
+          <div className="mb-4 px-3 py-2 rounded-lg border border-primary/20 bg-primary/5 text-xs text-primary font-medium">
+            Showing {displayedEntries.length} models ≤ ${maxCost.toFixed(2)}/run
           </div>
-          {maxCost != null && (
-            <span className="text-xs text-primary font-medium">
-              Showing {displayedEntries.length} models ≤ ${maxCost.toFixed(2)}/run
-            </span>
-          )}
-        </div>
+        )}
 
         <ShareableWrapper
           title="Value Score Rankings"
@@ -424,81 +404,13 @@ export function SimpleLeaderboard({
               Success rate by model
             </h2>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Sort mode toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
-              <button
-                onClick={() => setSortMode('quality')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortMode === 'quality'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-                  }`}
-              >
-                Max Quality
-              </button>
-              <button
-                onClick={() => setSortMode('value')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortMode === 'value'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-                  }`}
-              >
-                💎 Best Value
-              </button>
-            </div>
-            {/* Score sort toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
-              <button
-                onClick={() => onScoreModeChange?.('best')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'best'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-                  }`}
-              >
-                Sort: Best
-              </button>
-              <button
-                onClick={() => onScoreModeChange?.('average')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${scoreMode === 'average'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-                  }`}
-              >
-                Sort: Avg
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Budget Filter for success view */}
-        <div className="flex items-center gap-3 mb-4 p-2 rounded-lg border border-border bg-muted/10">
-          <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">💰 Budget filter:</span>
-          <span className="text-xs text-muted-foreground">Max $</span>
-          <input
-            type="number"
-            min="0"
-            step="0.1"
-            placeholder="no limit"
-            value={maxCostFilter}
-            onChange={(e) => setMaxCostFilter(e.target.value)}
-            className="w-24 px-2 py-0.5 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <span className="text-xs text-muted-foreground">per run</span>
-          {maxCostFilter && (
-            <button
-              type="button"
-              onClick={() => setMaxCostFilter('')}
-              className="text-xs text-muted-foreground hover:text-foreground ml-1"
-            >
-              ✕
-            </button>
-          )}
-          {maxCost != null && (
-            <span className="text-xs text-primary font-medium">
-              {displayedEntries.length} models shown
-            </span>
-          )}
-        </div>
+        {maxCost != null && (
+          <div className="mb-4 px-3 py-2 rounded-lg border border-primary/20 bg-primary/5 text-xs text-primary font-medium">
+            Showing {displayedEntries.length} models ≤ ${maxCost.toFixed(2)}/run
+          </div>
+        )}
 
         <p className="text-sm text-muted-foreground mb-2">
           Percentage of{' '}
@@ -508,8 +420,8 @@ export function SimpleLeaderboard({
             target="_blank"
           >
             tasks
-          </Link> completed successfully across standardized
-          OpenClaw agent tests
+          </Link>{' '}
+          completed successfully across standardized OpenClaw agent tests
         </p>
         <p className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5">
           <Info className="h-3 w-3 flex-shrink-0" />
@@ -841,7 +753,7 @@ export function SimpleLeaderboard({
   }
 
   // ----------------------------------------------------------------
-  // SPEED / COST views (unchanged)
+  // SPEED / COST views
   // ----------------------------------------------------------------
   const formatValue = (entry: LeaderboardEntry) => {
     if (view === 'speed') {
@@ -868,31 +780,6 @@ export function SimpleLeaderboard({
             {view === 'speed' ? 'Speed by model' : 'Cost by model'}
           </h2>
         </div>
-        {view === 'cost' && zeroCostEntries.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="show-zero-cost"
-              checked={showZeroCostResults}
-              onCheckedChange={(checked) => setShowZeroCostResults(checked === true)}
-            />
-            <label
-              htmlFor="show-zero-cost"
-              className="text-sm text-muted-foreground cursor-pointer"
-            >
-              Show $0 Results
-            </label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs p-3">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Cost tracking can be unreliable for some providers, resulting in $0 values being saved incorrectly. These results are hidden by default.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         {view === 'speed'

@@ -32,11 +32,11 @@ export function XFollowBanner() {
     }
 
     return (
-        <div className="bg-gradient-to-r from-blue-500/15 via-blue-500/10 to-blue-500/15 border-b border-blue-500/30">
+        <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-b border-primary/30">
             <div className="max-w-7xl mx-auto px-6 py-2.5 relative">
                 <p className="text-center text-sm pr-8 flex items-center justify-center gap-2">
                     <svg
-                        className="h-4 w-4 text-blue-500"
+                        className="h-4 w-4 text-primary"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                         aria-hidden="true"
@@ -49,14 +49,14 @@ export function XFollowBanner() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={handleClick}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 ml-1 rounded-full bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 ml-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
                     >
                         Follow @pinchbench →
                     </a>
                 </p>
                 <button
                     onClick={handleDismiss}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-blue-500/10 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
                     aria-label="Dismiss banner"
                 >
                     <X className="h-4 w-4" />

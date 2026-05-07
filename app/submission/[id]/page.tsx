@@ -160,7 +160,7 @@ export default async function SubmissionPage({ params, searchParams }: Submissio
                       submission.rank <= 3
                         ? "border-yellow-500 text-yellow-500"
                         : submission.rank <= 10
-                        ? "border-blue-500 text-blue-500"
+                        ? "border-primary text-primary"
                         : "border-muted-foreground text-muted-foreground"
                     }`}
                     aria-label={`Rank ${submission.rank} out of all submissions`}
