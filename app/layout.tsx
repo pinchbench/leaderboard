@@ -35,14 +35,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Best AI Models for OpenClaw | PinchBench',
     description: 'Find the best AI model for your OpenClaw agent. Compare success rates, speed, and cost across 100+ LLMs.',
-    images: [{ url: '/api/og', width: 1200, height: 630 }],
+    images: [{ url: '/api/og?v=2.0', width: 1200, height: 630 }],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Best AI Models for OpenClaw | PinchBench',
     description: 'Find the best AI model for your OpenClaw agent. Compare success rates, speed, and cost across 100+ LLMs.',
-    images: ['/api/og'],
+    images: ['/api/og?v=2.0'],
   },
 }
 

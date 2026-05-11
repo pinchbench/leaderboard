@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { fetchLeaderboard } from '@/lib/api'
+import { fetchLeaderboard, fetchBenchmarkVersions } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { getScoreColorHex } from '@/lib/scores'
 
@@ -41,8 +41,14 @@ export async function GET(request: Request) {
   const officialOnly = searchParams.get('official') !== 'false'
 
   try {
-    const response = await fetchLeaderboard(version, { officialOnly })
+    const [response, versionsResponse] = await Promise.all([
+      fetchLeaderboard(version, { officialOnly }),
+      fetchBenchmarkVersions(),
+    ])
     const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
+    const currentVersion = versionsResponse.versions.find(v => v.is_current)
+    const versionLabel = currentVersion?.semver ?? version ?? '2.0'
+    const taskCount = currentVersion?.release_notes?.match(/(\d+) tasks/)?.[1] ?? '148'
 
     // Get top entries based on view
     let title = 'Success Rate Leaderboard'
@@ -118,7 +124,7 @@ export async function GET(request: Request) {
                     color: COLORS.muted,
                   }}
                 >
-                   OpenClaw LLM Model Benchmarking
+                  {`OpenClaw LLM Model Benchmarking · v${versionLabel} · ${taskCount} tasks`}
                 </span>
               </div>
             </div>
@@ -144,7 +150,7 @@ export async function GET(request: Request) {
                   color: COLORS.muted,
                 }}
               >
-                {entries.length} models benchmarked
+                {`v${versionLabel} · ${entries.length} models · ${taskCount} tasks`}
               </span>
             </div>
           </div>

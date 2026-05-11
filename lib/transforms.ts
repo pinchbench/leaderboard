@@ -29,12 +29,12 @@ export const normalizeProvider = (provider: string, model?: string): string => {
 /**
  * Estimate the number of successful tasks from a score percentage.
  * Uses best_score_percentage * max_score (from API) — but since max_score
- * is not in ApiLeaderboardEntry, we approximate using a standard task count of 40
- * (the current PinchBench task count). Falls back to null if score is unavailable.
+ * is not in ApiLeaderboardEntry, we approximate using a standard task count of 148
+ * (the current PinchBench v2.0 task count). Falls back to null if score is unavailable.
  */
 function estimateSuccessfulTasks(
   scorePercentage: number | null | undefined,
-  taskCount = 40,
+  taskCount = 148,
 ): number | null {
   if (scorePercentage == null) return null;
   return Math.max(1, Math.round(scorePercentage * taskCount));

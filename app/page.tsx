@@ -14,6 +14,8 @@ export async function generateMetadata({ searchParams }: HomeProps): Promise<Met
   if (view) ogParams.set('view', view)
   if (version) ogParams.set('version', version)
   if (official === 'false') ogParams.set('official', 'false')
+  // Cache-bust with benchmark version so social platforms re-fetch on new releases
+  ogParams.set('v', '2.0')
   const ogUrl = `/api/og${ogParams.toString() ? `?${ogParams.toString()}` : ''}`
 
   const viewTitles: Record<string, string> = {
