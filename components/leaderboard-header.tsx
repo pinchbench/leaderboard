@@ -20,8 +20,7 @@ interface LeaderboardHeaderProps {
   versions: BenchmarkVersion[]
   currentVersion: string | null
   lastUpdated: string
-  providerFilter: string | null
-  providerColor?: string
+  providerFilters: string[]
   view: ViewMode
   scoreMode: ScoreMode
   sortMode: SortMode
@@ -40,8 +39,9 @@ interface LeaderboardHeaderProps {
   onSortModeChange: (mode: SortMode) => void
   onOfficialOnlyChange: (officialOnly: boolean) => void
   onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
+  onProviderToggle: (provider: string) => void
+  onClearProviders: () => void
   onCategoriesChange: (categories: string[]) => void
-  onClearProviderFilter: () => void
   onModelSearchChange: (value: string) => void
   onMaxCostFilterChange: (value: string) => void
   onShowZeroCostResultsChange: (value: boolean) => void
@@ -62,8 +62,7 @@ export function LeaderboardHeader({
   versions,
   currentVersion,
   lastUpdated,
-  providerFilter,
-  providerColor,
+  providerFilters,
   view,
   scoreMode,
   sortMode,
@@ -82,8 +81,9 @@ export function LeaderboardHeader({
   onSortModeChange,
   onOfficialOnlyChange,
   onOpenWeightsOnlyChange,
+  onProviderToggle,
+  onClearProviders,
   onCategoriesChange,
-  onClearProviderFilter,
   onModelSearchChange,
   onMaxCostFilterChange,
   onShowZeroCostResultsChange,
@@ -122,33 +122,34 @@ export function LeaderboardHeader({
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <FilterPanel
-              versions={versions}
-              currentVersion={currentVersion}
-              view={view}
-              scoreMode={scoreMode}
-              sortMode={sortMode}
-              officialOnly={officialOnly}
-              openWeightsOnly={openWeightsOnly}
-              providerFilter={providerFilter}
-              providerColor={providerColor}
-              maxCostFilter={maxCostFilter}
-              showZeroCostResults={showZeroCostResults}
-              lastUpdated={lastUpdated}
-              onVersionChange={(version) => {
-                // This is handled by VersionSelector internally via router
-                // We pass a no-op since VersionSelector manages its own navigation
-              }}
-              onScoreModeChange={onScoreModeChange}
-              onSortModeChange={onSortModeChange}
-              onOfficialOnlyChange={onOfficialOnlyChange}
-              onOpenWeightsOnlyChange={onOpenWeightsOnlyChange}
-              onClearProviderFilter={onClearProviderFilter}
-              onMaxCostFilterChange={onMaxCostFilterChange}
-              onShowZeroCostResultsChange={onShowZeroCostResultsChange}
-            />
+{/* Actions */}
+           <div className="flex items-center gap-2 flex-shrink-0">
+             <FilterPanel
+               entries={entries}
+               versions={versions}
+               currentVersion={currentVersion}
+               view={view}
+               scoreMode={scoreMode}
+               sortMode={sortMode}
+               officialOnly={officialOnly}
+               openWeightsOnly={openWeightsOnly}
+               providerFilters={providerFilters}
+               maxCostFilter={maxCostFilter}
+               showZeroCostResults={showZeroCostResults}
+               lastUpdated={lastUpdated}
+               onVersionChange={(version) => {
+                 // This is handled by VersionSelector internally via router
+                 // We pass a no-op since VersionSelector manages its own navigation
+               }}
+               onScoreModeChange={onScoreModeChange}
+               onSortModeChange={onSortModeChange}
+               onOfficialOnlyChange={onOfficialOnlyChange}
+               onOpenWeightsOnlyChange={onOpenWeightsOnlyChange}
+               onProviderToggle={onProviderToggle}
+               onClearProviders={onClearProviders}
+               onMaxCostFilterChange={onMaxCostFilterChange}
+               onShowZeroCostResultsChange={onShowZeroCostResultsChange}
+             />
             <Link
               href="/about"
               className="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"

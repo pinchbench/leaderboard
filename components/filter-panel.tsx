@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
-import { SlidersHorizontal, X, Tag, Info } from 'lucide-react'
-import type { BenchmarkVersion } from '@/lib/types'
+import { useMemo, useState } from 'react'
+import { SlidersHorizontal, X, Tag, Info, Search as SearchIcon, ChevronDown, ChevronRight, Filter } from 'lucide-react'
+import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
+import { PROVIDER_COLORS } from '@/lib/types'
 import { VersionSelector } from '@/components/version-selector'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -10,12 +11,15 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 type SortMode = 'quality' | 'value'
 
 interface FilterPanelProps {
+  entries: LeaderboardEntry[]
   versions: BenchmarkVersion[]
   currentVersion: string | null
   view: ViewMode
@@ -23,8 +27,7 @@ interface FilterPanelProps {
   sortMode: SortMode
   officialOnly: boolean
   openWeightsOnly: boolean
-  providerFilter: string | null
-  providerColor?: string
+  providerFilters: string[]
   maxCostFilter: string
   showZeroCostResults: boolean
   lastUpdated: string
@@ -33,12 +36,14 @@ interface FilterPanelProps {
   onSortModeChange: (mode: SortMode) => void
   onOfficialOnlyChange: (officialOnly: boolean) => void
   onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
-  onClearProviderFilter: () => void
+  onProviderToggle: (provider: string) => void
+  onClearProviders: () => void
   onMaxCostFilterChange: (value: string) => void
   onShowZeroCostResultsChange: (value: boolean) => void
 }
 
 export function FilterPanel({
+  entries,
   versions,
   currentVersion,
   view,
@@ -46,8 +51,7 @@ export function FilterPanel({
   sortMode,
   officialOnly,
   openWeightsOnly,
-  providerFilter,
-  providerColor,
+  providerFilters,
   maxCostFilter,
   showZeroCostResults,
   lastUpdated,
@@ -55,21 +59,43 @@ export function FilterPanel({
   onSortModeChange,
   onOfficialOnlyChange,
   onOpenWeightsOnlyChange,
-  onClearProviderFilter,
+  onProviderToggle,
+  onClearProviders,
   onMaxCostFilterChange,
   onShowZeroCostResultsChange,
 }: FilterPanelProps) {
+  const [providerSearch, setProviderSearch] = useState('')
+  const [providersOpen, setProvidersOpen] = useState(true)
+
+  // Extract unique providers from entries, sorted by count
+  const providers = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const entry of entries) {
+      const p = entry.provider.toLowerCase()
+      counts.set(p, (counts.get(p) || 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, displayName: name.charAt(0).toUpperCase() + name.slice(1), count }))
+  }, [entries])
+
+  const filteredProviders = useMemo(() => {
+    if (!providerSearch) return providers
+    const q = providerSearch.toLowerCase()
+    return providers.filter((p) => p.name.includes(q))
+  }, [providers, providerSearch])
+
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (!officialOnly) count++
     if (openWeightsOnly) count++
-    if (providerFilter) count++
+    if (providerFilters.length > 0) count += providerFilters.length
     if (maxCostFilter) count++
     if (showZeroCostResults) count++
     if (scoreMode === 'average') count++
     if (sortMode === 'value') count++
     return count
-  }, [officialOnly, openWeightsOnly, providerFilter, maxCostFilter, showZeroCostResults, scoreMode, sortMode])
+  }, [officialOnly, openWeightsOnly, providerFilters, maxCostFilter, showZeroCostResults, scoreMode, sortMode])
 
   const showBudgetFilter = view === 'success' || view === 'value'
   const showSortMode = view === 'success'
@@ -316,30 +342,112 @@ export function FilterPanel({
 
           <Separator />
 
-          {/* Active Provider Filter */}
-          {providerFilter && (
-            <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">Active Provider</h3>
+          {/* Providers Section */}
+          <section className="space-y-3">
+            <button
+              onClick={() => setProvidersOpen(!providersOpen)}
+              className="flex items-center gap-2 w-full text-left"
+            >
+              {providersOpen ? (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
               <div className="flex items-center gap-2">
-                <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border"
-                  style={{
-                    color: providerColor,
-                    borderColor: providerColor,
-                  }}
-                >
-                  {providerFilter}
-                  <button
-                    onClick={onClearProviderFilter}
-                    className="ml-1 hover:opacity-70 transition-opacity"
-                    aria-label="Clear provider filter"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
+                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">Providers</h3>
+                <span className="text-xs text-muted-foreground">({providers.length})</span>
               </div>
-            </section>
-          )}
+            </button>
+
+            {providersOpen && (
+              <div className="space-y-3">
+                {/* Search input */}
+                <div className="relative">
+                  <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search providers..."
+                    value={providerSearch}
+                    onChange={(e) => setProviderSearch(e.target.value)}
+                    className="h-8 pl-8 pr-8 text-xs"
+                  />
+                  {providerSearch && (
+                    <button
+                      onClick={() => setProviderSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Active provider filters badges */}
+                {providerFilters.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {providerFilters.map((p) => {
+                      const display = providers.find(pr => pr.name === p.toLowerCase())?.displayName || (p.charAt(0).toUpperCase() + p.slice(1))
+                      const color = PROVIDER_COLORS[p.toLowerCase()] || '#666'
+                      return (
+                        <div
+                          key={p}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/50 text-[10px] font-medium"
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="truncate max-w-[80px]">{display}</span>
+                          <button
+                            onClick={() => onProviderToggle(p)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Provider checkbox list */}
+                <div className="max-h-64 overflow-y-auto space-y-0.5 pr-1">
+                  {filteredProviders.map((provider) => {
+                    const isActive = providerFilters.some(p => p.toLowerCase() === provider.name)
+                    const color = PROVIDER_COLORS[provider.name] || '#666'
+                    return (
+                      <label
+                        key={provider.name}
+                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md text-xs cursor-pointer transition-colors ${
+                          isActive
+                            ? 'bg-secondary/70 text-foreground'
+                            : 'text-muted-foreground hover:bg-secondary/30 hover:text-foreground'
+                        }`}
+                      >
+                        <Checkbox
+                          checked={isActive}
+                          onCheckedChange={() => onProviderToggle(provider.name)}
+                          className="h-3.5 w-3.5"
+                        />
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="flex-1 truncate">{provider.displayName}</span>
+                        <span className="text-[10px] text-muted-foreground tabular-nums">
+                          {provider.count}
+                        </span>
+                      </label>
+                    )
+                  })}
+                  {filteredProviders.length === 0 && (
+                    <p className="text-xs text-muted-foreground px-2 py-2 text-center">
+                      No providers match "{providerSearch}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
         </div>
 
         {/* Footer */}

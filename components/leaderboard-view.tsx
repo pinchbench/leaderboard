@@ -26,6 +26,12 @@ function parseCategoriesParam(raw: string | null): string[] {
     return [...new Set(parts)]
 }
 
+function parseProvidersParam(raw: string | null): string[] {
+    if (!raw?.trim()) return []
+    const parts = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    return [...new Set(parts)]
+}
+
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
@@ -54,7 +60,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialScoreMode = VALID_SCORE_MODES.includes(searchParams.get('score') as ScoreMode)
         ? (searchParams.get('score') as ScoreMode)
         : 'best'
-    const initialProvider = searchParams.get('provider') || null
+    const initialProviders = parseProvidersParam(searchParams.get('provider'))
     const initialOpenWeights = searchParams.get('weights') === 'open'
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
@@ -69,7 +75,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [view, setViewState] = useState<ViewMode>(initialView)
     const [officialOnlyState, setOfficialOnlyState] = useState<boolean>(officialOnly)
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
-    const [providerFilter, setProviderFilterState] = useState<string | null>(initialProvider)
+    const [providerFilters, setProviderFiltersState] = useState<string[]>(initialProviders)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
     const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
@@ -112,10 +118,31 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ score: m })
     }, [updateUrl])
 
-    const setProviderFilter = useCallback((p: string | null) => {
-        setProviderFilterState(p)
-        updateUrl({ provider: p })
-    }, [updateUrl])
+    const setProviderFilters = useCallback((providers: string[]) => {
+        setProviderFiltersState(providers)
+    }, [])
+
+    const toggleProviderFilter = useCallback((provider: string) => {
+        const lower = provider.toLowerCase()
+        setProviderFiltersState(prev => {
+            return prev.includes(lower)
+                ? prev.filter(p => p !== lower)
+                : [...prev, lower]
+        })
+    }, [])
+
+    const clearProviderFilters = useCallback(() => {
+        setProviderFiltersState([])
+    }, [])
+
+    // Sync provider filters to URL
+    useEffect(() => {
+        const param = providerFilters.length ? providerFilters.join(',') : null
+        const current = searchParams.get('provider')
+        if ((param && current !== param) || (!param && current)) {
+            updateUrl({ provider: param })
+        }
+    }, [providerFilters])
 
     const setOpenWeightsOnly = useCallback((v: boolean) => {
         setOpenWeightsOnlyState(v)
@@ -168,20 +195,20 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     // Used for legend provider list and all charts/tables.
     const businessFilteredEntries = useMemo(() => {
         return entries.filter(entry => {
-            if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
+            if (providerFilters.length > 0 && !providerFilters.includes(entry.provider.toLowerCase())) return false
             if (openWeightsOnly && entry.weights !== 'Open') return false
             return true
         })
-    }, [entries, providerFilter, openWeightsOnly])
+    }, [entries, providerFilters, openWeightsOnly])
 
     const filteredEntries = useMemo(() => {
         return entries.filter(entry => {
-            if (providerFilter && entry.provider.toLowerCase() !== providerFilter.toLowerCase()) return false
+            if (providerFilters.length > 0 && !providerFilters.includes(entry.provider.toLowerCase())) return false
             if (openWeightsOnly && entry.weights !== 'Open') return false
             if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
             return true
         })
-    }, [entries, providerFilter, openWeightsOnly, modelSearch])
+    }, [entries, providerFilters, openWeightsOnly, modelSearch])
 
     // Scatter-visible entries: business filters + legend-hidden providers.
     const scatterVisibleEntries = useMemo(() => {
@@ -191,18 +218,18 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     }, [businessFilteredEntries, hiddenProviders])
 
     // When business filters change, prune hiddenProviders
-    const prevBusinessFiltersRef = useRef({ providerFilter, openWeightsOnly })
+    const prevBusinessFiltersRef = useRef({ providerFilters, openWeightsOnly })
     useEffect(() => {
         const prev = prevBusinessFiltersRef.current
-        if (prev.providerFilter !== providerFilter || prev.openWeightsOnly !== openWeightsOnly) {
-            prevBusinessFiltersRef.current = { providerFilter, openWeightsOnly }
+        if (prev.providerFilters !== providerFilters || prev.openWeightsOnly !== openWeightsOnly) {
+            prevBusinessFiltersRef.current = { providerFilters, openWeightsOnly }
             const currentProviders = new Set(businessFilteredEntries.map(e => e.provider.toLowerCase()))
             setHiddenProviders(prev => {
                 const pruned = new Set([...prev].filter(k => currentProviders.has(k)))
                 return pruned.size === prev.size ? prev : pruned
             })
         }
-    }, [providerFilter, openWeightsOnly, businessFilteredEntries])
+    }, [providerFilters, openWeightsOnly, businessFilteredEntries])
 
     // Category filtering: fetch task data when category filter is active
     useEffect(() => {
@@ -306,8 +333,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         return taskDataLoading ? null : 0
     }, [categoryFilterActive, filteredEntries, selectedCategories, taskDataBySubmission, taskDataLoading])
 
-    const providerColor = providerFilter
-        ? PROVIDER_COLORS[providerFilter.toLowerCase()] || '#666'
+    const providerColor = providerFilters.length === 1
+        ? PROVIDER_COLORS[providerFilters[0]] || '#666'
         : undefined
 
     // Header stats entries
@@ -327,8 +354,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 versions={versions}
                 currentVersion={currentVersion}
                 lastUpdated={lastUpdated}
-                providerFilter={providerFilter}
-                providerColor={providerColor}
+                providerFilters={providerFilters}
                 view={view}
                 scoreMode={scoreMode}
                 sortMode={sortMode}
@@ -347,8 +373,9 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onSortModeChange={setSortMode}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
+                onProviderToggle={toggleProviderFilter}
+                onClearProviders={clearProviderFilters}
                 onCategoriesChange={setSelectedCategories}
-                onClearProviderFilter={() => setProviderFilter(null)}
                 onModelSearchChange={handleModelSearchChange}
                 onMaxCostFilterChange={setMaxCostFilter}
                 onShowZeroCostResultsChange={setShowZeroCostResults}
@@ -448,7 +475,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             onSortModeChange={setSortMode}
                             onMaxCostFilterChange={setMaxCostFilter}
                             onShowZeroCostResultsChange={setShowZeroCostResults}
-                            onProviderClick={setProviderFilter}
+                            onProviderToggle={toggleProviderFilter}
                         />
                     </>
                 )}

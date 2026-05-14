@@ -28,6 +28,27 @@ interface SimpleLeaderboardProps {
   onMaxCostFilterChange?: (value: string) => void
   onShowZeroCostResultsChange?: (value: boolean) => void
   onProviderClick?: (provider: string) => void
+  onProviderToggle?: (provider: string) => void
+}
+
+function toggleProviderInUrl(provider: string, url: URL) {
+  const providers = url.searchParams.get('provider')
+  if (!providers) {
+    url.searchParams.set('provider', provider.toLowerCase())
+    return
+  }
+  const list = providers.split(',').map(p => p.trim().toLowerCase())
+  const idx = list.indexOf(provider.toLowerCase())
+  if (idx >= 0) {
+    list.splice(idx, 1)
+  } else {
+    list.push(provider.toLowerCase())
+  }
+  if (list.length === 0) {
+    url.searchParams.delete('provider')
+  } else {
+    url.searchParams.set('provider', list.join(','))
+  }
 }
 
 function ColumnTooltip({
@@ -107,6 +128,7 @@ export function SimpleLeaderboard({
   onMaxCostFilterChange,
   onShowZeroCostResultsChange,
   onProviderClick,
+  onProviderToggle,
 }: SimpleLeaderboardProps) {
   const [showAllEntries, setShowAllEntries] = useState(false)
   const categoryFilterActive = selectedCategories.length > 0
@@ -118,8 +140,14 @@ export function SimpleLeaderboard({
     officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
   )
 
+  const onProviderSelect = onProviderToggle ?? onProviderClick
+  const handleProviderClick = (provider: string) => {
+    if (onProviderSelect) {
+      onProviderSelect(provider)
+    }
+  }
+
   const getSortScorePercentage = (entry: LeaderboardEntry) => {
-    if (categoryFilterActive) return entry.percentage
     if (scoreMode === 'average') {
       return entry.average_score_percentage != null
         ? entry.average_score_percentage * 100
@@ -347,7 +375,7 @@ export function SimpleLeaderboard({
                       <td className="hidden md:table-cell px-4 py-3">
                         <button
                           type="button"
-                          onClick={() => onProviderClick?.(entry.provider)}
+                          onClick={() => handleProviderClick(entry.provider)}
                           className="text-xs font-medium hover:underline cursor-pointer"
                           style={{ color: PROVIDER_COLORS[entry.provider.toLowerCase()] || '#666' }}
                         >
@@ -908,7 +936,7 @@ export function SimpleLeaderboard({
                   <td className="hidden md:table-cell px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => onProviderClick?.(entry.provider)}
+                      onClick={() => handleProviderClick(entry.provider)}
                       className="text-xs font-medium hover:underline cursor-pointer"
                       style={{
                         color:
@@ -944,7 +972,7 @@ export function SimpleLeaderboard({
                   <td className="hidden md:table-cell px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => onProviderClick?.(entry.provider)}
+                      onClick={() => handleProviderClick(entry.provider)}
                       className="text-xs font-medium hover:underline cursor-pointer"
                       style={{
                         color:
