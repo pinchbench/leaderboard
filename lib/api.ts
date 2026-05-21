@@ -173,6 +173,19 @@ export async function fetchSubmissionsClient(
   return response.json() as Promise<SubmissionsListResponse>;
 }
 
+export async function fetchRecentSubmissions(
+  version?: string,
+  limit: number = 50,
+  options?: OfficialFilterOptions,
+): Promise<SubmissionsListResponse> {
+  const params = new URLSearchParams();
+  params.set("official", String(options?.officialOnly ?? true));
+  params.set("sort", "recent");
+  params.set("limit", String(limit));
+  if (version) params.set("version", version);
+  return fetchJson<SubmissionsListResponse>(`/submissions?${params.toString()}`);
+}
+
 export async function fetchContributors(
   options?: { version?: string; limit?: number; offset?: number },
 ): Promise<ContributorsResponse> {

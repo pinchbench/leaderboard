@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Github, BarChart3, Zap, Gem, DollarSign, Trophy } from 'lucide-react'
+import { Github, BarChart3, Zap, Gem, DollarSign, Trophy, Activity } from 'lucide-react'
 import type { LeaderboardEntry } from '@/lib/types'
 import { ModelSearch } from '@/components/model-search'
 import { FilterPanel } from '@/components/filter-panel'
@@ -229,6 +229,15 @@ export function LeaderboardHeader({
               >
                 <span className="font-semibold text-foreground">{totalRuns.toLocaleString()}</span>
                 {' '}runs
+              </Link>
+              <Link
+                href={currentVersion
+                  ? `/stream?version=${currentVersion}${officialOnly ? '' : '&official=false'}`
+                  : (officialOnly ? '/stream' : '/stream?official=false')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 border border-border/50 hover:bg-secondary transition-colors"
+              >
+                <Activity className="h-3 w-3 text-orange-400" />
+                <span className="hidden sm:inline">Stream</span>
               </Link>
             </div>
           </div>
