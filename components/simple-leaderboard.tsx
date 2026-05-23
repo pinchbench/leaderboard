@@ -523,15 +523,23 @@ export function SimpleLeaderboard({
         >
           <div className="hidden md:block bg-card border border-border rounded-lg p-6 mb-6">
             <div className="mb-4 flex items-center gap-5 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onScoreModeChange?.('best')}
+                className={`inline-flex items-center gap-2 cursor-pointer transition-opacity select-none ${scoreMode === 'best' ? 'opacity-100 font-semibold text-foreground' : 'opacity-60 hover:opacity-100'}`}
+              >
                 <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: BEST_SCORE_COLOR }} />
                 {categoryFilterActive ? 'Category Score' : 'Best Score'}
-              </span>
+              </button>
               {!categoryFilterActive && (
-                <span className="inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onScoreModeChange?.('average')}
+                  className={`inline-flex items-center gap-2 cursor-pointer transition-opacity select-none ${scoreMode === 'average' ? 'opacity-100 font-semibold text-foreground' : 'opacity-60 hover:opacity-100'}`}
+                >
                   <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: AVG_SCORE_COLOR }} />
                   Average Score
-                </span>
+                </button>
               )}
             </div>
             <div className="space-y-3">
@@ -710,12 +718,18 @@ export function SimpleLeaderboard({
                   <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                     Provider
                   </th>
-                  <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                  <th
+                    className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => onScoreModeChange?.('best')}
+                  >
                     <span className="md:hidden">{categoryFilterActive ? 'Cat %' : scoreMode === 'best' ? 'Best %' : 'Avg %'}</span>
                     <span className="hidden md:inline">{categoryFilterActive ? 'Category %' : 'Best %'}</span>
                   </th>
                   {!categoryFilterActive && (
-                    <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                    <th
+                      className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => onScoreModeChange?.('average')}
+                    >
                       <ColumnTooltip
                         label="Avg %"
                         description="Average success rate across all runs for this model. Click any row to see the per-task scoring breakdown with individual pass/fail details."
