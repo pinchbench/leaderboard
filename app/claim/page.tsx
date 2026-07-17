@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Link your GitHub account to claim your PinchBench submissions on the leaderboard.',
 }
 
-const API_BASE = 'https://api.pinchbench.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.pinchbench.com/api'
 
 interface ClaimPageProps {
   searchParams: Promise<{ token?: string }>

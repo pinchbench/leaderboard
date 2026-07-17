@@ -11,7 +11,7 @@ import type {
 } from "@/lib/types";
 import { transformSubmission } from "@/lib/transforms";
 
-const API_BASE = "https://api.pinchbench.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.pinchbench.com/api";
 const SUBMISSION_DETAIL_REVALIDATE_SECONDS = 60;
 
 interface OfficialFilterOptions {
