@@ -98,6 +98,9 @@ export function Footer() {
                     <p className="text-xs text-muted-foreground/50">
                         🦞 Snip snip — benchmarking one claw at a time
                     </p>
+                    <p className="text-xs text-muted-foreground/50">
+                        © 2026 PinchBench
+                    </p>
                 </div>
             </div>
         </footer>
