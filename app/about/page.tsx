@@ -463,15 +463,6 @@ export default function AboutPage() {
                             <ExternalLink className="h-4 w-4" />
                             <span>Kilo Code</span>
                         </a>
-                        <a
-                            href="https://boleary.dev"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <ExternalLink className="h-4 w-4" />
-                            <span>boleary.dev</span>
-                        </a>
                     </div>
                 </section>
             </div>
