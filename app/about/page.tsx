@@ -46,6 +46,178 @@ const faqJsonLd = {
     ],
 }
 
+const BENCHMARK_CATEGORIES = [
+    { id: 'productivity', name: 'Productivity', tasks: [
+        { id: 'task_sanity', name: 'Sanity Check', grading: 'automated' },
+        { id: 'task_calendar', name: 'Calendar Event Creation', grading: 'automated' },
+        { id: 'task_pdf_to_calendar', name: 'PDF to Calendar Import', grading: 'automated' },
+        { id: 'task_todo_list_cleanup', name: 'Todo List Cleanup', grading: 'automated' },
+        { id: 'task_daily_summary', name: 'Daily Research Summary Generation', grading: 'llm_judge' },
+        { id: 'task_email_triage', name: 'Email Inbox Triage', grading: 'hybrid' },
+        { id: 'task_cron_organizer', name: 'Cron Expression Generator', grading: 'automated' },
+        { id: 'task_subway_navigation', name: 'NYC Subway Navigation', grading: 'llm_judge' },
+    ]},
+    { id: 'research', name: 'Research', tasks: [
+        { id: 'task_stock', name: 'Stock Price Research', grading: 'automated' },
+        { id: 'task_events', name: 'Tech Conference Research', grading: 'llm_judge' },
+        { id: 'task_market_research', name: 'Competitive Market Research', grading: 'hybrid' },
+        { id: 'task_polymarket_briefing', name: 'Polymarket + News Briefing', grading: 'hybrid' },
+        { id: 'task_executive_lookup', name: 'Executive Lookup', grading: 'automated' },
+        { id: 'task_deep_research', name: 'Deep Research with Citations', grading: 'llm_judge' },
+        { id: 'task_competitive_research', name: 'Competitive Product Comparison', grading: 'llm_judge' },
+        { id: 'task_oss_alternative_research', name: 'Open Source Alternatives Research', grading: 'llm_judge' },
+        { id: 'task_pricing_research', name: 'Vendor Pricing Comparison', grading: 'llm_judge' },
+        { id: 'task_it_procurement', name: 'IT Procurement Research', grading: 'llm_judge' },
+        { id: 'task_eu_regulation_research', name: 'EU AI Act Compliance Research', grading: 'llm_judge' },
+        { id: 'task_byok_best_practices', name: 'BYOK Best Practices for AI Inference', grading: 'llm_judge' },
+    ]},
+    { id: 'writing', name: 'Writing', tasks: [
+        { id: 'task_blog', name: 'Blog Post Writing', grading: 'llm_judge' },
+        { id: 'task_email', name: 'Professional Email Drafting', grading: 'llm_judge' },
+        { id: 'task_email_reply_drafting', name: 'Email Reply Drafting from Unread Inbox', grading: 'llm_judge' },
+        { id: 'task_humanizer', name: 'Humanize AI-Generated Blog', grading: 'llm_judge' },
+        { id: 'task_commit_message_writer', name: 'Commit Message Writer', grading: 'llm_judge' },
+        { id: 'task_readme_generation', name: 'README Generation', grading: 'llm_judge' },
+    ]},
+    { id: 'coding', name: 'Coding', tasks: [
+        { id: 'task_weather', name: 'Weather Script Creation', grading: 'automated' },
+        { id: 'task_shell_command_generator', name: 'Shell Command Generator', grading: 'automated' },
+        { id: 'task_multi_file_refactoring', name: 'Multi-file Refactoring', grading: 'automated' },
+        { id: 'task_dockerfile_optimization', name: 'Dockerfile Optimization', grading: 'automated' },
+        { id: 'task_playwright_e2e', name: 'Playwright E2E Form Test', grading: 'hybrid' },
+        { id: 'task_git_rescue_recovery', name: 'Git Rescue / Recovery', grading: 'automated' },
+        { id: 'task_cicd_pipeline_debug', name: 'CI/CD Pipeline Debug', grading: 'automated' },
+        { id: 'task_test_generation', name: 'Test Generation', grading: 'hybrid' },
+        { id: 'task_k8s_debugging', name: 'K8s/IaC Debugging', grading: 'automated' },
+        { id: 'task_selector_fix', name: 'Test Maintenance / Selector Fix', grading: 'hybrid' },
+        { id: 'task_codebase_navigation', name: 'Codebase Navigation', grading: 'hybrid' },
+        { id: 'task_browser_automation', name: 'Browser Automation Workflow', grading: 'hybrid' },
+        { id: 'task_video_transcript_extraction', name: 'Video Transcript Extraction and Summary', grading: 'llm_judge' },
+        { id: 'task_iterative_code_refine', name: 'Iterative Code Refinement', grading: 'automated' },
+    ]},
+    { id: 'analysis', name: 'Analysis', tasks: [
+        { id: 'task_summary', name: 'Document Summarization', grading: 'llm_judge' },
+        { id: 'task_spreadsheet_summary', name: 'CSV and Excel Data Summarization', grading: 'hybrid' },
+        { id: 'task_eli5_pdf_summary', name: 'ELI5 PDF Summarization', grading: 'llm_judge' },
+        { id: 'task_openclaw_comprehension', name: 'OpenClaw Report Comprehension', grading: 'automated' },
+        { id: 'task_email_search', name: 'Email Search and Summarization', grading: 'hybrid' },
+        { id: 'task_access_log_anomaly', name: 'Access Control Log Anomaly Detection', grading: 'automated' },
+        { id: 'task_financial_ratio_calculation', name: 'Financial Ratio Calculation', grading: 'automated' },
+        { id: 'task_earnings_analysis', name: 'Earnings Analysis', grading: 'automated' },
+        { id: 'task_contract_analysis', name: 'Contract/Legal Analysis', grading: 'llm_judge' },
+        { id: 'task_image_identification', name: 'Image Identification (Phone, Food, Menu)', grading: 'automated' },
+        { id: 'task_cve_security_triage', name: 'CVE/Security Triage', grading: 'hybrid' },
+        { id: 'task_session_chain_analysis', name: 'Session Chain Analysis & Design Review', grading: 'automated' },
+    ]},
+    { id: 'csv_analysis', name: 'CSV Analysis', tasks: [
+        { id: 'task_csv_stock_trend', name: 'Apple Stock 2014 Trend Analysis', grading: 'hybrid' },
+        { id: 'task_csv_stock_volatility', name: 'Apple Stock 2014 Volatility Analysis', grading: 'hybrid' },
+        { id: 'task_csv_stock_best_worst', name: 'Apple Stock 2014 Best and Worst Days', grading: 'hybrid' },
+        { id: 'task_csv_finance_report', name: 'Apple Stock 2014 Comprehensive Finance Report', grading: 'llm_judge' },
+        { id: 'task_csv_temp_anomalies', name: 'Global Temperature Anomaly Detection', grading: 'hybrid' },
+        { id: 'task_csv_temp_trend', name: 'Global Temperature Trend Analysis', grading: 'hybrid' },
+        { id: 'task_csv_temp_decades', name: 'Global Temperature Decade Comparison', grading: 'hybrid' },
+        { id: 'task_csv_life_exp_ranking', name: 'Life Expectancy Country Ranking', grading: 'hybrid' },
+        { id: 'task_csv_life_exp_outliers', name: 'Life Expectancy Outlier Detection', grading: 'hybrid' },
+        { id: 'task_csv_life_exp_change', name: 'Life Expectancy Change Over Time', grading: 'hybrid' },
+        { id: 'task_csv_gdp_ranking', name: 'World GDP Country Ranking', grading: 'hybrid' },
+        { id: 'task_csv_gdp_per_capita', name: 'World GDP Per Capita Estimation', grading: 'hybrid' },
+        { id: 'task_csv_gdp_regions', name: 'World GDP Regional Analysis', grading: 'hybrid' },
+        { id: 'task_csv_stations_by_elevation', name: 'Idaho Weather Stations Elevation Ranking', grading: 'hybrid' },
+        { id: 'task_csv_stations_coverage', name: 'Idaho Weather Stations Coverage Gap Analysis', grading: 'hybrid' },
+        { id: 'task_csv_stations_filter', name: 'Idaho Weather Stations Multi-Criteria Filtering', grading: 'hybrid' },
+        { id: 'task_csv_iris_summary', name: 'Iris Flowers Statistical Summary', grading: 'hybrid' },
+        { id: 'task_csv_iris_classify', name: 'Iris Species Classification Rules', grading: 'hybrid' },
+        { id: 'task_csv_iris_outliers', name: 'Iris Flowers Outlier Detection', grading: 'hybrid' },
+        { id: 'task_csv_cities_ranking', name: 'US Cities Population Ranking', grading: 'hybrid' },
+        { id: 'task_csv_cities_filter', name: 'US Cities Multi-Criteria Filtering', grading: 'hybrid' },
+        { id: 'task_csv_cities_density', name: 'US Cities Population Concentration by State', grading: 'hybrid' },
+        { id: 'task_csv_cities_growth', name: 'US Cities Geographic Distribution Analysis', grading: 'hybrid' },
+        { id: 'task_csv_pension_ranking', name: 'US Pension Fund State Ranking', grading: 'hybrid' },
+        { id: 'task_csv_pension_liability', name: 'US Pension Fund Liability Analysis', grading: 'hybrid' },
+        { id: 'task_csv_pension_risk', name: 'US Pension Fund Risk Assessment', grading: 'hybrid' },
+    ]},
+    { id: 'log_analysis', name: 'Log Analysis', tasks: [
+        { id: 'task_log_apache_client_issues', name: 'Apache Error Log - Identify Problematic Client IPs', grading: 'hybrid' },
+        { id: 'task_log_apache_top_errors', name: 'Apache Error Log - Rank Top Error Types', grading: 'hybrid' },
+        { id: 'task_log_apache_error_summary', name: 'Apache Error Log - Generate Error Summary Report', grading: 'hybrid' },
+        { id: 'task_log_apache_critical', name: 'Apache Error Log - Identify Critical Security Issues', grading: 'hybrid' },
+        { id: 'task_log_apache_timeline', name: 'Apache Error Log - Create Error Timeline', grading: 'hybrid' },
+        { id: 'task_log_syslog_boot', name: 'Linux Syslog Boot Sequence Analysis', grading: 'hybrid' },
+        { id: 'task_log_nginx_status_codes', name: 'Nginx Access Log - HTTP Status Code Distribution', grading: 'hybrid' },
+        { id: 'task_log_nginx_traffic', name: 'Nginx Access Log - Traffic Patterns by Time', grading: 'hybrid' },
+        { id: 'task_log_nginx_slow_requests', name: 'Nginx Access Log - Find Largest Responses', grading: 'hybrid' },
+        { id: 'task_log_nginx_user_agents', name: 'Nginx Access Log - User Agent Analysis', grading: 'hybrid' },
+        { id: 'task_log_nginx_errors', name: 'Nginx Access Log - Error Pattern Analysis', grading: 'hybrid' },
+        { id: 'task_log_ssh_failed_logins', name: 'SSH Auth Log - Failed Login Analysis', grading: 'hybrid' },
+        { id: 'task_log_ssh_brute_force', name: 'SSH Auth Log - Brute Force Detection', grading: 'hybrid' },
+        { id: 'task_log_ssh_successful', name: 'SSH Auth Log - Successful Authentication Summary', grading: 'hybrid' },
+        { id: 'task_log_ssh_user_activity', name: 'SSH Auth Log - User Login Activity Report', grading: 'hybrid' },
+        { id: 'task_log_ssh_unusual_times', name: 'SSH Auth Log - Unusual Hour Login Detection', grading: 'hybrid' },
+        { id: 'task_log_hdfs_failures', name: 'HDFS DataNode Log - Block and Replication Failure Analysis', grading: 'hybrid' },
+        { id: 'task_log_hdfs_connections', name: 'HDFS DataNode Log - Connection Pattern Analysis', grading: 'hybrid' },
+        { id: 'task_log_hdfs_slow_ops', name: 'HDFS DataNode Log - Slow Operation Detection', grading: 'hybrid' },
+        { id: 'task_log_hdfs_block_ops', name: 'HDFS DataNode Log - Block Operations Summary', grading: 'hybrid' },
+        { id: 'task_log_hdfs_storage', name: 'HDFS DataNode Log - Storage and Capacity Analysis', grading: 'hybrid' },
+        { id: 'task_log_mapreduce_jobs', name: 'MapReduce Log - Job Completion Summary', grading: 'hybrid' },
+        { id: 'task_log_mapreduce_failures', name: 'MapReduce Log - Failed Task Analysis', grading: 'hybrid' },
+        { id: 'task_log_mapreduce_slow_tasks', name: 'MapReduce Log - Slow Task Identification', grading: 'hybrid' },
+        { id: 'task_log_mapreduce_resources', name: 'MapReduce Log - Resource Utilization Analysis', grading: 'hybrid' },
+        { id: 'task_log_mapreduce_timeline', name: 'MapReduce Log - Job Timeline Visualization', grading: 'hybrid' },
+        { id: 'task_log_syslog_anomalies', name: 'Linux Syslog - Anomaly Detection', grading: 'hybrid' },
+        { id: 'task_log_syslog_services', name: 'Linux Syslog - Service Start/Stop Summary', grading: 'hybrid' },
+        { id: 'task_log_syslog_cron', name: 'Linux Syslog - Cron Job Execution Analysis', grading: 'hybrid' },
+        { id: 'task_log_syslog_auth_failures', name: 'Linux Syslog - Authentication Failure Summary', grading: 'hybrid' },
+    ]},
+    { id: 'meeting_analysis', name: 'Meeting Analysis', tasks: [
+        { id: 'task_meeting_council_votes', name: 'Tampa City Council – List Motions and Vote Outcomes', grading: 'hybrid' },
+        { id: 'task_meeting_council_public_comment', name: 'Tampa City Council – Summarize Public Comments', grading: 'hybrid' },
+        { id: 'task_meeting_council_budget', name: 'Tampa City Council – Extract Budget Discussions', grading: 'hybrid' },
+        { id: 'task_meeting_council_upcoming', name: 'Tampa City Council – Extract Upcoming Events and Deadlines', grading: 'hybrid' },
+        { id: 'task_meeting_council_contact_info', name: 'Tampa City Council – Extract Contact Information', grading: 'hybrid' },
+        { id: 'task_meeting_council_neighborhood', name: 'Tampa City Council – Identify Neighborhood and District Mentions', grading: 'hybrid' },
+        { id: 'task_meeting_tech_action_items', name: 'Meeting Action Items Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_tech_decisions', name: 'Meeting Decisions Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_tech_competitors', name: 'Meeting Competitor Analysis Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_tech_messaging', name: 'Meeting Messaging Framework Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_tech_product_features', name: 'Meeting Product Feature Prioritization', grading: 'hybrid' },
+        { id: 'task_meeting_advisory_attendees', name: 'NTIA Advisory Board Attendee List', grading: 'hybrid' },
+        { id: 'task_meeting_advisory_stakeholders', name: 'NTIA Advisory Board Stakeholder Interests', grading: 'hybrid' },
+        { id: 'task_meeting_advisory_technical', name: 'NTIA Advisory Board Technical Discussions', grading: 'hybrid' },
+        { id: 'task_meeting_advisory_timeline', name: 'NTIA Advisory Board Timeline and Deadlines', grading: 'hybrid' },
+        { id: 'task_meeting_advisory_acronyms', name: 'NTIA Advisory Board Acronym Glossary', grading: 'hybrid' },
+        { id: 'task_meeting_executive_summary', name: 'Meeting Executive Summary', grading: 'hybrid' },
+        { id: 'task_meeting_sentiment_analysis', name: 'Meeting Sentiment Analysis', grading: 'hybrid' },
+        { id: 'task_meeting_follow_up_email', name: 'Meeting Follow-Up Email', grading: 'hybrid' },
+        { id: 'task_meeting_blog_post', name: 'Meeting to Blog Post', grading: 'hybrid' },
+        { id: 'task_meeting_tldr', name: 'Meeting TL;DR', grading: 'hybrid' },
+        { id: 'task_meeting_searchable_index', name: 'Meeting Searchable Index', grading: 'hybrid' },
+        { id: 'task_meeting_gov_speaker_summary', name: 'NASA UAP Hearing Speaker Summary', grading: 'hybrid' },
+        { id: 'task_meeting_gov_qa_extract', name: 'NASA UAP Hearing Q&A Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_gov_recommendations', name: 'NASA UAP Hearing Panel Recommendations', grading: 'hybrid' },
+        { id: 'task_meeting_gov_data_sources', name: 'NASA UAP Hearing Data Sources Extraction', grading: 'hybrid' },
+        { id: 'task_meeting_gov_controversy', name: 'NASA UAP Hearing Controversial Statements', grading: 'hybrid' },
+        { id: 'task_meeting_gov_next_steps', name: 'NASA UAP Hearing Next Steps Extraction', grading: 'hybrid' },
+    ]},
+    { id: 'memory', name: 'Memory', tasks: [
+        { id: 'task_memory', name: 'Memory Retrieval from Context', grading: 'automated' },
+        { id: 'task_second_brain', name: 'Second Brain Knowledge Persistence', grading: 'hybrid' },
+    ]},
+    { id: 'skills', name: 'Skills', tasks: [
+        { id: 'task_files', name: 'File Structure Creation', grading: 'automated' },
+        { id: 'task_workflow', name: 'Multi-step API Workflow', grading: 'hybrid' },
+        { id: 'task_clawdhub', name: 'Create Project Structure', grading: 'automated' },
+        { id: 'task_skill_search', name: 'Search and Replace in Files', grading: 'automated' },
+        { id: 'task_image_gen', name: 'AI Image Generation', grading: 'hybrid' },
+        { id: 'task_gh_issue_triage', name: 'GitHub Issue Triage', grading: 'hybrid' },
+    ]},
+    { id: 'integrations', name: 'Integrations', tasks: [
+        { id: 'task_gws_email_triage', name: 'GWS Email Triage', grading: 'hybrid' },
+        { id: 'task_gws_cross_service', name: 'GWS Cross-Service Workflow', grading: 'hybrid' },
+        { id: 'task_gws_task_management', name: 'GWS Task Management', grading: 'hybrid' },
+    ]},
+] as const
+
 export default function AboutPage() {
     return (
         <>
@@ -91,7 +263,7 @@ export default function AboutPage() {
                     </p>
                     <br />
                     <p className="text-muted-foreground leading-relaxed">
-                        PinchBench was made by <a href="https://kilo.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Kilo Code</a>, the makers of <a href="https://kilo.ai/kiloclaw" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">KiloClaw</a>, as a way to help users choose from Kilo's over 500+ AI Models when setting up their Claw agents.
+                        PinchBench was made by <a href="https://kilo.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Kilo Code</a> as a way to help users choose from Kilo's over 500+ AI Models when setting up their coding agents.
                     </p>
                 </section>
 
@@ -142,54 +314,44 @@ export default function AboutPage() {
                     <h2 className="text-2xl font-semibold text-foreground mb-4">
                         Current Benchmark Tasks
                     </h2>
-                    <p className="text-muted-foreground mb-4">
-                        The benchmark includes 23 tasks across different categories:
+                    <p className="text-muted-foreground mb-6">
+                        The benchmark includes 147 tasks across 11 categories, matching{' '}
+                        <a
+                            href="https://github.com/pinchbench/skill/blob/main/tasks/manifest.yaml"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                        >
+                            pinchbench/skill
+                        </a>
+                        . Click a task to view its definition.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {[
-                            { id: 'task_00_sanity', name: 'Sanity Check', icon: '✅', description: 'Confirm the agent can process and respond to simple instructions with a greeting.', grading: 'automated' },
-                            { id: 'task_01_calendar', name: 'Calendar Event Creation', icon: '📅', description: 'Parse a natural language request and generate a valid ICS calendar file with correct date, time, attendees, and description.', grading: 'automated' },
-                            { id: 'task_02_stock', name: 'Stock Price Research', icon: '📈', description: 'Research a current stock price using web tools and save a formatted report with ticker, price, date, and market context.', grading: 'automated' },
-                            { id: 'task_03_blog', name: 'Blog Post Writing', icon: '✍️', description: 'Write a structured ~500-word blog post on a given topic with proper markdown formatting, clear arguments, and examples.', grading: 'llm_judge' },
-                            { id: 'task_04_weather', name: 'Weather Script Creation', icon: '🌤️', description: 'Create a Python script that fetches weather data from an API, parses the response, and includes error handling.', grading: 'automated' },
-                            { id: 'task_05_summary', name: 'Document Summarization', icon: '📄', description: 'Read a provided document and write a concise 3-paragraph summary capturing the main themes and key points.', grading: 'llm_judge' },
-                            { id: 'task_06_events', name: 'Tech Conference Research', icon: '🎤', description: 'Research and compile 5 real tech conferences with accurate names, dates, locations, and URLs.', grading: 'llm_judge' },
-                            { id: 'task_07_email', name: 'Professional Email Drafting', icon: '✉️', description: 'Draft a polite, professional email declining a meeting while maintaining good relationships and offering alternatives.', grading: 'llm_judge' },
-                            { id: 'task_08_memory', name: 'Memory Retrieval from Context', icon: '🧠', description: 'Extract specific facts from a provided project notes file (dates, team members, tech stack) and answer questions accurately.', grading: 'automated' },
-                            { id: 'task_09_files', name: 'File Structure Creation', icon: '📁', description: 'Create a standard project directory structure with source files, README, and .gitignore with correct content.', grading: 'automated' },
-                            { id: 'task_10_workflow', name: 'Multi-step API Workflow', icon: '🔄', description: 'Read a config file, extract API settings, create a Python script to call the endpoint, and document the process.', grading: 'hybrid' },
-                            { id: 'task_11_clawdhub', name: 'Install ClawdHub Skill', icon: '🔌', description: 'Install a skill from the OpenClaw skill registry and verify it is available.', grading: 'automated' },
-                            { id: 'task_12_skill_search', name: 'Search and Install Skill', icon: '🔍', description: 'Search the skill registry for weather-related skills and install the appropriate one.', grading: 'automated' },
-                            { id: 'task_13_image_gen', name: 'AI Image Generation', icon: '🎨', description: 'Generate an image matching a description using AI image generation tools and save it to a file.', grading: 'hybrid' },
-                            { id: 'task_14_humanizer', name: 'Humanize AI-Generated Blog', icon: '🤖', description: 'Transform robotic AI-generated content into natural, human-sounding writing using a humanizer skill.', grading: 'llm_judge' },
-                            { id: 'task_15_daily_summary', name: 'Daily Research Summary', icon: '📊', description: 'Synthesize multiple research documents into a coherent daily summary with key findings.', grading: 'llm_judge' },
-                            { id: 'task_16_email_triage', name: 'Email Inbox Triage', icon: '📬', description: 'Analyze multiple emails, prioritize by urgency, and create an organized triage report.', grading: 'hybrid' },
-                            { id: 'task_17_email_search', name: 'Email Search and Summarization', icon: '🔎', description: 'Search through email archives to find relevant messages and summarize findings.', grading: 'hybrid' },
-                            { id: 'task_18_market_research', name: 'Competitive Market Research', icon: '🏢', description: 'Research the competitive landscape for enterprise APM, identifying top players and key differentiators.', grading: 'hybrid' },
-                            { id: 'task_19_spreadsheet_summary', name: 'CSV and Excel Summarization', icon: '📑', description: 'Analyze CSV and Excel files to extract insights and create data summaries.', grading: 'hybrid' },
-                            { id: 'task_20_eli5_pdf_summary', name: 'ELI5 PDF Summarization', icon: '👶', description: 'Read a technical PDF and create an "Explain Like I\'m 5" summary using simple language and analogies.', grading: 'llm_judge' },
-                            { id: 'task_21_openclaw_comprehension', name: 'OpenClaw Report Comprehension', icon: '📖', description: 'Extract specific information from a research report PDF and answer targeted questions.', grading: 'automated' },
-                            { id: 'task_22_second_brain', name: 'Second Brain Knowledge Persistence', icon: '💾', description: 'Store information in memory, then recall it accurately across multiple sessions.', grading: 'hybrid' },
-                        ].map((task) => (
-                            <a
-                                key={task.id}
-                                href={`https://github.com/pinchbench/skill/blob/main/tasks/${task.id}.md`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-start gap-3 p-3 rounded-lg bg-card border border-border hover:border-primary transition-colors group"
-                            >
-                                <span className="text-xl mt-0.5">{task.icon}</span>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-foreground font-medium">{task.name}</span>
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider">{task.grading}</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{task.description}</p>
-                                    <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity mt-1 inline-block">
-                                        View task definition on GitHub
+                    <div className="space-y-8">
+                        {BENCHMARK_CATEGORIES.map((category) => (
+                            <div key={category.id}>
+                                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                                    {category.name}
+                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                        {category.tasks.length}
                                     </span>
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {category.tasks.map((task) => (
+                                        <a
+                                            key={task.id}
+                                            href={`https://github.com/pinchbench/skill/blob/main/tasks/${task.id}.md`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between gap-3 p-3 rounded-lg bg-card border border-border hover:border-primary transition-colors"
+                                        >
+                                            <span className="text-sm text-foreground font-medium min-w-0">{task.name}</span>
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider shrink-0">
+                                                {task.grading}
+                                            </span>
+                                        </a>
+                                    ))}
                                 </div>
-                            </a>
+                            </div>
                         ))}
                     </div>
                 </section>

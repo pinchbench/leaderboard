@@ -169,7 +169,7 @@ export function LeaderboardHeader({
               Contributors
             </Link>
             <a
-              href="https://github.com/pinchbench/skill"
+              href="https://github.com/pinchbench"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"
