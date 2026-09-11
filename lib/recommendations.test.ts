@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { getAverageScorePercent, getQuickRecommendations } from "./recommendations";
+import {
+  getAverageScorePercent,
+  getBestForConfig,
+  getQuickRecommendations,
+  sortEntriesForBestFor,
+} from "./recommendations";
 import type { EnrichedLeaderboardEntry } from "./types";
 
 function makeEntry(
@@ -79,5 +84,54 @@ describe("getQuickRecommendations", () => {
     expect(budget?.entry.model).toBe("X");
     expect(budget?.metricValue).toBe("$0.100");
     expect(budget?.useAverageScore).toBeUndefined();
+  });
+});
+
+describe("sortEntriesForBestFor", () => {
+  test("data-analysis ranks models by data_analysis category score", () => {
+    const weakData = makeEntry({
+      model: "weak-data",
+      percentage: 90,
+      categoryScores: [{ category: "data_analysis", scorePercentage: 40, taskCount: 4 }],
+    });
+    const strongData = makeEntry({
+      model: "strong-data",
+      percentage: 70,
+      categoryScores: [{ category: "data_analysis", scorePercentage: 95, taskCount: 4 }],
+    });
+    const noData = makeEntry({
+      model: "no-data",
+      percentage: 99,
+      categoryScores: [{ category: "code_devops", scorePercentage: 100, taskCount: 8 }],
+    });
+
+    const ranked = sortEntriesForBestFor([weakData, noData, strongData], "data-analysis");
+    expect(ranked.map((entry) => entry.model)).toEqual(["strong-data", "weak-data"]);
+  });
+
+  test("coding ranks models by code_devops category score", () => {
+    const ranked = sortEntriesForBestFor(
+      [
+        makeEntry({
+          model: "coder",
+          percentage: 60,
+          categoryScores: [{ category: "code_devops", scorePercentage: 88, taskCount: 8 }],
+        }),
+        makeEntry({
+          model: "analyst",
+          percentage: 95,
+          categoryScores: [{ category: "data_analysis", scorePercentage: 99, taskCount: 4 }],
+        }),
+      ],
+      "coding",
+    );
+    expect(ranked.map((entry) => entry.model)).toEqual(["coder"]);
+  });
+});
+
+describe("BEST_FOR_CATEGORIES", () => {
+  test("maps landing-page slugs to current task category ids", () => {
+    expect(getBestForConfig("data-analysis")?.category).toBe("data_analysis");
+    expect(getBestForConfig("coding")?.category).toBe("code_devops");
   });
 });
