@@ -65,6 +65,16 @@ export function Footer() {
                             </svg>
                             <span>@pinchbench</span>
                         </a>
+                        <span className="text-border hidden md:inline">|</span>
+                        <a
+                            href="https://www.anaconda.com/blog/anaconda-acquires-kilo-code"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            <span>Anaconda Acquires Kilo Code</span>
+                        </a>
                     </div>
 
                     {/* Pinch flair */}
