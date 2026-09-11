@@ -11,23 +11,23 @@ import { CATEGORY_ICONS } from "@/lib/types";
 export const BEST_FOR_CATEGORIES = [
   {
     slug: "coding",
-    category: "coding",
+    category: "code_devops",
     title: `Best AI Model for Coding in ${new Date().getFullYear()}`,
     navLabel: "Coding",
     description:
       "Compare the leading AI coding agents on PinchBench tasks that require writing scripts, editing files, and completing developer workflows.",
     taskSummary:
-      "Coding pages focus on benchmark tasks categorized as coding, including script generation and file operations. Scores come from the best verified submission for each model.",
+      "Coding pages focus on code and DevOps benchmark tasks, including script generation, refactors, and CI/CD work. Scores come from the best verified submission for each model.",
   },
   {
     slug: "data-analysis",
-    category: "api",
+    category: "data_analysis",
     title: "Best AI for Data Analysis",
     navLabel: "Data Analysis",
     description:
-      "Find models that perform well on data-oriented research and API tasks where the agent must gather, transform, and present structured information.",
+      "Find models that perform well on data-oriented research and analysis tasks where the agent must gather, transform, and present structured information.",
     taskSummary:
-      "Data analysis uses API and data-retrieval tasks as the closest available PinchBench proxy for structured data work.",
+      "Data analysis uses spreadsheet, financial, CSV, and related data-retrieval tasks as the PinchBench proxy for structured data work.",
   },
   {
     slug: "budget",
@@ -249,22 +249,22 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
       label: "Best for Code",
       shortLabel: "Code",
       icon: "🔧",
-      description: "Highest score on coding-category tasks.",
+      description: "Highest score on code and DevOps tasks.",
       href: "/best-for/coding",
       entry: bestCode,
       metricLabel: "Coding Score",
-      metricValue: `${getCategoryScore(bestCode, "coding")?.scorePercentage.toFixed(1) ?? bestCode.percentage.toFixed(1)}%`,
+      metricValue: `${getCategoryScore(bestCode, "code_devops")?.scorePercentage.toFixed(1) ?? bestCode.percentage.toFixed(1)}%`,
     },
     bestData && {
       key: "data",
       label: "Best for Data",
       shortLabel: "Data",
       icon: "📊",
-      description: "Highest score on data-oriented API tasks.",
+      description: "Highest score on data analysis tasks.",
       href: "/best-for/data-analysis",
       entry: bestData,
       metricLabel: "Data Score",
-      metricValue: `${getCategoryScore(bestData, "api")?.scorePercentage.toFixed(1) ?? bestData.percentage.toFixed(1)}%`,
+      metricValue: `${getCategoryScore(bestData, "data_analysis")?.scorePercentage.toFixed(1) ?? bestData.percentage.toFixed(1)}%`,
     },
   ];
 
