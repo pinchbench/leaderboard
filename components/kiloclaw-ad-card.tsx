@@ -4,13 +4,15 @@ import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
+const KILO_URL = 'https://kilo.ai?utm_source=pinchbench&utm_medium=referral'
+
 export function KiloClawAdCard() {
     const posthog = usePostHog()
 
     const handleClick = () => {
-        posthog?.capture('kiloclaw_cta_click', {
+        posthog?.capture('kilo_cta_click', {
             location: 'ad_card',
-            destination: 'https://app.kilo.ai/claw',
+            destination: KILO_URL,
         })
     }
 
@@ -21,28 +23,20 @@ export function KiloClawAdCard() {
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#F8F675]/50 bg-[#F8F675]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#F8F675]">
                         <span>Totally An Ad</span>
                     </div>
-                    <div className="flex gap-8 flex-col lg:flex-row">
-                        <div className="flex-shrink">
-                            <p className="text-lg font-semibold text-foreground">
-                                Hosted OpenClaw — your personal AI agent, managed by Kilo.
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Hosting and inference cost for PinchBench sponsored by Kilo, so we totally hope you try KiloClaw so we can keep the lights on around here.
-                            </p>
-                        </div>
-                        <p className="mt-1 flex-grow lg:min-w-[350px]">
-                            $55/month
-                            + AI inference at cost
-                        </p>
-                    </div>
+                    <p className="text-lg font-semibold text-foreground">
+                        The open source AI coding agent with 500+ models.
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Hosting and inference for PinchBench is sponsored by Kilo, so we totally hope you try kilo.ai so we can keep the lights on around here.
+                    </p>
                 </div>
                 <Button
                     asChild
                     size="sm"
                     className="w-full border border-[#F8F675] bg-[#F8F675] text-black hover:bg-[#e6e45f] md:w-auto"
                 >
-                    <a href="https://app.kilo.ai/claw" target="_blank" rel="noopener noreferrer" onClick={handleClick}>
-                        Try KiloClaw
+                    <a href={KILO_URL} target="_blank" rel="noopener noreferrer" onClick={handleClick}>
+                        Try Kilo
                     </a>
                 </Button>
             </div>

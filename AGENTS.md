@@ -10,7 +10,7 @@ PinchBench Leaderboard is the public frontend at https://pinchbench.com. It disp
 
 This repo is one of three components:
 
-- **pinchbench-skill** (github.com/olearycrew/pinchbench-skill): runs benchmarks against LLMs using OpenClaw, uploads results
+- **pinchbench-skill** (github.com/pinchbench/skill): runs benchmarks against LLMs using OpenClaw, uploads results
 - **pinchbench-api** (api.pinchbench.com): backend API that stores and serves all benchmark data; has an admin section at /admin used by the system owner
 - **pinchbench-leaderboard** (this repo, pinchbench.com): Next.js frontend, reads from the API
 
