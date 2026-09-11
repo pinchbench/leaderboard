@@ -12,7 +12,7 @@ export const BEST_FOR_CATEGORIES = [
   {
     slug: "coding",
     category: "coding",
-    title: "Best AI Model for Coding in 2026",
+    title: `Best AI Model for Coding in ${new Date().getFullYear()}`,
     navLabel: "Coding",
     description:
       "Compare the leading AI coding agents on PinchBench tasks that require writing scripts, editing files, and completing developer workflows.",

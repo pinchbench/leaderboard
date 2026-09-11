@@ -4,7 +4,7 @@ Quick reference for AI agents working on this codebase.
 
 ## Purpose
 
-PinchBench Leaderboard is the public frontend at https://pinchbench.com. It displays benchmark results for LLM coding agents, ranking models by score, speed, and cost across 23 real-world tasks.
+PinchBench Leaderboard is the public frontend at https://pinchbench.com. It displays benchmark results for LLM coding agents, ranking models by score, speed, and cost across 147 real-world tasks.
 
 ## System Architecture
 
