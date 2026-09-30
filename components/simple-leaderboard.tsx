@@ -8,6 +8,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { DEFAULT_TABLE_ROW_LIMIT } from '@/lib/constants'
 import type { BestForBadge, LeaderboardEntry, SortMode } from '@/lib/types'
 import { PROVIDER_COLORS, TASK_CATEGORY_BY_ID } from '@/lib/types'
+import { SLM_MAX_TOTAL_PARAMS_B } from '@/lib/slm'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
 import { KiloClawAdCard } from '@/components/kiloclaw-ad-card'
 
@@ -92,6 +93,17 @@ function ColumnTooltip({
         </div>
       </TooltipContent>
     </Tooltip>
+  )
+}
+
+function SlmTag() {
+  return (
+    <span
+      className="rounded border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-300"
+      title={`Small language model: open weights, up to ${SLM_MAX_TOTAL_PARAMS_B}B total parameters`}
+    >
+      SLM
+    </span>
   )
 }
 
@@ -374,6 +386,7 @@ export function SimpleLeaderboard({
                       <td className="px-2 md:px-4 py-3">
                         <Link href={modelHref(entry.provider, entry.model)} className="flex items-center gap-2 transition-colors">
                           <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none hover:text-primary transition-colors cursor-pointer">{entry.model}</code>
+                          {entry.slm && <SlmTag />}
                         </Link>
                       </td>
                       <td className="hidden md:table-cell px-4 py-3">
@@ -417,8 +430,9 @@ export function SimpleLeaderboard({
                   <tr key={entry.submission_id} className="text-muted-foreground opacity-60">
                     <td className="px-2 md:px-4 py-3">--</td>
                     <td className="px-2 md:px-4 py-3">
-                      <Link href={modelHref(entry.provider, entry.model)}>
+                      <Link href={modelHref(entry.provider, entry.model)} className="flex items-center gap-2 transition-colors">
                         <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none hover:text-primary transition-colors cursor-pointer">{entry.model}</code>
+                        {entry.slm && <SlmTag />}
                       </Link>
                     </td>
                     <td className="hidden md:table-cell px-4 py-3">
@@ -573,7 +587,9 @@ export function SimpleLeaderboard({
                               </span>
                             )}
                           </div>
-                          <div className="w-44 flex-shrink-0">
+                          {/* SLM tag sits with the badges so it doesn't truncate the fixed-width name column. */}
+                          <div className="w-44 flex-shrink-0 flex flex-col items-start gap-1">
+                            {entry.slm && <SlmTag />}
                             {renderBadges(entry)}
                           </div>
                           <div className="flex-1 flex items-center gap-3">
@@ -772,6 +788,7 @@ export function SimpleLeaderboard({
                         >
                           <span className="text-lg">{getCrabEmoji(entry.rank)}</span>
                           <code className="text-xs md:text-sm font-mono truncate max-w-[180px] md:max-w-none">{entry.model}</code>
+                          {entry.slm && <SlmTag />}
                           <span className="md:hidden">{renderBadges(entry)}</span>
                           {entry.official === false && (
                             <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
@@ -944,6 +961,7 @@ export function SimpleLeaderboard({
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                      {entry.slm && <SlmTag />}
                       {entry.official === false && (
                         <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                           Unofficial
@@ -980,6 +998,7 @@ export function SimpleLeaderboard({
                       className="flex items-center gap-2 transition-colors"
                     >
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
+                      {entry.slm && <SlmTag />}
                       {entry.official === false && (
                         <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
                           Unofficial

@@ -62,7 +62,7 @@ Raw API types are prefixed `Api*` (e.g. `ApiLeaderboardEntry`). Always transform
 ## Key Patterns
 
 - **Server vs Client Components**: Server Components fetch data; Client Components handle interactivity. Mark with `'use client'` only when needed.
-- **URL as state**: `LeaderboardView` syncs `?view=`, `?score=`, `?provider=`, `?graph=`, `?verified=` to URL via `router.replace()`.
+- **URL as state**: `LeaderboardView` syncs `?view=`, `?score=`, `?provider=`, `?graph=`, `?verified=`, `?weights=`, `?slm=` to URL via `router.replace()`. It reads them only on mount, so a client-side `<Link>` from the home page to `/?…` changes the URL without applying it; links that set home-page filters must do a full page load (see `isHomeLeaderboardHref` in `components/quick-picks.tsx`).
 - **Score coloring**: green (`#22c55e`) ≥85%, yellow (`#f59e0b`) ≥70%, red (`#ef4444`) otherwise — keep consistent.
 - **Emoji ranking**: 🦞 #1, 🦀 #2, 🦐 #3 — appears in `ScoreGauge`, `SimpleLeaderboard`, and OG image route.
 - **Screenshot exclusion**: `data-share-exclude="true"` on any UI element that should be excluded from screenshot captures.
@@ -71,6 +71,10 @@ Raw API types are prefixed `Api*` (e.g. `ApiLeaderboardEntry`). Always transform
 ## Adding New Providers
 
 Add to `PROVIDER_COLORS` in `lib/types.ts` **and** in `app/api/og/route.tsx` (separate copy for Edge runtime).
+
+## SLM Tag
+
+An SLM is an open-weights model with at most `SLM_MAX_TOTAL_PARAMS_B` (125B) total parameters. Total sizes live in `OPEN_WEIGHTS_TOTAL_PARAMS_B` in `lib/slm.ts`; a model missing from that table is never tagged, so add every open-weights model the API returns on any benchmark version, not just the current one (Hugging Face safetensors total). Listing a model also treats it as open-weights when the API reports `Unknown` (never overrides `Closed`). `transformLeaderboardEntry` sets `entry.slm`, which drives the SLM tag, the `?slm=true` filter, and the Best SLM quick pick.
 
 ## Benchmark Versioning
 

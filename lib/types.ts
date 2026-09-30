@@ -18,6 +18,8 @@ export interface LeaderboardEntry {
   /** Cost Per Successful Task = best_cost_usd / estimated_successful_tasks (null if unavailable) */
   cpst?: number | null;
   official?: boolean;
+  /** Small language model: open weights at or under SLM_MAX_TOTAL_PARAMS_B total params (lib/slm.ts) */
+  slm?: boolean;
 }
 
 export interface CategoryScore {

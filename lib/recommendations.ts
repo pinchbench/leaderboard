@@ -7,6 +7,7 @@ import type {
   Submission,
 } from "@/lib/types";
 import { CATEGORY_ICONS } from "@/lib/types";
+import { SLM_MAX_TOTAL_PARAMS_B } from "@/lib/slm";
 
 export const BEST_FOR_CATEGORIES = [
   {
@@ -185,6 +186,9 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
   const bestOpenWeights = [...entries]
     .filter((entry) => entry.weights === "Open")
     .sort((a, b) => getAverageScorePercent(b) - getAverageScorePercent(a))[0];
+  const bestSlm = [...entries]
+    .filter((entry) => entry.slm)
+    .sort((a, b) => getAverageScorePercent(b) - getAverageScorePercent(a))[0];
 
   const picks: Array<RecommendationPick | null | undefined> = [
     bestOverall && {
@@ -209,6 +213,18 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
       entry: bestOpenWeights,
       metricLabel: "Average Score",
       metricValue: `${getAverageScorePercent(bestOpenWeights).toFixed(1)}%`,
+      useAverageScore: true,
+    },
+    bestSlm && {
+      key: "slm",
+      label: "Best SLM",
+      shortLabel: "SLM",
+      icon: "🤏",
+      description: `Highest average among open-weights models up to ${SLM_MAX_TOTAL_PARAMS_B}B total parameters.`,
+      href: "/?slm=true",
+      entry: bestSlm,
+      metricLabel: "Average Score",
+      metricValue: `${getAverageScorePercent(bestSlm).toFixed(1)}%`,
       useAverageScore: true,
     },
     fastest && {

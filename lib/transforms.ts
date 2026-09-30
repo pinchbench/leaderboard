@@ -7,6 +7,7 @@ import type {
   TaskResult,
 } from "@/lib/types";
 import { resolveTaskCategory, TASK_FALLBACK } from "@/lib/task-metadata";
+import { isSlm, resolveWeights } from "@/lib/slm";
 
 const EPSILON = 1e-6;
 
@@ -45,6 +46,7 @@ export function transformLeaderboardEntry(
 ): LeaderboardEntry {
   const scorePercentage = apiEntry.best_score_percentage; // 0-1 range
   const bestCost = apiEntry.best_cost_usd ?? null;
+  const weights = resolveWeights(apiEntry.model, apiEntry.weights);
 
   // Value Score = score_percentage (0-100 scale) / cost_usd
   // Guard: cost must be > 0
@@ -67,7 +69,7 @@ export function transformLeaderboardEntry(
     percentage: apiEntry.best_score_percentage * 100,
     timestamp: apiEntry.latest_submission,
     submission_id: apiEntry.best_submission_id,
-    weights: apiEntry.weights ?? null,
+    weights,
     hf_link: apiEntry.hf_link ?? null,
     average_execution_time_seconds:
       apiEntry.average_execution_time_seconds ?? null,
@@ -79,6 +81,7 @@ export function transformLeaderboardEntry(
     value_score,
     cpst,
     official: apiEntry.official,
+    slm: isSlm({ model: apiEntry.model, weights }),
   };
 }
 

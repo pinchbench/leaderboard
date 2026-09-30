@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { SlidersHorizontal, X, Tag, Info, Search as SearchIcon, ChevronDown, ChevronRight, Filter } from 'lucide-react'
 import type { BenchmarkVersion, LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { SLM_MAX_TOTAL_PARAMS_B } from '@/lib/slm'
 import { VersionSelector } from '@/components/version-selector'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -27,6 +28,7 @@ interface FilterPanelProps {
   sortMode: SortMode
   officialOnly: boolean
   openWeightsOnly: boolean
+  slmOnly: boolean
   providerFilters: string[]
   maxCostFilter: string
   showZeroCostResults: boolean
@@ -36,6 +38,7 @@ interface FilterPanelProps {
   onSortModeChange: (mode: SortMode) => void
   onOfficialOnlyChange: (officialOnly: boolean) => void
   onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
+  onSlmOnlyChange: (slmOnly: boolean) => void
   onProviderToggle: (provider: string) => void
   onClearProviders: () => void
   onMaxCostFilterChange: (value: string) => void
@@ -51,6 +54,7 @@ export function FilterPanel({
   sortMode,
   officialOnly,
   openWeightsOnly,
+  slmOnly,
   providerFilters,
   maxCostFilter,
   showZeroCostResults,
@@ -59,6 +63,7 @@ export function FilterPanel({
   onSortModeChange,
   onOfficialOnlyChange,
   onOpenWeightsOnlyChange,
+  onSlmOnlyChange,
   onProviderToggle,
   onClearProviders,
   onMaxCostFilterChange,
@@ -89,13 +94,14 @@ export function FilterPanel({
     let count = 0
     if (!officialOnly) count++
     if (openWeightsOnly) count++
+    if (slmOnly) count++
     if (providerFilters.length > 0) count += providerFilters.length
     if (maxCostFilter) count++
     if (showZeroCostResults) count++
     if (scoreMode === 'average') count++
     if (sortMode === 'value') count++
     return count
-  }, [officialOnly, openWeightsOnly, providerFilters, maxCostFilter, showZeroCostResults, scoreMode, sortMode])
+  }, [officialOnly, openWeightsOnly, slmOnly, providerFilters, maxCostFilter, showZeroCostResults, scoreMode, sortMode])
 
   const showBudgetFilter = view === 'success' || view === 'value'
   const showSortMode = view === 'success'
@@ -336,6 +342,20 @@ export function FilterPanel({
                 id="open-weights-toggle"
                 checked={openWeightsOnly}
                 onCheckedChange={onOpenWeightsOnlyChange}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="slm-toggle" className="text-sm cursor-pointer">
+                  SLM only
+                </Label>
+                <p className="text-xs text-muted-foreground">Open-weight models up to {SLM_MAX_TOTAL_PARAMS_B}B total params</p>
+              </div>
+              <Switch
+                id="slm-toggle"
+                checked={slmOnly}
+                onCheckedChange={onSlmOnlyChange}
               />
             </div>
           </section>

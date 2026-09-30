@@ -1,9 +1,32 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { RecommendationPick } from "@/lib/types";
 import { formatCost, getAverageScorePercent } from "@/lib/recommendations";
 
 interface QuickPicksProps {
   picks: RecommendationPick[];
+}
+
+// LeaderboardView reads its filters from the URL only when it mounts, so a client-side
+// navigation from the home page to e.g. /?slm=true would change the URL without applying
+// the filter. Cards that point at the home leaderboard use a full page load instead.
+export function isHomeLeaderboardHref(href: string): boolean {
+  return href === "/" || href.startsWith("/?");
+}
+
+function PickLink({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+  if (isHomeLeaderboardHref(href)) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
 }
 
 export function QuickPicks({ picks }: QuickPicksProps) {
@@ -23,7 +46,7 @@ export function QuickPicks({ picks }: QuickPicksProps) {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {picks.map((pick) => (
-          <Link
+          <PickLink
             key={pick.key}
             href={pick.href}
             className="group rounded-xl border border-border bg-background/70 p-4 transition-colors hover:border-primary/60 hover:bg-background"
@@ -45,7 +68,7 @@ export function QuickPicks({ picks }: QuickPicksProps) {
               <span>{(pick.useAverageScore ? getAverageScorePercent(pick.entry) : pick.entry.percentage).toFixed(1)}% overall · {formatCost(pick.entry.best_cost_usd)}</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{pick.description}</p>
-          </Link>
+          </PickLink>
         ))}
       </div>
     </section>

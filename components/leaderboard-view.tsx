@@ -32,6 +32,20 @@ function parseProvidersParam(raw: string | null): string[] {
     return [...new Set(parts)]
 }
 
+interface BusinessFilters {
+    providerFilters: string[]
+    openWeightsOnly: boolean
+    slmOnly: boolean
+}
+
+// Business-level filters only (provider filter, open weights, SLM).
+export function matchesBusinessFilters(entry: LeaderboardEntry, { providerFilters, openWeightsOnly, slmOnly }: BusinessFilters): boolean {
+    if (providerFilters.length > 0 && !providerFilters.includes(entry.provider.toLowerCase())) return false
+    if (openWeightsOnly && entry.weights !== 'Open') return false
+    if (slmOnly && !entry.slm) return false
+    return true
+}
+
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
 const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
 const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
@@ -62,6 +76,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         : 'average'
     const initialProviders = parseProvidersParam(searchParams.get('provider'))
     const initialOpenWeights = searchParams.get('weights') === 'open'
+    const initialSlmOnly = searchParams.get('slm') === 'true'
     const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
         ? (searchParams.get('graph') as GraphSubTab)
         : 'scatter'
@@ -77,6 +92,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const [scoreMode, setScoreModeState] = useState<ScoreMode>(initialScoreMode)
     const [providerFilters, setProviderFiltersState] = useState<string[]>(initialProviders)
     const [openWeightsOnly, setOpenWeightsOnlyState] = useState<boolean>(initialOpenWeights)
+    const [slmOnly, setSlmOnlyState] = useState<boolean>(initialSlmOnly)
     const [graphSubTab, setGraphSubTabState] = useState<GraphSubTab>(initialGraphTab)
     const [hiddenProviders, setHiddenProviders] = useState<Set<string>>(new Set())
     const [modelSearch, setModelSearchState] = useState<string>(initialModelSearch)
@@ -101,6 +117,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         if (params.get('view') === 'success') params.delete('view')
         if (params.get('score') === 'average') params.delete('score')
         if (params.get('weights') !== 'open') params.delete('weights')
+        if (params.get('slm') !== 'true') params.delete('slm')
         if (params.get('sort') === 'quality') params.delete('sort')
         if (!params.get('budget')) params.delete('budget')
         if (params.get('zerocost') !== 'true') params.delete('zerocost')
@@ -149,6 +166,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
         updateUrl({ weights: v ? 'open' : null })
     }, [updateUrl])
 
+    const setSlmOnly = useCallback((v: boolean) => {
+        setSlmOnlyState(v)
+        updateUrl({ slm: v ? 'true' : null })
+    }, [updateUrl])
+
     const setGraphSubTab = useCallback((t: GraphSubTab) => {
         setGraphSubTabState(t)
         updateUrl({ graph: t === 'scatter' ? null : t })
@@ -191,24 +213,16 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
     const categoryFilterActive = selectedCategories.length > 0
 
-    // Business-level filters only (provider filter, open weights).
     // Used for legend provider list and all charts/tables.
     const businessFilteredEntries = useMemo(() => {
-        return entries.filter(entry => {
-            if (providerFilters.length > 0 && !providerFilters.includes(entry.provider.toLowerCase())) return false
-            if (openWeightsOnly && entry.weights !== 'Open') return false
-            return true
-        })
-    }, [entries, providerFilters, openWeightsOnly])
+        return entries.filter(entry => matchesBusinessFilters(entry, { providerFilters, openWeightsOnly, slmOnly }))
+    }, [entries, providerFilters, openWeightsOnly, slmOnly])
 
     const filteredEntries = useMemo(() => {
-        return entries.filter(entry => {
-            if (providerFilters.length > 0 && !providerFilters.includes(entry.provider.toLowerCase())) return false
-            if (openWeightsOnly && entry.weights !== 'Open') return false
-            if (modelSearch && !entry.model.toLowerCase().includes(modelSearch.toLowerCase())) return false
-            return true
-        })
-    }, [entries, providerFilters, openWeightsOnly, modelSearch])
+        if (!modelSearch) return businessFilteredEntries
+        const search = modelSearch.toLowerCase()
+        return businessFilteredEntries.filter(entry => entry.model.toLowerCase().includes(search))
+    }, [businessFilteredEntries, modelSearch])
 
     // Scatter-visible entries: business filters + legend-hidden providers.
     const scatterVisibleEntries = useMemo(() => {
@@ -218,18 +232,18 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     }, [businessFilteredEntries, hiddenProviders])
 
     // When business filters change, prune hiddenProviders
-    const prevBusinessFiltersRef = useRef({ providerFilters, openWeightsOnly })
+    const prevBusinessFiltersRef = useRef({ providerFilters, openWeightsOnly, slmOnly })
     useEffect(() => {
         const prev = prevBusinessFiltersRef.current
-        if (prev.providerFilters !== providerFilters || prev.openWeightsOnly !== openWeightsOnly) {
-            prevBusinessFiltersRef.current = { providerFilters, openWeightsOnly }
+        if (prev.providerFilters !== providerFilters || prev.openWeightsOnly !== openWeightsOnly || prev.slmOnly !== slmOnly) {
+            prevBusinessFiltersRef.current = { providerFilters, openWeightsOnly, slmOnly }
             const currentProviders = new Set(businessFilteredEntries.map(e => e.provider.toLowerCase()))
             setHiddenProviders(prev => {
                 const pruned = new Set([...prev].filter(k => currentProviders.has(k)))
                 return pruned.size === prev.size ? prev : pruned
             })
         }
-    }, [providerFilters, openWeightsOnly, businessFilteredEntries])
+    }, [providerFilters, openWeightsOnly, slmOnly, businessFilteredEntries])
 
     // Category filtering: fetch task data when category filter is active
     useEffect(() => {
@@ -360,6 +374,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 sortMode={sortMode}
                 officialOnly={officialOnlyState}
                 openWeightsOnly={openWeightsOnly}
+                slmOnly={slmOnly}
                 selectedCategories={selectedCategories}
                 categoryDataLoading={taskDataLoading}
                 activeCategoryTaskCount={activeCategoryTaskCount}
@@ -373,6 +388,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 onSortModeChange={setSortMode}
                 onOfficialOnlyChange={setOfficialOnly}
                 onOpenWeightsOnlyChange={setOpenWeightsOnly}
+                onSlmOnlyChange={setSlmOnly}
                 onProviderToggle={toggleProviderFilter}
                 onClearProviders={clearProviderFilters}
                 onCategoriesChange={setSelectedCategories}

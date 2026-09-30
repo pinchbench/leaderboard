@@ -77,6 +77,35 @@ describe("getQuickRecommendations", () => {
     expect(keys.indexOf("open-weights")).toBe(keys.indexOf("overall") + 1);
   });
 
+  test("Best SLM picks the highest-average SLM", () => {
+    const slmLow = makeEntry({ model: "slm-low", weights: "Open", slm: true, percentage: 80, average_score_percentage: 0.5 });
+    const slmHigh = makeEntry({ model: "slm-high", weights: "Open", slm: true, percentage: 70, average_score_percentage: 0.62 });
+    const openLarge = makeEntry({ model: "open-large", weights: "Open", slm: false, percentage: 95, average_score_percentage: 0.9 });
+    const closedTop = makeEntry({ model: "closed-top", weights: "Closed", percentage: 99, average_score_percentage: 0.95 });
+    const slm = getQuickRecommendations([closedTop, openLarge, slmLow, slmHigh]).find((p) => p.key === "slm");
+    expect(slm?.entry.model).toBe("slm-high");
+    expect(slm?.label).toBe("Best SLM");
+    expect(slm?.metricLabel).toBe("Average Score");
+    expect(slm?.metricValue).toBe("62.0%");
+    expect(slm?.href).toBe("/?slm=true");
+    expect(slm?.useAverageScore).toBe(true);
+  });
+
+  test("Best SLM card is omitted when no SLM exists", () => {
+    const openLarge = makeEntry({ model: "open-large", weights: "Open", slm: false, percentage: 90, average_score_percentage: 0.85 });
+    const closed = makeEntry({ model: "c", weights: "Closed", percentage: 80, average_score_percentage: 0.75 });
+    expect(
+      getQuickRecommendations([openLarge, closed]).find((p) => p.key === "slm"),
+    ).toBeUndefined();
+  });
+
+  test("Best SLM is positioned immediately after Best Open Weights", () => {
+    const slm = makeEntry({ model: "slm", weights: "Open", slm: true, percentage: 60, average_score_percentage: 0.55 });
+    const a = makeEntry({ model: "A", percentage: 95, average_score_percentage: 0.9 });
+    const keys = getQuickRecommendations([a, slm]).map((p) => p.key);
+    expect(keys.indexOf("slm")).toBe(keys.indexOf("open-weights") + 1);
+  });
+
   test("Best Budget still selects by best cost (selection unchanged)", () => {
     const x = makeEntry({ model: "X", average_score_percentage: 0.8, best_cost_usd: 0.1, average_cost_usd: 0.5 });
     const y = makeEntry({ model: "Y", average_score_percentage: 0.8, best_cost_usd: 0.2, average_cost_usd: 0.15 });

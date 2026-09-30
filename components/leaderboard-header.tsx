@@ -26,6 +26,7 @@ interface LeaderboardHeaderProps {
   sortMode: SortMode
   officialOnly: boolean
   openWeightsOnly: boolean
+  slmOnly: boolean
   selectedCategories: string[]
   categoryDataLoading: boolean
   activeCategoryTaskCount: number | null
@@ -39,6 +40,7 @@ interface LeaderboardHeaderProps {
   onSortModeChange: (mode: SortMode) => void
   onOfficialOnlyChange: (officialOnly: boolean) => void
   onOpenWeightsOnlyChange: (openWeightsOnly: boolean) => void
+  onSlmOnlyChange: (slmOnly: boolean) => void
   onProviderToggle: (provider: string) => void
   onClearProviders: () => void
   onCategoriesChange: (categories: string[]) => void
@@ -68,6 +70,7 @@ export function LeaderboardHeader({
   sortMode,
   officialOnly,
   openWeightsOnly,
+  slmOnly,
   selectedCategories,
   categoryDataLoading,
   activeCategoryTaskCount,
@@ -81,6 +84,7 @@ export function LeaderboardHeader({
   onSortModeChange,
   onOfficialOnlyChange,
   onOpenWeightsOnlyChange,
+  onSlmOnlyChange,
   onProviderToggle,
   onClearProviders,
   onCategoriesChange,
@@ -109,6 +113,7 @@ export function LeaderboardHeader({
             sortMode={sortMode}
             officialOnly={officialOnly}
             openWeightsOnly={openWeightsOnly}
+            slmOnly={slmOnly}
             providerFilters={providerFilters}
             maxCostFilter={maxCostFilter}
             showZeroCostResults={showZeroCostResults}
@@ -120,6 +125,7 @@ export function LeaderboardHeader({
             onSortModeChange={onSortModeChange}
             onOfficialOnlyChange={onOfficialOnlyChange}
             onOpenWeightsOnlyChange={onOpenWeightsOnlyChange}
+            onSlmOnlyChange={onSlmOnlyChange}
             onProviderToggle={onProviderToggle}
             onClearProviders={onClearProviders}
             onMaxCostFilterChange={onMaxCostFilterChange}
