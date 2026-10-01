@@ -13,11 +13,11 @@ import {
 import type { LeaderboardEntry, ApiSubmissionListItem } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissionsClient } from '@/lib/api'
+import { unsupportedGraphScoreModeNote } from '@/lib/metric-contract'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
 
 interface ScoreDistributionProps {
   entries: LeaderboardEntry[]
-  scoreMode: 'best' | 'average'
   currentVersion: string | null
   officialOnly: boolean
 }
@@ -155,7 +155,7 @@ function BoxPlotTooltip({ active, payload }: {
   )
 }
 
-export function ScoreDistribution({ entries, scoreMode, currentVersion, officialOnly }: ScoreDistributionProps) {
+export function ScoreDistribution({ entries, currentVersion, officialOnly }: ScoreDistributionProps) {
   const [submissions, setSubmissions] = useState<ApiSubmissionListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -277,7 +277,7 @@ export function ScoreDistribution({ entries, scoreMode, currentVersion, official
         Score Distribution per Model
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Box plots showing the distribution of scores across all submissions for each model.
+        {unsupportedGraphScoreModeNote('distribution')} Box plots show the distribution of scores across all submissions for each model.
         The box spans Q1-Q3 (interquartile range), the line inside is the median, and whiskers show min/max.
         Models with only 1 submission are excluded.
       </p>

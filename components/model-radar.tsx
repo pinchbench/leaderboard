@@ -14,6 +14,9 @@ import {
 } from 'recharts'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { canonicalizeLeaderboardSearchParams, scoreModeBasisLabel } from '@/lib/metric-contract'
+import { buildRadarMetrics, type RadarMetric } from '@/lib/radar-metrics'
+import { formatCost, formatDuration } from '@/lib/recommendations'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
 
 interface ModelRadarProps {
@@ -36,18 +39,8 @@ function getProviderColor(provider: string): string {
   return PROVIDER_COLORS[normalized] || '#888888'
 }
 
-interface NormalizedMetrics {
-  model: string
-  provider: string
-  score: number         // 0-100 raw
-  costEfficiency: number    // 0-100 (inverted: cheaper = higher)
-  speedEfficiency: number   // 0-100 (inverted: faster = higher)
-  consistency: number       // 0-100 (lower spread between best and avg = more consistent)
-}
-
-function normalizeToPercent(value: number, min: number, max: number): number {
-  if (max === min) return 50
-  return Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
+function formatRadarValue(value: number | null): string {
+  return value == null ? 'n/a' : String(Math.round(value))
 }
 
 export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
@@ -76,92 +69,29 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
       params.set('view', 'graphs')
       params.set('graph', 'radar')
     }
-    // Clean up defaults
-    if (params.get('view') === 'success') params.delete('view')
-    if (params.get('score') === 'best') params.delete('score')
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    const canonical = canonicalizeLeaderboardSearchParams(params)
+    router.replace(`${pathname}?${canonical.toString()}`, { scroll: false })
   }, [searchParams, router, pathname])
 
-  // Compute normalized metrics for all models
   const { metrics, radarData } = useMemo(() => {
-    // Collect raw values for normalization
-    const costs: number[] = []
-    const speeds: number[] = []
+    const metricsMap = new Map<string, RadarMetric>(
+      buildRadarMetrics(entries, scoreMode).map((metric) => [metric.model, metric]),
+    )
 
-    for (const entry of entries) {
-      const cost = scoreMode === 'best' ? entry.best_cost_usd : entry.average_cost_usd
-      const speed = scoreMode === 'best' ? entry.best_execution_time_seconds : entry.average_execution_time_seconds
-      if (cost != null && cost > 0) costs.push(cost)
-      if (speed != null && speed > 0) speeds.push(speed)
-    }
-
-    const costMin = Math.min(...costs)
-    const costMax = Math.max(...costs)
-    const speedMin = Math.min(...speeds)
-    const speedMax = Math.max(...speeds)
-
-    const metricsMap = new Map<string, NormalizedMetrics>()
-
-    for (const entry of entries) {
-      const score = scoreMode === 'best'
-        ? entry.percentage
-        : (entry.average_score_percentage != null ? entry.average_score_percentage * 100 : entry.percentage)
-
-      const cost = scoreMode === 'best' ? entry.best_cost_usd : entry.average_cost_usd
-      const speed = scoreMode === 'best' ? entry.best_execution_time_seconds : entry.average_execution_time_seconds
-
-      // Cost efficiency: invert so cheaper = higher score
-      const costEfficiency = cost != null && cost > 0
-        ? 100 - normalizeToPercent(cost, costMin, costMax)
-        : 50
-
-      // Speed efficiency: invert so faster = higher score
-      const speedEfficiency = speed != null && speed > 0
-        ? 100 - normalizeToPercent(speed, speedMin, speedMax)
-        : 50
-
-      // Consistency: if we have both best and avg scores, measure how close they are
-      const bestPct = entry.percentage
-      const avgPct = entry.average_score_percentage != null ? entry.average_score_percentage * 100 : null
-      let consistency = 50
-      if (avgPct != null && bestPct > 0) {
-        // ratio of avg to best: 1.0 = perfectly consistent, 0.0 = very inconsistent
-        const ratio = avgPct / bestPct
-        consistency = Math.max(0, Math.min(100, ratio * 100))
-      }
-
-      metricsMap.set(entry.model, {
-        model: entry.model,
-        provider: entry.provider,
-        score,
-        costEfficiency,
-        speedEfficiency,
-        consistency,
-      })
-    }
-
-    // Build radar data for selected models
-    const axes = ['Score', 'Cost Efficiency', 'Speed', 'Consistency']
+    const axes = ['Score', 'Cost Efficiency', 'Speed', 'Consistency'] as const
     const data = axes.map((axis) => {
-      const point: Record<string, string | number> = { axis }
+      const point: Record<string, string | number | null> = { axis }
       for (const modelName of selectedModels) {
-        const m = metricsMap.get(modelName)
-        if (m) {
-          switch (axis) {
-            case 'Score':
-              point[modelName] = Math.round(m.score)
-              break
-            case 'Cost Efficiency':
-              point[modelName] = Math.round(m.costEfficiency)
-              break
-            case 'Speed':
-              point[modelName] = Math.round(m.speedEfficiency)
-              break
-            case 'Consistency':
-              point[modelName] = Math.round(m.consistency)
-              break
-          }
-        }
+        const metric = metricsMap.get(modelName)
+        if (!metric) continue
+        const value = axis === 'Score'
+          ? metric.score
+          : axis === 'Cost Efficiency'
+            ? metric.costEfficiency
+            : axis === 'Speed'
+              ? metric.speedEfficiency
+              : metric.consistency
+        point[modelName] = value == null ? null : Math.round(value)
       }
       return point
     })
@@ -214,7 +144,7 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
         Model Comparison Tool
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Select 2-{MAX_SELECTED} models to compare overall score, speed, cost, and normalized efficiency metrics side by side.
+        Select 2-{MAX_SELECTED} models to compare {scoreModeBasisLabel(scoreMode).toLowerCase()} score, speed, and cost. Missing values stay unavailable.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -283,7 +213,9 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
                       }}
                     />
                     <span className="truncate font-medium text-foreground">{entry.model}</span>
-                    <span className="ml-auto text-muted-foreground flex-shrink-0">{entry.percentage.toFixed(1)}%</span>
+                    <span className="ml-auto text-muted-foreground flex-shrink-0">
+                      {metrics.get(entry.model)?.score == null ? 'n/a' : `${metrics.get(entry.model)!.score!.toFixed(1)}%`}
+                    </span>
                   </button>
                 )
               })}
@@ -331,6 +263,7 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
                         fill={RADAR_COLORS[i]}
                         fillOpacity={0.12}
                         strokeWidth={2}
+                        connectNulls={false}
                         dot={{
                           r: 4,
                           fill: RADAR_COLORS[i],
@@ -370,41 +303,43 @@ export function ModelRadar({ entries, scoreMode }: ModelRadarProps) {
                     </thead>
                     <tbody>
                       <tr className="border-b border-border/50">
-                        <td className="py-1.5 px-2 text-muted-foreground">Overall</td>
+                        <td className="py-1.5 px-2 text-muted-foreground">{scoreModeBasisLabel(scoreMode)}</td>
                         {selectedEntries.map((entry) => (
                           <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
-                            {entry.percentage.toFixed(1)}%
+                            {metrics.get(entry.model)?.score == null ? 'n/a' : `${metrics.get(entry.model)!.score!.toFixed(1)}%`}
                           </td>
                         ))}
                       </tr>
                       <tr className="border-b border-border/50">
-                        <td className="py-1.5 px-2 text-muted-foreground">Cost per run</td>
+                        <td className="py-1.5 px-2 text-muted-foreground">{scoreMode === 'best' ? 'Best cost' : 'Average cost'}</td>
                         {selectedEntries.map((entry) => (
                           <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
-                            {entry.best_cost_usd == null ? '-' : `$${entry.best_cost_usd.toFixed(3)}`}
+                            {formatCost(metrics.get(entry.model)?.cost)}
                           </td>
                         ))}
                       </tr>
                       <tr className="border-b border-border/50">
-                        <td className="py-1.5 px-2 text-muted-foreground">Avg time</td>
+                        <td className="py-1.5 px-2 text-muted-foreground">{scoreMode === 'best' ? 'Best time' : 'Average time'}</td>
                         {selectedEntries.map((entry) => (
                           <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
-                            {entry.average_execution_time_seconds == null ? '-' : `${(entry.average_execution_time_seconds / 60).toFixed(1)}m`}
+                            {formatDuration(metrics.get(entry.model)?.speed)}
                           </td>
                         ))}
                       </tr>
-                      {['Cost Efficiency', 'Speed', 'Consistency'].map((axis) => (
+                      {(['Cost Efficiency', 'Speed', 'Consistency'] as const).map((axis) => (
                         <tr key={axis} className="border-b border-border/50">
                           <td className="py-1.5 px-2 text-muted-foreground">{axis}</td>
-                          {selectedEntries.map((entry) => {
-                            const dataPoint = radarData.find(d => d.axis === axis)
-                            const value = dataPoint?.[entry.model] as number | undefined
-                            return (
-                              <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
-                                {value != null ? value : '-'}
-                              </td>
-                            )
-                          })}
+                          {selectedEntries.map((entry) => (
+                            <td key={entry.model} className="text-right py-1.5 px-2 font-medium text-foreground">
+                              {formatRadarValue(
+                                axis === 'Cost Efficiency'
+                                  ? metrics.get(entry.model)?.costEfficiency ?? null
+                                  : axis === 'Speed'
+                                    ? metrics.get(entry.model)?.speedEfficiency ?? null
+                                    : metrics.get(entry.model)?.consistency ?? null,
+                              )}
+                            </td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>

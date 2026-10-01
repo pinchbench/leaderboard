@@ -2,6 +2,8 @@ import { ImageResponse } from 'next/og'
 import { fetchLeaderboard, fetchBenchmarkVersions } from '@/lib/api'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 import { getScoreColorHex } from '@/lib/scores'
+import { parseTaskCountFromReleaseNotes, formatTaskCount } from '@/lib/benchmark-metadata'
+import { selectOgEntries } from '@/lib/og-rankings'
 
 export const runtime = 'edge'
 
@@ -37,6 +39,7 @@ const PROVIDER_COLORS: Record<string, string> = {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const view = searchParams.get('view') || 'success'
+  const score = searchParams.get('score')
   const version = searchParams.get('version') || undefined
   const officialOnly = searchParams.get('official') !== 'false'
 
@@ -46,29 +49,14 @@ export async function GET(request: Request) {
       fetchBenchmarkVersions(),
     ])
     const entries = calculateRanks(response.leaderboard.map(transformLeaderboardEntry))
+    const selectedVersion = versionsResponse.versions.find(v => v.id === version)
     const currentVersion = versionsResponse.versions.find(v => v.is_current)
-    const versionLabel = currentVersion?.semver ?? version ?? '2.0'
-    const taskCount = currentVersion?.release_notes?.match(/(\d+) tasks/)?.[1] ?? '148'
-
-    // Get top entries based on view
-    let title = 'Success Rate Leaderboard'
-    let topEntries = entries.slice(0, 8)
-
-    if (view === 'speed') {
-      title = 'Speed Leaderboard'
-      topEntries = [...entries]
-        .filter(e => e.best_execution_time_seconds != null)
-        .sort((a, b) => (a.best_execution_time_seconds ?? Infinity) - (b.best_execution_time_seconds ?? Infinity))
-        .slice(0, 8)
-    } else if (view === 'cost') {
-      title = 'Cost Leaderboard'
-      topEntries = [...entries]
-        .filter(e => e.best_cost_usd != null)
-        .sort((a, b) => (a.best_cost_usd ?? Infinity) - (b.best_cost_usd ?? Infinity))
-        .slice(0, 8)
-    } else if (view === 'graphs') {
-      title = 'AI Agent Benchmark Results'
-    }
+    const versionMeta = selectedVersion ?? currentVersion
+    const versionLabel = versionMeta?.semver ?? version ?? 'current'
+    const taskCount = formatTaskCount(parseTaskCountFromReleaseNotes(versionMeta?.release_notes))
+    const ranked = selectOgEntries(entries, view, score)
+    const title = ranked.title
+    const topEntries = ranked.entries
 
     const formatValue = (entry: typeof topEntries[0]) => {
       if (view === 'speed') {
@@ -80,6 +68,9 @@ export async function GET(request: Request) {
         return entry.best_cost_usd != null
           ? `$${entry.best_cost_usd.toFixed(2)}`
           : 'N/A'
+      }
+      if (view === 'value') {
+        return entry.value_score != null ? entry.value_score.toFixed(1) : 'N/A'
       }
       return `${entry.percentage.toFixed(1)}%`
     }
@@ -124,7 +115,7 @@ export async function GET(request: Request) {
                     color: COLORS.muted,
                   }}
                 >
-                  {`OpenClaw LLM Model Benchmarking · v${versionLabel} · ${taskCount} tasks`}
+                  {`OpenClaw LLM Model Benchmarking · v${versionLabel} · ${taskCount}`}
                 </span>
               </div>
             </div>
@@ -150,7 +141,7 @@ export async function GET(request: Request) {
                   color: COLORS.muted,
                 }}
               >
-                {`v${versionLabel} · ${entries.length} models · ${taskCount} tasks`}
+                {`v${versionLabel} · ${entries.length} models · ${taskCount}`}
               </span>
             </div>
           </div>

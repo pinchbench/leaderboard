@@ -81,7 +81,7 @@ export function getQualityAndValueFamilies(
   valueLimit = 2,
 ): { qualityFamilies: string[]; valueFamilies: string[] } {
   const byQuality = [...entries].sort(
-    (a, b) => getAverageScorePercent(b) - getAverageScorePercent(a),
+    (a, b) => (getAverageScorePercent(b) ?? -1) - (getAverageScorePercent(a) ?? -1),
   );
   const byValue = [...entries]
     .filter((entry) => entry.value_score != null)

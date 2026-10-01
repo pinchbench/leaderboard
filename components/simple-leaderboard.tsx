@@ -152,6 +152,11 @@ export function SimpleLeaderboard({
     officialOnly ? `/submission/${submissionId}` : `/submission/${submissionId}?official=false`
   )
 
+  const captureProvenance = [
+    officialOnly ? 'Official runs' : 'Official and community',
+    benchmarkVersion ? `version ${benchmarkVersion}` : 'current version',
+    new Date().toISOString().slice(0, 10),
+  ].join(' · ')
   const onProviderSelect = onProviderToggle ?? onProviderClick
   const handleProviderClick = (provider: string) => {
     if (onProviderSelect) {
@@ -324,7 +329,7 @@ export function SimpleLeaderboard({
         </p>
         <p className="text-xs text-muted-foreground mb-6 flex items-center gap-1.5">
           <Info className="h-3 w-3 flex-shrink-0" />
-          Models without cost data are excluded. CPST is estimated from best run score (~40 tasks).
+          Value uses best observed success divided by best observed cost. Zero and missing costs are excluded because some $0 cost data is unreliable.
         </p>
 
         {maxCost != null && (
@@ -336,6 +341,7 @@ export function SimpleLeaderboard({
         <ShareableWrapper
           title="Value Score Rankings"
           subtitle={`${displayedEntries.length} models${maxCost != null ? ` • budget ≤ $${maxCost.toFixed(2)}` : ''}`}
+          provenance={captureProvenance}
         >
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <table className="w-full">
@@ -537,6 +543,7 @@ export function SimpleLeaderboard({
           subtitle={categoryFilterActive
             ? `${displayedEntries.length} models • ${selectedCategoryLabels}`
             : `${displayedEntries.length} models${sortMode === 'value' ? ' • sorted by value' : ` • sorted by ${scoreMode} score`}`}
+          provenance={captureProvenance}
           alwaysShowButton
         >
           <div className="hidden md:block bg-card border border-border rounded-lg p-6 mb-6">
@@ -724,6 +731,7 @@ export function SimpleLeaderboard({
           subtitle={categoryFilterActive
             ? `${displayedEntries.length} models • ${selectedCategoryLabels}`
             : `${displayedEntries.length} models • sorted by ${scoreMode} score`}
+          provenance={captureProvenance}
         >
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <table className="w-full">
@@ -805,7 +813,7 @@ export function SimpleLeaderboard({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            onProviderClick?.(entry.provider)
+                            handleProviderClick(entry.provider)
                           }}
                           className="text-xs font-medium hover:underline cursor-pointer"
                           style={{
@@ -915,13 +923,14 @@ export function SimpleLeaderboard({
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         {view === 'speed'
-          ? 'Fastest submission time per model (best run)'
-          : 'Lowest submission cost per model (best run)'}
+          ? 'Ranked by fastest observed complete run. Ties are not a typical runtime.'
+          : 'Ranked by cheapest observed non-zero cost. $0 rows are hidden unless enabled, because some zero-cost data is unreliable.'}
       </p>
 
       <ShareableWrapper
         title={view === 'speed' ? 'Speed Rankings' : 'Cost Rankings'}
-        subtitle={`${ranked.length} models • Best run`}
+        subtitle={`${ranked.length} models • ${view === 'speed' ? 'Fastest observed' : 'Cheapest observed'}`}
+        provenance={captureProvenance}
       >
         <div className="bg-card border border-border rounded-lg overflow-hidden">
           <table className="w-full">
@@ -938,7 +947,7 @@ export function SimpleLeaderboard({
                 </th>
                 <th className="px-2 md:px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
                   <ColumnTooltip
-                    label={view === 'speed' ? 'Best Time' : 'Best Cost'}
+                    label={view === 'speed' ? 'Fastest observed' : 'Cheapest observed'}
                     description={view === 'speed'
                       ? "Wall-clock time for the model's fastest complete benchmark run across all submissions."
                       : "Total API cost (USD) for the model's cheapest complete benchmark run."}
@@ -985,6 +994,9 @@ export function SimpleLeaderboard({
                   <td className="px-2 md:px-4 py-3 text-right">
                     <span className="text-sm font-medium text-foreground">
                       {formatValue(entry)}
+                      {entry.submission_count != null && (
+                        <span className="ml-2 text-[10px] text-muted-foreground">{entry.submission_count} runs</span>
+                      )}
                     </span>
                   </td>
                 </tr>

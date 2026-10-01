@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { ChevronDown, Check, Tag } from 'lucide-react'
 import type { BenchmarkVersion } from '@/lib/types'
@@ -80,6 +80,7 @@ function isVersionInGroup(group: VersionGroup, versionId: string | null): boolea
 
 export function VersionSelector({ versions, currentVersion }: VersionSelectorProps) {
     const router = useRouter()
+    const pathname = usePathname()
     const searchParams = useSearchParams()
 
     const groupedVersions = groupVersionsBySemver(versions)
@@ -92,7 +93,7 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
             params.set('version', value)
         }
         const query = params.toString()
-        router.push(query ? `/?${query}` : '/')
+        router.push(query ? `${pathname}?${query}` : pathname)
     }
 
     // Find which group is currently selected (if any)

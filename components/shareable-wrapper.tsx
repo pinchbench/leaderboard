@@ -8,6 +8,7 @@ interface ShareableWrapperProps {
   children: ReactNode
   title: string
   subtitle?: string
+  provenance?: string
   className?: string
   /** When true, the share button is always visible instead of appearing on hover */
   alwaysShowButton?: boolean
@@ -20,7 +21,7 @@ type ShareAction = 'copy' | 'download' | 'share'
  * The attribution bars are hidden during normal browsing and only shown
  * when capturing an image for sharing.
  */
-export function ShareableWrapper({ children, title, subtitle, className, alwaysShowButton }: ShareableWrapperProps) {
+export function ShareableWrapper({ children, title, subtitle, provenance, className, alwaysShowButton }: ShareableWrapperProps) {
   const captureRef = useRef<HTMLDivElement>(null)
   const [isCapturing, setIsCapturing] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -255,7 +256,7 @@ export function ShareableWrapper({ children, title, subtitle, className, alwaysS
                 fontWeight: 500,
               }}
             >
-              pinchbench.com
+              {provenance ? `${provenance} · pinchbench.com` : 'pinchbench.com'}
             </div>
             <div
               style={{

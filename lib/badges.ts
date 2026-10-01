@@ -3,8 +3,24 @@ import { fetchSubmissions } from "@/lib/api";
 import { normalizeProvider } from "@/lib/transforms";
 
 const EPSILON = 1e-6;
-const PAGE_SIZE = 1000;
-const MAX_PAGES = 5;
+export const SUBMISSION_PAGE_SIZE = 200;
+const PAGE_SIZE = SUBMISSION_PAGE_SIZE;
+const MAX_PAGES = 20;
+
+export function nextSubmissionOffset(offset: number, returnedCount: number): number {
+  return offset + Math.max(0, returnedCount);
+}
+
+export function shouldContinueSubmissionPaging(input: {
+  returnedCount: number;
+  requestedLimit: number;
+  hasMore: boolean;
+  newItemCount: number;
+}): boolean {
+  if (input.newItemCount <= 0 || input.returnedCount <= 0) return false;
+  if (!input.hasMore) return false;
+  return input.returnedCount >= input.requestedLimit;
+}
 
 export const BADGE_PERIODS = {
   "1d": { label: "Daily", shortLabel: "1D" },
@@ -219,19 +235,25 @@ export async function fetchRecentBadgeSubmissions(
   const now = options.now ?? Date.now();
   const cutoffMs = getPeriodStartMs(maxPeriod, now);
   const results: ApiSubmissionListItem[] = [];
+  const seen = new Set<string>();
+  let offset = 0;
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const response = await fetchSubmissions(
       options.version,
       PAGE_SIZE,
-      page * PAGE_SIZE,
+      offset,
       { officialOnly: options.officialOnly ?? true },
     );
+    const pageIds = new Set<string>();
+    let newItemCount = 0;
+    let allOlderThanWindow = response.submissions.length > 0;
 
-    if (response.submissions.length === 0) break;
-
-    let allOlderThanWindow = true;
     for (const submission of response.submissions) {
+      if (seen.has(submission.id) || pageIds.has(submission.id)) continue;
+      pageIds.add(submission.id);
+      seen.add(submission.id);
+      newItemCount += 1;
       const timestampMs = getTimestampMs(submission.timestamp);
       if (!Number.isFinite(timestampMs)) continue;
       if (timestampMs >= cutoffMs) {
@@ -240,7 +262,18 @@ export async function fetchRecentBadgeSubmissions(
       }
     }
 
-    if (!response.has_more || allOlderThanWindow) break;
+    offset = nextSubmissionOffset(offset, response.submissions.length);
+    if (
+      allOlderThanWindow ||
+      !shouldContinueSubmissionPaging({
+        returnedCount: response.submissions.length,
+        requestedLimit: PAGE_SIZE,
+        hasMore: response.has_more,
+        newItemCount,
+      })
+    ) {
+      break;
+    }
   }
 
   return results;

@@ -7,11 +7,12 @@ import { ModelSearch } from '@/components/model-search'
 import { FilterPanel } from '@/components/filter-panel'
 import { CategoryPills } from '@/components/category-pills'
 import type { BenchmarkVersion } from '@/lib/types'
+import type { GraphTab } from '@/lib/metric-contract'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
 type SortMode = 'quality' | 'value'
-type GraphSubTab = 'scatter' | 'heatmap' | 'distribution' | 'radar'
+type GraphSubTab = GraphTab
 
 interface LeaderboardHeaderProps {
   entries: LeaderboardEntry[]
@@ -117,6 +118,7 @@ export function LeaderboardHeader({
             providerFilters={providerFilters}
             maxCostFilter={maxCostFilter}
             showZeroCostResults={showZeroCostResults}
+            graphSubTab={graphSubTab}
             lastUpdated={lastUpdated}
             onVersionChange={() => {
               // VersionSelector manages its own navigation
