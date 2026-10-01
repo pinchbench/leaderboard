@@ -7,6 +7,7 @@ import type {
   Submission,
 } from "@/lib/types";
 import { CATEGORY_ICONS } from "@/lib/types";
+import { getSuccessPercent, isEligibleForAverageClaim } from "@/lib/metric-contract";
 import { SLM_MAX_TOTAL_PARAMS_B } from "@/lib/slm";
 
 export const BEST_FOR_CATEGORIES = [
@@ -56,13 +57,10 @@ export function formatCost(cost: number | null | undefined): string {
 
 /**
  * Average success rate for a model on a 0-100 scale.
- * `average_score_percentage` is stored on a 0-1 scale; fall back to the
- * best/max `percentage` (already 0-100) when no average is available.
+ * Returns null when no average is available instead of substituting the best score.
  */
-export function getAverageScorePercent(entry: LeaderboardEntry): number {
-  return entry.average_score_percentage != null
-    ? entry.average_score_percentage * 100
-    : entry.percentage;
+export function getAverageScorePercent(entry: LeaderboardEntry): number | null {
+  return getSuccessPercent(entry, "average");
 }
 
 export function formatDuration(seconds: number | null | undefined): string {
@@ -173,7 +171,9 @@ export function getCategoryChampionBadges(entries: EnrichedLeaderboardEntry[]): 
 }
 
 export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): RecommendationPick[] {
-  const bestOverall = [...entries].sort((a, b) => getAverageScorePercent(b) - getAverageScorePercent(a))[0];
+  const bestOverall = [...entries]
+    .filter(isEligibleForAverageClaim)
+    .sort((a, b) => (getAverageScorePercent(b) ?? -1) - (getAverageScorePercent(a) ?? -1))[0];
   const fastest = [...entries]
     .filter((entry) => entry.best_execution_time_seconds != null)
     .sort((a, b) => (a.best_execution_time_seconds ?? Infinity) - (b.best_execution_time_seconds ?? Infinity))[0];
@@ -184,11 +184,11 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
   const bestCode = sortEntriesForBestFor(entries, "coding")[0];
   const bestData = sortEntriesForBestFor(entries, "data-analysis")[0];
   const bestOpenWeights = [...entries]
-    .filter((entry) => entry.weights === "Open")
-    .sort((a, b) => getAverageScorePercent(b) - getAverageScorePercent(a))[0];
+    .filter((entry) => entry.weights === "Open" && isEligibleForAverageClaim(entry))
+    .sort((a, b) => (getAverageScorePercent(b) ?? -1) - (getAverageScorePercent(a) ?? -1))[0];
   const bestSlm = [...entries]
-    .filter((entry) => entry.slm)
-    .sort((a, b) => getAverageScorePercent(b) - getAverageScorePercent(a))[0];
+    .filter((entry) => entry.slm && isEligibleForAverageClaim(entry))
+    .sort((a, b) => (getAverageScorePercent(b) ?? -1) - (getAverageScorePercent(a) ?? -1))[0];
 
   const picks: Array<RecommendationPick | null | undefined> = [
     bestOverall && {
@@ -200,7 +200,7 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
       href: "/",
       entry: bestOverall,
       metricLabel: "Average Score",
-      metricValue: `${getAverageScorePercent(bestOverall).toFixed(1)}%`,
+      metricValue: `${(getAverageScorePercent(bestOverall) ?? 0).toFixed(1)}%`,
       useAverageScore: true,
     },
     bestOpenWeights && {
@@ -212,7 +212,7 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
       href: "/?weights=open",
       entry: bestOpenWeights,
       metricLabel: "Average Score",
-      metricValue: `${getAverageScorePercent(bestOpenWeights).toFixed(1)}%`,
+      metricValue: `${(getAverageScorePercent(bestOpenWeights) ?? 0).toFixed(1)}%`,
       useAverageScore: true,
     },
     bestSlm && {
@@ -224,7 +224,7 @@ export function getQuickRecommendations(entries: EnrichedLeaderboardEntry[]): Re
       href: "/?slm=true",
       entry: bestSlm,
       metricLabel: "Average Score",
-      metricValue: `${getAverageScorePercent(bestSlm).toFixed(1)}%`,
+      metricValue: `${(getAverageScorePercent(bestSlm) ?? 0).toFixed(1)}%`,
       useAverageScore: true,
     },
     fastest && {

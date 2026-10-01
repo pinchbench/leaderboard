@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { scoreModeAppliesToGraph, unsupportedGraphScoreModeNote, type GraphTab } from '@/lib/metric-contract'
 
 type ViewMode = 'success' | 'speed' | 'cost' | 'value' | 'graphs'
 type ScoreMode = 'best' | 'average'
@@ -32,6 +33,7 @@ interface FilterPanelProps {
   providerFilters: string[]
   maxCostFilter: string
   showZeroCostResults: boolean
+  graphSubTab: GraphTab
   lastUpdated: string
   onVersionChange?: (version: string) => void
   onScoreModeChange: (mode: ScoreMode) => void
@@ -58,6 +60,7 @@ export function FilterPanel({
   providerFilters,
   maxCostFilter,
   showZeroCostResults,
+  graphSubTab,
   lastUpdated,
   onScoreModeChange,
   onSortModeChange,
@@ -98,7 +101,7 @@ export function FilterPanel({
     if (providerFilters.length > 0) count += providerFilters.length
     if (maxCostFilter) count++
     if (showZeroCostResults) count++
-    if (scoreMode === 'average') count++
+    if (scoreMode === 'best') count++
     if (sortMode === 'value') count++
     return count
   }, [officialOnly, openWeightsOnly, slmOnly, providerFilters, maxCostFilter, showZeroCostResults, scoreMode, sortMode])
@@ -107,6 +110,8 @@ export function FilterPanel({
   const showSortMode = view === 'success'
   const showZeroCostToggle = view === 'cost'
   const showScoreMode = view !== 'graphs'
+  const showGraphScoreMode = view === 'graphs' && scoreModeAppliesToGraph(graphSubTab)
+  const graphScoreModeNote = view === 'graphs' ? unsupportedGraphScoreModeNote(graphSubTab) : null
 
   return (
     <Sheet>
@@ -146,7 +151,7 @@ export function FilterPanel({
           <Separator />
 
           {/* View Mode Tabs - when in graphs */}
-          {view === 'graphs' && (
+          {showGraphScoreMode && (
             <>
               <section className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground">Score Basis</h3>
@@ -171,6 +176,13 @@ export function FilterPanel({
                   </button>
                 </div>
               </section>
+              <Separator />
+            </>
+          )}
+
+          {graphScoreModeNote && (
+            <>
+              <p className="text-xs text-muted-foreground">{graphScoreModeNote}</p>
               <Separator />
             </>
           )}

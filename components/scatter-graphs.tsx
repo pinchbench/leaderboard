@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import type { LeaderboardEntry } from '@/lib/types'
 import { PROVIDER_COLORS } from '@/lib/types'
+import { buildScatterPoint, scoreModeBasisLabel } from '@/lib/metric-contract'
 import { ShareableWrapper } from '@/components/shareable-wrapper'
 
 type GraphTab = 'perf-vs-cost' | 'perf-vs-speed'
@@ -315,21 +316,16 @@ export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenPro
     const providerSet = new Map<string, string>()
 
     for (const entry of entries) {
-      const yVal = entry.average_score_percentage != null ? entry.average_score_percentage * 100 : null
-
-      const xVal = isCost
-        ? entry.average_cost_usd
-        : entry.average_execution_time_seconds
-
-      if (yVal == null || xVal == null || xVal <= 0) continue
+      const point = buildScatterPoint(entry, isCost ? 'cost' : 'speed', scoreMode)
+      if (point == null) continue
 
       const color = getProviderColor(entry.provider)
       providerSet.set(entry.provider, color)
       points.push({
         name: entry.model,
         provider: entry.provider,
-        x: xVal,
-        y: yVal,
+        x: point.x,
+        y: point.y,
         color,
       })
     }
@@ -381,7 +377,7 @@ export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenPro
       yDomain: [yMin, yMax] as [number, number],
       quadrantY: qY,
     }
-  }, [entries, graphTab])
+  }, [entries, graphTab, scoreMode])
 
   // Filter by visible providers
   const data = useMemo(() => {
@@ -391,6 +387,8 @@ export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenPro
 
   const isCost = graphTab === 'perf-vs-cost'
   const xLabel = isCost ? 'Cost' : 'Speed'
+  const basisLabel = scoreModeBasisLabel(scoreMode)
+  const axisLabel = scoreMode === 'best' ? 'best observed' : 'average'
 
   const formatXTick = (val: number) => {
     if (isCost) {
@@ -436,8 +434,9 @@ export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenPro
         {isCost ? 'Success Rate vs. Cost' : 'Success Rate vs. Execution Time'}
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Average score vs. average{' '}
+        {basisLabel} score vs. {axisLabel}{' '}
         {isCost ? 'cost (USD)' : 'execution time (seconds)'}
+        {'. Models missing that basis are omitted.'}
         {' \u2022 Click a provider to hide/show'}
       </p>
 
@@ -466,7 +465,7 @@ export function ScatterGraphs({ entries, scoreMode, hiddenProviders, onHiddenPro
       ) : (
         <ShareableWrapper
           title={isCost ? 'Success Rate vs. Cost' : 'Success Rate vs. Execution Time'}
-          subtitle={`Average score \u2022 ${data.length} models`}
+          subtitle={`${basisLabel} score \u2022 ${data.length} models`}
         >
           <div className="rounded-lg border border-border bg-background p-4">
             <ResponsiveContainer width="100%" height={520}>

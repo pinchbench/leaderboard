@@ -397,7 +397,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
         Task-Level Performance Heatmap
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Each cell shows the score percentage for a model on a specific task.
+        Each cell shows one submission's score percentage for a model on a specific task. Best/Average does not change this chart.
         Tasks are grouped by category.
         {categoryFilterActive && filteredTasks.length > 0 ? (
           <span className="block mt-1 text-muted-foreground/90">

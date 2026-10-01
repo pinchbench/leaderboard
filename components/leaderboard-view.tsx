@@ -7,6 +7,7 @@ import { PROVIDER_COLORS } from '@/lib/types'
 import { fetchSubmissionClient } from '@/lib/api'
 import { calculateCategoryFilteredScore, calculateRanksByPercentage } from '@/lib/category-scores'
 import { transformSubmission } from '@/lib/transforms'
+import { canonicalizeLeaderboardSearchParams, parseGraphTab, parseScoreMode } from '@/lib/metric-contract'
 import { SimpleLeaderboard } from '@/components/simple-leaderboard'
 import { ScatterGraphs } from '@/components/scatter-graphs'
 import { TaskHeatmap } from '@/components/task-heatmap'
@@ -47,8 +48,6 @@ export function matchesBusinessFilters(entry: LeaderboardEntry, { providerFilter
 }
 
 const VALID_VIEWS: ViewMode[] = ['success', 'speed', 'cost', 'value', 'graphs']
-const VALID_SCORE_MODES: ScoreMode[] = ['best', 'average']
-const VALID_GRAPH_TABS: GraphSubTab[] = ['scatter', 'heatmap', 'distribution', 'radar']
 const VALID_SORT_MODES: SortMode[] = ['quality', 'value']
 
 interface LeaderboardViewProps {
@@ -71,15 +70,11 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
     const initialView = VALID_VIEWS.includes(searchParams.get('view') as ViewMode)
         ? (searchParams.get('view') as ViewMode)
         : 'success'
-    const initialScoreMode = VALID_SCORE_MODES.includes(searchParams.get('score') as ScoreMode)
-        ? (searchParams.get('score') as ScoreMode)
-        : 'average'
+    const initialScoreMode = parseScoreMode(searchParams.get('score'))
     const initialProviders = parseProvidersParam(searchParams.get('provider'))
     const initialOpenWeights = searchParams.get('weights') === 'open'
     const initialSlmOnly = searchParams.get('slm') === 'true'
-    const initialGraphTab = VALID_GRAPH_TABS.includes(searchParams.get('graph') as GraphSubTab)
-        ? (searchParams.get('graph') as GraphSubTab)
-        : 'scatter'
+    const initialGraphTab = parseGraphTab(searchParams.get('graph'))
     const initialModelSearch = searchParams.get('model') || ''
     const initialSortMode = VALID_SORT_MODES.includes(searchParams.get('sort') as SortMode)
         ? (searchParams.get('sort') as SortMode)
@@ -113,16 +108,8 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                 params.set(key, value)
             }
         }
-        // Remove defaults to keep URL clean
-        if (params.get('view') === 'success') params.delete('view')
-        if (params.get('score') === 'average') params.delete('score')
-        if (params.get('weights') !== 'open') params.delete('weights')
-        if (params.get('slm') !== 'true') params.delete('slm')
-        if (params.get('sort') === 'quality') params.delete('sort')
-        if (!params.get('budget')) params.delete('budget')
-        if (params.get('zerocost') !== 'true') params.delete('zerocost')
-        if (params.get('graph') === 'scatter') params.delete('graph')
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+        const canonical = canonicalizeLeaderboardSearchParams(params)
+        router.replace(`${pathname}?${canonical.toString()}`, { scroll: false })
     }, [searchParams, router, pathname])
 
     const setView = useCallback((v: ViewMode) => {
@@ -178,8 +165,16 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
     const handleModelSearchChange = useCallback((s: string) => {
         setModelSearchState(s)
-        updateUrl({ model: s || null })
-    }, [updateUrl])
+    }, [])
+
+    useEffect(() => {
+        const handle = window.setTimeout(() => {
+            const current = searchParams.get('model') || ''
+            if (current === modelSearch) return
+            updateUrl({ model: modelSearch || null })
+        }, 300)
+        return () => window.clearTimeout(handle)
+    }, [modelSearch, searchParams, updateUrl])
 
     const setOfficialOnly = useCallback((v: boolean) => {
         setOfficialOnlyState(v)
@@ -454,7 +449,7 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
                             />
                         )}
                         {graphSubTab === 'distribution' && (
-                            <ScoreDistribution entries={businessFilteredEntries} scoreMode={scoreMode} currentVersion={currentVersion} officialOnly={officialOnlyState} />
+                            <ScoreDistribution entries={businessFilteredEntries} currentVersion={currentVersion} officialOnly={officialOnlyState} />
                         )}
                         {graphSubTab === 'radar' && (
                             <ModelRadar entries={businessFilteredEntries} scoreMode={scoreMode} />

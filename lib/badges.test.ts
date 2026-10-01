@@ -3,7 +3,10 @@ import {
   calculateValueScore,
   compareBadgeCandidates,
   computeModelBadgeStatuses,
+  nextSubmissionOffset,
   rankModelsForMetric,
+  shouldContinueSubmissionPaging,
+  SUBMISSION_PAGE_SIZE,
 } from './badges'
 import type { ApiSubmissionListItem } from './types'
 
@@ -28,6 +31,35 @@ function submission(overrides: Partial<ApiSubmissionListItem>): ApiSubmissionLis
     official: overrides.official ?? true,
   }
 }
+
+describe('submission paging', () => {
+  test('uses the documented API page size and advances by the returned count', () => {
+    expect(SUBMISSION_PAGE_SIZE).toBe(200)
+    expect(nextSubmissionOffset(0, 200)).toBe(200)
+    expect(nextSubmissionOffset(200, 200)).toBe(400)
+  })
+
+  test('does not skip records when the server clamps the page', () => {
+    expect(shouldContinueSubmissionPaging({
+      returnedCount: 200,
+      requestedLimit: 200,
+      hasMore: true,
+      newItemCount: 200,
+    })).toBe(true)
+    expect(shouldContinueSubmissionPaging({
+      returnedCount: 50,
+      requestedLimit: 200,
+      hasMore: true,
+      newItemCount: 50,
+    })).toBe(false)
+    expect(shouldContinueSubmissionPaging({
+      returnedCount: 200,
+      requestedLimit: 200,
+      hasMore: true,
+      newItemCount: 0,
+    })).toBe(false)
+  })
+})
 
 describe('badge helpers', () => {
   test('calculateValueScore guards against zero cost', () => {

@@ -30,12 +30,12 @@ describe("getAverageScorePercent", () => {
     ).toBeCloseTo(85);
   });
 
-  test("falls back to the best percentage when no average exists", () => {
+  test("does not present a best score as an average", () => {
     expect(
       getAverageScorePercent(
         makeEntry({ model: "m", percentage: 90, average_score_percentage: null }),
       ),
-    ).toBe(90);
+    ).toBeNull();
   });
 });
 

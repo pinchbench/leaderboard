@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Github, ExternalLink, FileCode, Database, BarChart3, Cog, GitCommit } from 'lucide-react'
 import Link from 'next/link'
-import { fetchLeaderboard } from '@/lib/api'
+import { fetchBenchmarkVersions, fetchLeaderboard } from '@/lib/api'
+import { parseTaskCountFromReleaseNotes } from '@/lib/benchmark-metadata'
 import { buildQualityValueSentence } from '@/lib/model-families'
 import { calculateRanks, transformLeaderboardEntry } from '@/lib/transforms'
 
@@ -227,6 +228,18 @@ const BENCHMARK_CATEGORIES = [
     ]},
 ] as const
 
+const catalogTaskCount = BENCHMARK_CATEGORIES.reduce((sum, category) => sum + category.tasks.length, 0)
+
+async function loadLiveTaskCount(): Promise<number | null> {
+    try {
+        const versions = await fetchBenchmarkVersions()
+        const current = versions.versions.find((version) => version.is_current) ?? versions.versions[0]
+        return parseTaskCountFromReleaseNotes(current?.release_notes)
+    } catch {
+        return null
+    }
+}
+
 async function loadQualityValueSentence(): Promise<string> {
     try {
         const response = await fetchLeaderboard()
@@ -238,7 +251,10 @@ async function loadQualityValueSentence(): Promise<string> {
 }
 
 export default async function AboutPage() {
-    const qualityValueSentence = await loadQualityValueSentence()
+    const [qualityValueSentence, liveTaskCount] = await Promise.all([
+        loadQualityValueSentence(),
+        loadLiveTaskCount(),
+    ])
 
     return (
         <>
@@ -330,7 +346,7 @@ export default async function AboutPage() {
                         Current Benchmark Tasks
                     </h2>
                     <p className="text-muted-foreground mb-6">
-                        The benchmark includes 147 tasks across 11 categories, matching{' '}
+                        This page lists {catalogTaskCount} tasks across {BENCHMARK_CATEGORIES.length} categories, matching{' '}
                         <a
                             href="https://github.com/pinchbench/skill/blob/main/tasks/manifest.yaml"
                             target="_blank"
@@ -339,7 +355,10 @@ export default async function AboutPage() {
                         >
                             pinchbench/skill
                         </a>
-                        . Click a task to view its definition.
+                        . {liveTaskCount == null
+                            ? 'The current release notes do not report a task count.'
+                            : `Current release notes report ${liveTaskCount} tasks.`}
+                        {' '}Click a task to view its definition.
                     </p>
                     <div className="space-y-8">
                         {BENCHMARK_CATEGORIES.map((category) => (

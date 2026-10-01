@@ -38,7 +38,7 @@ export function ReleaseBanner() {
                 <p className="text-center text-sm pr-8 flex items-center justify-center gap-2">
                     <Sparkles className="h-4 w-4 text-orange-500" />
                     <span className="text-foreground font-medium">PinchBench 2.0 Released!</span>
-                    <span className="text-muted-foreground">148 tasks, parallel judging, thinking-level support</span>
+                    <span className="text-muted-foreground">Parallel judging and thinking-level support</span>
                     <a
                         href="https://github.com/pinchbench/skill/releases/tag/v2.0.0"
                         target="_blank"
