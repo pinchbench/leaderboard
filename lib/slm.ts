@@ -40,6 +40,12 @@ const OPEN_WEIGHTS_TOTAL_PARAMS_B = new Map<string, number>([
   // OpenRouter's free variant of the same weights.
   ["nvidia/nemotron-3-super-120b-a12b:free", 123.6],
   ["nvidia/nemotron-3-ultra-550b-a55b", 560.5],
+  // Hugging Face safetensors total of NVIDIA-Nemotron-3.5-Bolt-74B-A9B-BF16.
+  ["nvidia/nemotron-3.5-bolt-74b-a9b", 74.9],
+  // Same BF16 model under its explicit-precision name.
+  ["nvidia/nemotron-3.5-bolt-74b-a9b-bf16", 74.9],
+  // Same weights compressed to ~24 GB; quantization does not change the parameter count.
+  ["nvidia/nemotron-3.5-bolt-74b-a9b-24gb", 74.9],
   ["nvidia/nemotron-3.5-lightning-30b-a3b", 31.6],
   ["openai/gpt-oss-120b", 116.8],
   ["openai/gpt-oss-20b", 20.9],
