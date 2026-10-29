@@ -1,6 +1,5 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Footer } from '@/components/footer'
 import { PostHogProvider } from '@/components/posthog-provider'
 import { SiteNav } from '@/components/site-nav'
@@ -8,9 +7,6 @@ import { TopBanner } from '@/components/top-banner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import './globals.css'
-
-const _geist = Geist({ subsets: ['latin'] })
-const _geistMono = Geist_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://pinchbench.com'),

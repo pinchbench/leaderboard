@@ -379,7 +379,7 @@ export default async function AboutPage() {
                                             className="flex items-center justify-between gap-3 p-3 rounded-lg bg-card border border-border hover:border-primary transition-colors"
                                         >
                                             <span className="text-sm text-foreground font-medium min-w-0">{task.name}</span>
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider shrink-0">
+                                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider shrink-0">
                                                 {task.grading}
                                             </span>
                                         </a>

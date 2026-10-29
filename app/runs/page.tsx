@@ -81,7 +81,7 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
                       >
                         {sub.model}
                         {sub.official === false && (
-                          <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                          <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-300">
                             Unofficial
                           </span>
                         )}

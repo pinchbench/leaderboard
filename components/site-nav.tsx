@@ -32,10 +32,10 @@ export function SiteNav() {
               className="w-7 h-7 md:w-8 md:h-8"
             />
             <div className="hidden sm:block">
-              <p className="text-lg md:text-xl font-bold text-foreground tracking-tight">
-                PinchBench <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-secondary/50 border border-border/50 text-xs font-medium text-muted-foreground">v2</span>
+              <p className="text-lg font-semibold text-foreground tracking-tight">
+                PinchBench <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-secondary/50 border border-border/50 text-xs text-muted-foreground">v2</span>
               </p>
-              <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 OpenClaw Leaderboard
               </p>
             </div>
