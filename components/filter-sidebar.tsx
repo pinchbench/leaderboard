@@ -111,7 +111,7 @@ export function FilterSidebar({
             <Filter className="h-4 w-4 text-sidebar-foreground/70" />
             <span className="text-sm font-semibold text-sidebar-foreground">Filters</span>
             {activeFilterCount > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
                 {activeFilterCount}
               </span>
             )}
@@ -119,7 +119,7 @@ export function FilterSidebar({
           {activeFilterCount > 0 && (
             <button
               onClick={onClearAll}
-              className="text-[11px] text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors flex items-center gap-1"
+              className="text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors flex items-center gap-1"
             >
               <X className="h-3 w-3" />
               Clear
@@ -192,7 +192,7 @@ export function FilterSidebar({
                   return (
                     <div
                       key={p}
-                      className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-sidebar-accent text-[10px] font-medium text-sidebar-accent-foreground max-w-full"
+                      className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground max-w-full"
                     >
                       <span
                         className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -235,7 +235,7 @@ export function FilterSidebar({
                       style={{ backgroundColor: color }}
                     />
                     <span className="flex-1 truncate">{provider.displayName}</span>
-                    <span className="text-[10px] text-sidebar-foreground/50 tabular-nums">
+                    <span className="text-xs text-sidebar-foreground/50 tabular-nums">
                       {provider.count}
                     </span>
                   </label>
@@ -252,7 +252,7 @@ export function FilterSidebar({
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border px-3 py-2">
-        <p className="text-[10px] text-sidebar-foreground/50">
+        <p className="text-xs text-sidebar-foreground/50">
           Updated {lastUpdated}
         </p>
       </SidebarFooter>

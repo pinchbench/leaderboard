@@ -99,7 +99,7 @@ function ColumnTooltip({
 function SlmTag() {
   return (
     <span
-      className="rounded border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-300"
+      className="rounded border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-sky-300"
       title={`Small language model: open weights, up to ${SLM_MAX_TOTAL_PARAMS_B}B total parameters`}
     >
       SLM
@@ -297,7 +297,7 @@ export function SimpleLeaderboard({
         {badges.slice(0, 3).map((badge) => (
           <span
             key={badge.key}
-            className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200 whitespace-nowrap"
+            className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs font-semibold text-amber-200 whitespace-nowrap"
             title={`${badge.label} category champion`}
           >
             <span aria-hidden="true">👑</span>
@@ -589,7 +589,7 @@ export function SimpleLeaderboard({
                               {entry.model}
                             </code>
                             {entry.official === false && (
-                              <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                              <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-300">
                                 Unofficial
                               </span>
                             )}
@@ -699,7 +699,7 @@ export function SimpleLeaderboard({
                           </>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         Click for full task breakdown
                       </p>
                     </TooltipContent>
@@ -799,7 +799,7 @@ export function SimpleLeaderboard({
                           {entry.slm && <SlmTag />}
                           <span className="md:hidden">{renderBadges(entry)}</span>
                           {entry.official === false && (
-                            <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                            <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-300">
                               Unofficial
                             </span>
                           )}
@@ -972,7 +972,7 @@ export function SimpleLeaderboard({
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
                       {entry.slm && <SlmTag />}
                       {entry.official === false && (
-                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-300">
                           Unofficial
                         </span>
                       )}
@@ -995,7 +995,7 @@ export function SimpleLeaderboard({
                     <span className="text-sm font-medium text-foreground">
                       {formatValue(entry)}
                       {entry.submission_count != null && (
-                        <span className="ml-2 text-[10px] text-muted-foreground">{entry.submission_count} runs</span>
+                        <span className="ml-2 text-xs text-muted-foreground">{entry.submission_count} runs</span>
                       )}
                     </span>
                   </td>
@@ -1012,7 +1012,7 @@ export function SimpleLeaderboard({
                       <code className="text-xs md:text-sm font-mono truncate max-w-[150px] md:max-w-none">{entry.model}</code>
                       {entry.slm && <SlmTag />}
                       {entry.official === false && (
-                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                        <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-amber-300">
                           Unofficial
                         </span>
                       )}

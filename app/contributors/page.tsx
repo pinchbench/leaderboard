@@ -120,7 +120,7 @@ export default async function ContributorsPage() {
                                                 {person.repos.map((repo) => (
                                                     <span
                                                         key={repo}
-                                                        className="px-2 py-0.5 rounded-full bg-secondary/50 border border-border/50 text-[10px] text-muted-foreground"
+                                                        className="px-2 py-0.5 rounded-full bg-secondary/50 border border-border/50 text-xs text-muted-foreground"
                                                     >
                                                         {repo}
                                                     </span>

@@ -20,7 +20,7 @@ export function KiloClawAdCard() {
         <Card className="my-6 border-[#F8F675]/30 bg-gradient-to-r from-[#F8F675]/10 via-card to-[#F8F675]/5 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#F8F675]/50 bg-[#F8F675]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#F8F675]">
+                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#F8F675]/50 bg-[#F8F675]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#F8F675]">
                         <span>Totally An Ad</span>
                     </div>
                     <p className="text-lg font-semibold text-foreground">
