@@ -10,6 +10,59 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Two families only. `font-serif` intentionally maps to the sans stack so a
+        // stray serif utility can never reintroduce a third voice.
+        sans: [
+          'ui-sans-serif',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+        mono: [
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Consolas',
+          'Liberation Mono',
+          'monospace',
+        ],
+        serif: [
+          'ui-sans-serif',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+      },
+      // Two weights only: 400 for reading, 600 for emphasis. 500/700 map onto them so
+      // existing `font-medium` / `font-bold` usages resolve to the same two voices.
+      fontWeight: {
+        normal: '400',
+        medium: '400',
+        semibold: '600',
+        bold: '600',
+      },
+      // Four sizes only: meta (12) / ui (14) / reading (16) / title (20).
+      // The micro sizes 9/10/11 collapse into meta so badges stop shrinking below legibility.
+      fontSize: {
+        '2xs': '12px',
+        xs: '12px',
+        sm: '14px',
+        base: '16px',
+        lg: '16px',
+        xl: '20px',
+        '2xl': '20px',
+        '3xl': '20px',
+        '4xl': '20px',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

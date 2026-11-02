@@ -122,7 +122,7 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
                     {(selectedGroup?.isCurrent || !currentVersion) && (
                         <Badge
                             variant="outline"
-                            className="text-[10px] px-1.5 py-0 h-4 border-green-500/50 text-green-500"
+                            className="text-xs px-1.5 py-0 h-4 border-green-500/50 text-green-500"
                         >
                             Current
                         </Badge>
@@ -203,7 +203,7 @@ export function VersionSelector({ versions, currentVersion }: VersionSelectorPro
                             {group.isCurrent && (
                                 <Badge
                                     variant="outline"
-                                    className="text-[10px] px-1.5 py-0 h-4 border-green-500/50 text-green-500 shrink-0"
+                                    className="text-xs px-1.5 py-0 h-4 border-green-500/50 text-green-500 shrink-0"
                                 >
                                     Current
                                 </Badge>

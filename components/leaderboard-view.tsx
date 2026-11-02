@@ -394,9 +394,9 @@ export function LeaderboardView({ entries, lastUpdated, versions, currentVersion
 
             {/* Hero tagline */}
             <section className="max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-2" data-share-exclude="true">
-                <h2 className="text-2xl md:text-4xl font-serif font-medium text-foreground leading-tight">
+                <h2 className="text-2xl md:text-4xl font-semibold text-foreground leading-tight tracking-tight">
                     The best <span className="text-orange-400">models</span> for your{' '}
-                    <a href="https://openclaw.ai/" target="_blank" rel="noopener noreferrer" className="italic hover:underline hover:text-orange-300 transition-colors">
+                    <a href="https://openclaw.ai/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline hover:text-orange-300 transition-colors">
                         OpenClaw
                     </a>{' '}
                     agent.

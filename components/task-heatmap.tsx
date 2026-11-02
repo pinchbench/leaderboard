@@ -458,7 +458,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
             </button>
           </div>
           {sortBy === 'score' && categoryFilterActive ? (
-            <p className="text-[11px] text-muted-foreground max-w-xl pl-0 sm:pl-[5.5rem] sm:text-xs">
+            <p className="text-xs text-muted-foreground max-w-xl pl-0 sm:pl-[5.5rem] sm:text-xs">
               Rank and model % use aggregate points only over visible tasks.
             </p>
           ) : null}
@@ -525,7 +525,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                           style={{ height: 80 }}
                         >
                           <span
-                            className="block whitespace-nowrap text-[9px] origin-bottom-left"
+                            className="block whitespace-nowrap text-xs origin-bottom-left"
                             style={{
                               transform: 'rotate(-55deg)',
                               transformOrigin: 'center center',
@@ -564,7 +564,7 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                             {model.model}
                           </span>
                           {categoryFilterActive && filteredTasks.length > 0 ? (
-                            <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                            <span className="text-xs text-muted-foreground mt-0.5 block">
                               {Math.round(modelFilteredPercentage.get(model.model) ?? 0)}%
                               <span className="text-muted-foreground/70"> · visible tasks</span>
                             </span>
@@ -593,14 +593,14 @@ export function TaskHeatmap({ entries, selectedCategories, onCategoriesChange }:
                         >
                           {hasData && (
                             <span
-                              className="text-[10px] font-medium"
+                              className="text-xs font-medium"
                               style={{ color: getScoreTextColor(ratio) }}
                             >
                               {Math.round(ratio * 100)}
                             </span>
                           )}
                           {!hasData && (
-                            <span className="text-muted-foreground/30 text-[10px]">-</span>
+                            <span className="text-muted-foreground/30 text-xs">-</span>
                           )}
 
                           {/* Tooltip */}

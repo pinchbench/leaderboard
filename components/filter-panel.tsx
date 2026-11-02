@@ -124,7 +124,7 @@ export function FilterPanel({
           <SlidersHorizontal className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {activeFilterCount}
             </span>
           )}
@@ -283,7 +283,7 @@ export function FilterPanel({
                   <button
                     key={preset.value}
                     onClick={() => onMaxCostFilterChange(preset.value)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                       maxCostFilter === preset.value
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-secondary/50 text-muted-foreground border-border hover:text-foreground hover:bg-secondary'
@@ -422,7 +422,7 @@ export function FilterPanel({
                       return (
                         <div
                           key={p}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/50 text-[10px] font-medium"
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary/50 text-xs font-medium"
                         >
                           <span
                             className="w-1.5 h-1.5 rounded-full"
@@ -465,7 +465,7 @@ export function FilterPanel({
                           style={{ backgroundColor: color }}
                         />
                         <span className="flex-1 truncate">{provider.displayName}</span>
-                        <span className="text-[10px] text-muted-foreground tabular-nums">
+                        <span className="text-xs text-muted-foreground tabular-nums">
                           {provider.count}
                         </span>
                       </label>

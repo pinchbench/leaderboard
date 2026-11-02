@@ -56,13 +56,12 @@ export function CategoryPills({
             disabled={disabled}
             title={category.description}
             aria-pressed={active}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors border disabled:opacity-60 disabled:cursor-wait ${
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-colors border disabled:opacity-60 disabled:cursor-wait ${
               active
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
             }`}
           >
-            <span aria-hidden="true">{category.icon}</span>
             <span>{category.shortLabel}</span>
           </button>
         )

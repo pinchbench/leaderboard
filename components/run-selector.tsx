@@ -148,14 +148,14 @@ export function RunSelector({ model, currentSubmissionId, officialOnly }: RunSel
               {/* Best badge, pushed to the right */}
               <div className="ml-auto flex items-center gap-2">
                 {taskCountLabel && (
-                  <span className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                  <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                     {taskCountLabel}
                   </span>
                 )}
                 {sub.is_best && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] px-1.5 py-0 h-4 border-yellow-500/50 text-yellow-500"
+                    className="text-xs px-1.5 py-0 h-4 border-yellow-500/50 text-yellow-500"
                   >
                     Best
                   </Badge>
@@ -163,7 +163,7 @@ export function RunSelector({ model, currentSubmissionId, officialOnly }: RunSel
                 {sub.official === false && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] px-1.5 py-0 h-4 border-amber-500/50 text-amber-300"
+                    className="text-xs px-1.5 py-0 h-4 border-amber-500/50 text-amber-300"
                   >
                     Unofficial
                   </Badge>

@@ -16,10 +16,10 @@ export function PoweredByBanner() {
         <div className="bg-gradient-to-r from-[#F8F675]/15 via-[#F8F675]/8 to-[#F8F675]/15 border-b border-[#F8F675]/30">
             <div className="max-w-7xl mx-auto px-6 py-2.5">
                 <p className="text-center text-sm flex flex-wrap items-center justify-center gap-2">
-                    <span className="inline-flex items-center rounded-full border border-[#F8F675]/50 bg-[#F8F675]/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#F8F675]">
+                    <span className="inline-flex items-center rounded-full border border-[#F8F675]/50 bg-[#F8F675]/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#F8F675]">
                         Totally An Ad
                     </span>
-                    <span className="text-foreground font-medium">
+                    <span className="text-foreground">
                         The open source AI coding agent with 500+ models.
                     </span>
                     <span className="text-muted-foreground hidden sm:inline">

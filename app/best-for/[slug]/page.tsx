@@ -72,8 +72,8 @@ export default async function BestForPage({ params, searchParams }: BestForPageP
           <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
             <VersionSelector versions={versionsResponse.versions} currentVersion={version ?? null} />
           </div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">Best For</p>
-          <h1 className="max-w-3xl text-3xl font-bold tracking-tight text-foreground md:text-5xl">{config.title}</h1>
+          <p className="mb-2 text-xs text-primary">Best For</p>
+          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground md:text-5xl">{config.title}</h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">{config.description}</p>
         </div>
       </header>
